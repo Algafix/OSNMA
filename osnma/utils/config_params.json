@@ -1,0 +1,20 @@
+{
+  "scenario_path": "",
+  "exec_path": "",
+  "merkle_name": "OSNMA_MerkleTree.xml",
+  "pubk_name": "",
+  "kroot_name": "",
+
+  "file_log_level": "info",
+  "console_log_level": "debug",
+  "log_console": true,
+  "logs_path": "",
+
+  "sync_source": 0,
+  "sync_time": null,
+  "tl": 30,
+  "b": 1,
+
+  "ns": 36,
+  "tag_length": 80
+}
