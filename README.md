@@ -3,9 +3,36 @@ OSNMAlib
 
 OSNMAlib is an open source Python library that can be integrated in existing receivers and applications to incorporate 
 navigation message authentication to the positioning process. It can read the Galileo I/NAV pages when received, store 
-the navigation and authentication data, perform the authentication verification, and report the status. The platform 
-allows also to optimize the OSNMA processing in order to reduce time to authenticated fix, and improve availability, 
-among other improvements.
+the navigation and authentication data, perform the authentication verification, and report the status.
+
+Features
+---
+
+Currently supported:
+
+  * Verification of the public key retrieved from the DSM-PKR message.
+  * Verification of the TESLA root key retrieved from the DSM-KROOT message (all algorithms).
+  * Verification of a TESLA key against a root key or a previously authenticated key.
+  * Verification of the MACK message structure:
+    * ADKD sequence.
+    * MACSEQ value.
+    * FLX tags.
+  * Verification of the ADKD 0, ADKD 4 and ADKD 12 tags.
+  * Authentication of the navigation data.
+  * Support for Cold Start, Warm Start and Hot Start.
+  * Support for the following events: EOC, NPK, PKREV.
+    * Missing data to validate the CREV and OAM events.
+  * Multiple tests with real recorded data from the 6 configurations of the Internal Test Phase and the current Test Phase configuration (conf 7).
+
+Future development:
+
+  * Support for SBF directly (no conversion to SBF Ascii).
+  * Development of an input iterator for real-time navigation data.
+    * Integration with SBF logging real-time navigation data.
+    * Integration with Galmon real-time navigation data.
+  * TTFAF metric displayed in the logs.
+  * Time synchronization options.
+
 
 Test Execution
 ---
@@ -14,16 +41,12 @@ The software is provided with several test scenarios under the folder `tests/sce
 different configurations and events of the OSNMA protocol. The data used by this tests was recorded on the OSNMA 
 Internal and Public Test Phases (2020 - 2022).
 
-The tests can be run by executing the file `receiver_test.py` under `tests/` folder. Keep in mind that this 
-execution may take a while, since each test comprises several hours of satellite data.
+To run the test is recommended to use the Python framework `pytest`, although they can be run calling the traditional 
+Python interpreter. Keep in mind that this execution may take a few minutes, since each test comprises several hours of satellite data.
 
 By default, all tests are executed with `info` logging level on the file handler. That is, the log files will
 contain the maximum amount of information. This log files are stored under the folder `tests/test_logs`.
 For each sub-test (in this case, for each scenario) a subfolder is created with the name format `logs_YYYYmmdd_HHMMSS`.
-Finally, the log files are stored inside their respective subfolder.
-
-To run the test is recommended to use the Python framework `pytest`, although they can be run calling the traditional 
-Python interpreter.
 
 ### Pytest
 
@@ -118,22 +141,22 @@ Those configuration parameters are:
 
 
 Support
----
+===
 
 If you are having issues, please use the Issue page in GitHub.
 
 License
----
+===
 
 The project is licensed under the EUPL.
 
 About
----
+===
 
 The research leading to this work has been supported by European Commission contract SI2.823546/9 and by the Spanish Ministry of Science and Innovation project PID2020-118984GB-I00. 
 
 Disclaimer
----
+===
 
 OSNMAlib has not been developed or tested operationally. OSNMAlib users use it at their own risk, without any guarantee or liability from the code authors or the Galileo OSNMA signal provider.
 
