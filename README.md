@@ -127,6 +127,11 @@ License
 
 The project is licensed under the EUPL.
 
+About
+---
+
+The research leading to this work has been supported by European Commission contract SI2.823546/9 and by the Spanish Ministry of Science and Innovation project PID2020-118984GB-I00. 
+
 Disclaimer
 ---
 
