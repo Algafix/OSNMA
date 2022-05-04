@@ -33,9 +33,16 @@ Future development:
   * TTFAF metric displayed in the logs.
   * Time synchronization options.
 
+Documentation
+---
+
+NAVITEC Conference
+  * [OSNMAlib Paper](OSNMAlib_NAVITEC2022.pdf)
+  * [Youtube Presentation](https://www.youtube.com/watch?v=IVPzVM5GdKs)
+ 
 
 Test Execution
----
+===
 
 The software is provided with several test scenarios under the folder `tests/scenarios/`. The scenarios cover 
 different configurations and events of the OSNMA protocol. The data used by this tests was recorded on the OSNMA 
@@ -48,7 +55,8 @@ By default, all tests are executed with `info` logging level on the file handler
 contain the maximum amount of information. This log files are stored under the folder `tests/test_logs`.
 For each sub-test (in this case, for each scenario) a subfolder is created with the name format `logs_YYYYmmdd_HHMMSS`.
 
-### Pytest
+Pytest
+---
 
 The `pytest` framework is the easiest way to execute the OSNMA Open Implementation receiver tests. To do so, the 
 following shell commands are provided. Note that the users interpreter work directory is assumed to be the top
@@ -60,7 +68,8 @@ $ cd tests
 $ pytest receiver_test.py
 ```
 
-### Python interpreter
+Python interpreter
+---
 
 The tests can also be executed using the traditional Python interpreter. In that case, the following shell commands 
 should be executed.
@@ -72,13 +81,14 @@ $ python3 receiver_test.py
 ```
 
 Execution with Custom Data
----
+===
 
 The OSNMA Open Implementation receiver can be used with custom data files. However, the receiver is only guaranteed to 
 work with data consistent with the OSNMA User ICD for the Test Phase version 1.0.
 
 
-### Data Format
+Data Format
+---
 
 The receiver works by instantiating an iterator that, for each iteration, returns the iteration index and a `DataFormat`
 object. The `DataFormat` class and the different iterators are defined under the Python file `osnma/receiver/input.py`.
@@ -98,7 +108,7 @@ signal frequency band supported by the receiver is the E1-B, identified with the
 specified, the receiver will take that as default. The CRC status is a boolean value that indicated if the page has 
 passed the CRC verification, it is set to `True` by default.
 
-#### Septentrio Binary Format
+### Septentrio Binary Format
 
 If the custom navigation data is available in Septentrio Binary Format (SBF), the receiver already includes the input 
 iterator `SBFAscii` to handle it. However, the SBF file should be converted to ASCII readable format with the SBF 
@@ -108,14 +118,15 @@ To do so, in the SBF Converter software, the conversion option `bin2asc` should 
 Then, select only the `GALRawINAV` message and no other option. The generated `.txt` file is a CSV file with comma 
 separators and can be directly used by the `SBFAscii` input iterator.
 
-#### Custom format
+### Custom format
 
 If the custom format of the data is not supported by the receiver, a new input iterator should be developed following
 the instructions in Section Data Format. The new input iterator can be forwarded as a parameter to the receiver as any 
 of the native input iterators without any difference.
 
 
-### Receiver Options
+Receiver Options
+---
 
 The receiver has several configuration parameters that can be defined previous to execution. Those parameters can be 
 specified within code in a Python dictionary or in a separate JSON File and served as an input parameter to the 
