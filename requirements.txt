@@ -2,8 +2,8 @@ bitstring==3.1.7
 ecdsa==0.16.1
 wrapt==1.12.1
 six==1.15.0
-pandas==1.2.3
+pandas==1.4.2
 pycodestyle==2.7.0
 pydocstyle==6.0.0
-pytest==6.2.2
+pytest==7.1.2
 pycryptodome==3.10.1
