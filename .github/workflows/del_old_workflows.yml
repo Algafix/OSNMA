@@ -4,6 +4,17 @@ on:
     - cron: '0 0 1 * *'
 # Run monthly, at 00:00 on the 1st day of month.
 
+  workflow_dispatch:
+    inputs:
+      days:
+        description: 'Number of days.'
+        required: true
+        default: 30
+      minimum_runs:
+        description: 'The minimum runs to keep for each workflow.'
+        required: true
+        default: 6
+
 jobs:
   del_runs:
     runs-on: ubuntu-latest
