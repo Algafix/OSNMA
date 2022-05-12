@@ -1,9 +1,15 @@
+[![Python 3.8](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_38.yml/badge.svg)](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_38.yml)
+[![Python 3.9](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_39.yml/badge.svg)](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_39.yml)
+[![Python 3.10](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_310.yml/badge.svg)](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_310.yml)
+
 OSNMAlib
 ========
 
 OSNMAlib is an open source Python library that can be integrated in existing receivers and applications to incorporate 
 navigation message authentication to the positioning process. It can read the Galileo I/NAV pages when received, store 
 the navigation and authentication data, perform the authentication verification, and report the status.
+
+Supports Python 3.8, 3.9 and 3.10.
 
 Features
 ---
