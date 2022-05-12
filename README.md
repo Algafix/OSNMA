@@ -9,7 +9,7 @@ OSNMAlib is an open source Python library that can be integrated in existing rec
 navigation message authentication to the positioning process. It can read the Galileo I/NAV pages when received, store 
 the navigation and authentication data, perform the authentication verification, and report the status.
 
-Supports Python 3.8, 3.9 and 3.10.
+Supports Python 3.8, 3.9 and 3.10. Tested on Linux and Windows.
 
 Features
 ---
