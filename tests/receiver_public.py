@@ -19,6 +19,7 @@ sys.path.insert(0, '..')
 
 from osnma.receiver.receiver import OSNMAReceiver
 from osnma.receiver.input import SBFAscii
+from osnma.receiver.input_sbf import SBF
 
 
 def sbf_config1():
@@ -309,13 +310,33 @@ def sbf_config1_wrong_kroot_id():
     osnma_r.start(max_iter)
 
 
+def sbf_config1_bin():
+
+    config_dict = {
+        'scenario_path': 'd339.sbf',
+        'exec_path': 'scenarios/config1/',
+        'pubk_name': 'OSNMA_PublicKey_1.xml'
+    }
+
+    #max_iter = 600
+    # ADKD12
+    # max_iter = 1400
+    max_iter = 40000  # 3349 Authenticated
+
+    #input_module = SBFAscii(config_dict['scenario_path'])
+    input_module = SBF(config_dict['scenario_path'])
+    osnma_r = OSNMAReceiver(input_module, config_dict)
+
+    osnma_r.start(max_iter)
+
 if __name__ == "__main__":
 
     #sbf_config1()
+    sbf_config1_bin()
     #sbf_config2()
     #sbf_config4()
     #sbf_config5()
-    sbf_config7()
+    #sbf_config7()
 
     #sbf_eoc_1()
 
