@@ -22,6 +22,7 @@ from pathlib import Path
 
 from osnma.receiver.receiver import OSNMAReceiver
 from osnma.receiver.input import SBFAscii
+from osnma.receiver.input_sbf import SBF
 import osnma.utils.logger_factory as logger_factory
 LOGS_PATH = Path(__file__).parent / 'test_logs/'
 
@@ -44,13 +45,13 @@ def test_sbf_config1(log_level=logging.INFO):
     config_dict = {
         'console_log_level': log_level,
         'logs_path': LOGS_PATH,
-        'scenario_path': Path(__file__).parent / 'scenarios/config1/nominal_noheaders.csv',
+        'scenario_path': Path(__file__).parent / 'scenarios/config1/config1.sbf',
         'exec_path': Path(__file__).parent / 'scenarios/config1/',
         'pubk_name': 'OSNMA_PublicKey_1.xml'
     }
 
     max_iter = 40000  # 3349 Authenticated
-    input_module = SBFAscii(config_dict['scenario_path'])
+    input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
     osnma_r.start(max_iter)
 
@@ -77,13 +78,13 @@ def test_sbf_config2(log_level=logging.INFO):
     config_dict = {
         'console_log_level': log_level,
         'logs_path': LOGS_PATH,
-        'scenario_path': Path(__file__).parent / 'scenarios/config2/conf2_nominal_noheaders.csv',
+        'scenario_path': Path(__file__).parent / 'scenarios/config2/config2.sbf',
         'pubk_name': 'OSNMA_PublicKey_3.xml',
         'exec_path': Path(__file__).parent / 'scenarios/config2/'
     }
 
     max_iter = 40000  # 5507 authenticated # 40 failed (CRC)
-    input_module = SBFAscii(config_dict['scenario_path'])
+    input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
     osnma_r.start(max_iter)
 
@@ -112,13 +113,13 @@ def test_sbf_config5(log_level=logging.INFO):
     config_dict = {
         'console_log_level': log_level,
         'logs_path': LOGS_PATH,
-        'scenario_path': Path(__file__).parent / 'scenarios/config5/conf5_nominal_noheaders.csv',
+        'scenario_path': Path(__file__).parent / 'scenarios/config5/config5.sbf',
         'pubk_name': 'OSNMA_PublicKey_8.xml',
         'exec_path': Path(__file__).parent / 'scenarios/config5/'
     }
 
     max_iter = 60000  # 5039 authenticated # 21 failed (CRC)
-    input_module = SBFAscii(config_dict['scenario_path'])
+    input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
     osnma_r.start(max_iter)
 
@@ -180,13 +181,13 @@ def test_sbf_eoc_1(log_level=logging.INFO):
     config_dict = {
         'console_log_level': log_level,
         'logs_path': LOGS_PATH,
-        'scenario_path': Path(__file__).parent / 'scenarios/eoc/eoc_noheaders.csv',
+        'scenario_path': Path(__file__).parent / 'scenarios/eoc/eoc.sbf',
         'pubk_name': 'OSNMA_PublicKey_9.xml',
         'exec_path': Path(__file__).parent / 'scenarios/eoc/'
     }
 
     max_iter = 14000  # 5945 # 4 failed (crc)
-    input_module = SBFAscii(config_dict['scenario_path'])
+    input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
     osnma_r.start(max_iter)
 
@@ -219,13 +220,13 @@ def test_sbf_npk_1(log_level=logging.INFO):
     config_dict = {
         'console_log_level': log_level,
         'logs_path': LOGS_PATH,
-        'scenario_path': Path(__file__).parent / 'scenarios/npk_1/npk_1_noheaders.csv',
+        'scenario_path': Path(__file__).parent / 'scenarios/npk_1/npk_1.sbf',
         'pubk_name': 'OSNMA_PublicKey_3.xml',
         'exec_path': Path(__file__).parent / 'scenarios/npk_1/'
     }
 
     max_iter = 40000  # 6184 authenticated
-    input_module = SBFAscii(config_dict['scenario_path'])
+    input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
     osnma_r.start(max_iter)
 
@@ -254,13 +255,13 @@ def test_sbf_npk_2(log_level=logging.INFO):
     config_dict = {
         'console_log_level': log_level,
         'logs_path': LOGS_PATH,
-        'scenario_path': Path(__file__).parent / 'scenarios/npk_2/npk_2_noheaders.csv',
+        'scenario_path': Path(__file__).parent / 'scenarios/npk_2/npk_2.sbf',
         'pubk_name': 'OSNMA_PublicKey_4.xml',
         'exec_path': Path(__file__).parent / 'scenarios/npk_2/'
     }
 
     max_iter = 40000  # 7526 Authenticated # 8 failed (CRC)
-    input_module = SBFAscii(config_dict['scenario_path'])
+    input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
     osnma_r.start(max_iter)
 
@@ -326,13 +327,13 @@ def test_sbf_pkrev_1(log_level=logging.INFO):
     config_dict = {
         'console_log_level': log_level,
         'logs_path': LOGS_PATH,
-        'scenario_path': Path(__file__).parent / 'scenarios/pkrev_1/pkrev_1_noheaders.csv',
+        'scenario_path': Path(__file__).parent / 'scenarios/pkrev_1/pkrev_1.sbf',
         'pubk_name': 'OSNMA_PublicKey_4.xml',
         'exec_path': Path(__file__).parent / 'scenarios/pkrev_1/'
     }
 
     max_iter = 40000  # 5357 # 11 crc failed # 2 broken subframe
-    input_module = SBFAscii(config_dict['scenario_path'])
+    input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
     osnma_r.start(max_iter)
 
@@ -367,12 +368,12 @@ def test_sbf_pkrev_2(log_level=logging.INFO):
     config_dict = {
         'console_log_level': log_level,
         'logs_path': LOGS_PATH,
-        'scenario_path': Path(__file__).parent / 'scenarios/pkrev_2/pkrev_2_noheaders.csv',
+        'scenario_path': Path(__file__).parent / 'scenarios/pkrev_2/pkrev_2.sbf',
         'exec_path': Path(__file__).parent / 'scenarios/pkrev_2/'
     }
 
     max_iter = 40000  # 1720 # 17 crc failed # 2 broken subframes
-    input_module = SBFAscii(config_dict['scenario_path'])
+    input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
     osnma_r.start(max_iter)
 
@@ -403,13 +404,13 @@ def test_sbf_pkrev_2_with_pk(log_level=logging.INFO):
     config_dict = {
         'console_log_level': log_level,
         'logs_path': LOGS_PATH,
-        'scenario_path': Path(__file__).parent / 'scenarios/pkrev_2_with_pk/pkrev_2_noheaders.csv',
+        'scenario_path': Path(__file__).parent / 'scenarios/pkrev_2_with_pk/pkrev_2.sbf',
         'pubk_name': 'OSNMA_PublicKey_5.xml',
         'exec_path': Path(__file__).parent / 'scenarios/pkrev_2_with_pk/'
     }
 
     max_iter = 40000  # 1721 # 17 crc failed # 2 broken subframe
-    input_module = SBFAscii(config_dict['scenario_path'])
+    input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
     osnma_r.start(max_iter)
 
