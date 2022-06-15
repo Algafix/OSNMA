@@ -100,7 +100,7 @@ needs to contain the GALRawINAV blocks.
 
 The folder `custom_run/` contains the current Merkle Tree and Public Key, both downloaded form the official [GSC](https://www.gsc-europa.eu/) website. If the data you want to run is older than October 2021 you'll need to provide your own files.
 
-The `run.py` script accepts one positional parameter with the name of the SBF file to run. If no parameter is specified, then it runs the file `current_config.py` that is provided by default.
+The `run.py` script accepts one positional parameter with the name of the SBF file to run. If no parameter is specified, then it runs the file `current_config.sbf` that is provided by default.
 
 To run from a fresh installation with the shell located at the top folder of the git:
 
