@@ -92,6 +92,24 @@ Execution with Custom Data
 The OSNMA Open Implementation receiver can be used with custom data files. However, the receiver is only guaranteed to 
 work with data consistent with the OSNMA User ICD for the Test Phase version 1.0.
 
+Quick run your own SBF file
+---
+
+If you want to run OSNMAlib againts your own SBF file we have a quick pre-programmed way to do so. Note that the SBF file
+needs to contain the GALRawINAV blocks.
+
+The folder `custom_run/` contains the current Merkle Tree and Public Key, both downloaded form the official [GSC](https://www.gsc-europa.eu/) website. If the data you want to run is older than October 2021 you'll need to provide your own files.
+
+The `run.py` script accepts one positional parameter with the name of the SBF file to run. If no parameter is specified, then it runs the file `current_config.py` that is provided by default.
+
+To run from a fresh installation with the shell located at the top folder of the git:
+
+```
+$ pip install -r requirements.txt
+$ cd custom_run
+$ python run.py [filename]
+```
+
 
 Data Format
 ---
@@ -117,12 +135,11 @@ passed the CRC verification, it is set to `True` by default.
 ### Septentrio Binary Format
 
 If the custom navigation data is available in Septentrio Binary Format (SBF), the receiver already includes the input 
-iterator `SBFAscii` to handle it. However, the SBF file should be converted to ASCII readable format with the SBF 
-Converter included in the free Septentrio RXTools suite.
+iterator `SBF` to handle it (located at `osnma/receiver/input_sbf.py`). The SBF file used needs to contain the block
+with the raw Galileo INAV bits (GALRawINAV) so the OSNMAlib can process them.
 
-To do so, in the SBF Converter software, the conversion option `bin2asc` should be selected.
-Then, select only the `GALRawINAV` message and no other option. The generated `.txt` file is a CSV file with comma 
-separators and can be directly used by the `SBFAscii` input iterator.
+We are also including the iterator `SBFAscii` (located at `osnma/receiver/input.py`) for the cases where the GALRawINAV
+data is in SBF ascii mode (converted from an SBF file using the official tools).
 
 ### Custom format
 
