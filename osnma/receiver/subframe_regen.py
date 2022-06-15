@@ -66,8 +66,8 @@ class SubFrameRegenerator:
     def get_regenerated_blocks(self):
         complete_blocks = []
         for bid, block in dict(self.block_dict).items():
-            if self._is_block_complete(block):
-                complete_blocks.append((block, bid))
+            if full_block := self._is_block_complete(block):
+                complete_blocks.append((full_block, bid))
                 self.block_dict.pop(bid)
         return complete_blocks
 

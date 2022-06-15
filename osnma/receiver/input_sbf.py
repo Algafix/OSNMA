@@ -1,4 +1,6 @@
 
+import socket
+
 from bitstring import BitArray
 
 from osnma.receiver.input import DataFormat
@@ -207,6 +209,52 @@ class SBF:
             else:
                 self.file_pos += 1
                 self.file.seek(self.file_pos)
+
+        if data_format is None:
+            raise StopIteration
+
+        return self.index, data_format
+
+
+class SBFLive:
+
+    def __init__(self, host, port):
+
+        self.index = -1
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s.connect((host, port))
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+
+        data_format = None
+        self.index += 1
+
+        while sync := self.s.recv(2):
+            if sync == SYNC:
+                header = sync + self.s.recv(6)
+                crc, block_id, length, block_num, rev_num = parse_header(header)
+
+                if length % 4 != 0:
+                    continue
+
+                block = header + self.s.recv(length - 8)
+                calculated_crc = crc_calculation(block[4:])
+
+                if calculated_crc != crc:
+                    continue
+
+                if block_id == 4023:
+                    tow, wn_c, svid, crc_passed, band, nav_bits_hex = parse_GALRawINAV(block)
+                    if band == 'GAL_L1BC' and tow != 'DNU' and wn_c != 'DNU':
+                        tow = tow // 1000 - 2
+                        wn = wn_c - 1024
+                        nav_bits = BitArray(hex="".join(nav_bits_hex))[:234]
+                        nav_bits.insert('0b000000', 114)
+                        data_format = DataFormat(svid, wn, tow, nav_bits, band, crc_passed)
+                        break
 
         if data_format is None:
             raise StopIteration

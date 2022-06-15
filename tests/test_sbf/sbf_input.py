@@ -75,14 +75,14 @@ def crc_calculation(data, crc=0):
 
 
 def print_nav_page_block(
-        tow, wn_c, svid, crc_passed, viterbi, source, rx_channel, nav_bits):
+        tow, wn_c, svid, crc_passed, source, nav_bits):
+    print(f"\nNEW BLOCK")
     print(f"ToW ms: {tow}, ToW s {tow // 1000}, WN: {wn_c}")
     print(f"SVId:\t\t{svid}")
     print(f"CRC:\t\t{crc_passed}")
-    print(f"Viterbi:\t{viterbi}")
-    print(f"Signal type:\t{source[0]}")
-    print(f"Rx Channel:\t{rx_channel}")
+    print(f"Signal type:\t{source}")
     print(f"Navigation bits in hex: \n {nav_bits}")
+    print()
 
 
 def csv_nav_page_block(tow, wn_c, svid, crc_passed, viterbi_errors, source, rx_channel, nav_bits_hex):
@@ -96,7 +96,7 @@ def parse_header(header):
     number and block revision.
 
     :param header: Bytes object with the 8 byte header.
-    :return: Tuple with the values (bytes) crc, (int) id, (int) length, (int) block_num, (int) rev_num. 
+    :return: Tuple with the values (bytes) crc, (int) id, (int) length, (int) block_num, (int) rev_num.
 
     """
 
@@ -166,7 +166,7 @@ def parse_GALRawINAV(block):
     source = signal_type[block[SOURCE] & SIGNAL_MASK]
     nav_bits_hex = parse_nav_bits(block[NAV_START:NAV_START + 4 * GALRawINAV_NAV_BYTES])
 
-    # print_nav_page_block(tow, wn_c, svid, crc_passed, viterbi_errors, source, rx_channel, nav_bits_hex)
+    print_nav_page_block(tow, wn_c, svid, crc_passed, source, nav_bits_hex)
     # return csv_nav_page_block(tow, wn_c, svid, crc_passed, viterbi_errors, source, rx_channel, nav_bits_hex)
     return tow, wn_c, svid, crc_passed, source, nav_bits_hex
 
@@ -176,7 +176,7 @@ def parse_GALRawINAV(block):
 
 if __name__ == '__main__':
 
-    sbf_file = open("d339.sbf", 'br')
+    sbf_file = open("current_config.sbf", 'br')
 
     file_pos = sbf_file.tell()
     while header := sbf_file.read(8):

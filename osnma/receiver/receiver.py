@@ -36,12 +36,12 @@ def load_configuration_parameters(custom_parameters):
         param_dict.update(custom_parameters)
 
     if 'exec_path' in param_dict:
-        config.EXEC_PATH = str(param_dict['exec_path'])
+        config.EXEC_PATH = Path(param_dict['exec_path'])
     else:
         raise AttributeError("The 'exec_path' is a mandatory parameter.")
 
     if 'scenario_path' in param_dict:
-        config.SCENARIO_PATH = str(param_dict['scenario_path'])
+        config.SCENARIO_PATH = Path(param_dict['scenario_path'])
     else:
         raise AttributeError("The 'scenario_path' is a mandatory parameter.")
 
@@ -78,7 +78,7 @@ def load_configuration_parameters(custom_parameters):
         config.LOG_CONSOLE = param_dict['log_console']
 
     if 'logs_path' in param_dict:
-        config.LOGS_PATH = str(param_dict['logs_path']) if param_dict['logs_path'] else config.EXEC_PATH
+        config.LOGS_PATH = Path(param_dict['logs_path']) if param_dict['logs_path'] else Path(config.EXEC_PATH)
 
     if 'sync_source' in param_dict:
         config.SYNC_SOURCE = param_dict['sync_source']
@@ -141,7 +141,7 @@ class OSNMAReceiver:
 
         return self._sync_calculation(t_ref, data.wn)
 
-    def start(self, max_iter):
+    def start(self, max_iter=0):
 
         for index, data in self.nav_data_input:
 
@@ -189,6 +189,6 @@ class OSNMAReceiver:
                         logger.info(satellite.get_subframe()[0])
                     logger.info(f"No OSNMA data.")
 
-            if index > max_iter:
+            if 0 < max_iter < index:
                 logger.info("Exit by reaching max iters.")
                 return

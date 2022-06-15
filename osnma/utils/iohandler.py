@@ -32,12 +32,11 @@ logger = logger_factory.get_logger(__name__)
 
 class IOHandler:
 
-    def __init__(self, path=''):
-        path = path+'/' if (len(path) > 1 and path[-1] != '/') else path
+    def __init__(self, path):
         self.path = path
 
     def read_merkle_root(self, file_name):
-        with open(self.path+file_name, 'r') as merkle_file:
+        with open(self.path / file_name, 'r') as merkle_file:
             try:
                 file_text = merkle_file.read()
                 tree_nodes = file_text.split('<TreeNode>')[1:]
@@ -49,7 +48,7 @@ class IOHandler:
         return BitArray(hex=merkle_root)
 
     def read_pubk(self, file_name):
-        with open(self.path+file_name, 'r') as pubk_file:
+        with open(self.path / file_name, 'r') as pubk_file:
             try:
                 file_text = pubk_file.read()
                 pubk_id = int(re.findall(r'<PKID>(.*?)</PKID>', file_text)[0])
@@ -84,7 +83,7 @@ class IOHandler:
         if not pkr.is_verified():
             raise Exception(f'Saving a Public Key that has not been verified. PKID: {pubk_id}')
 
-        with open(self.path + f'OSNMA_PublicKey_{pubk_id}.xml', 'w') as pubk_file:
+        with open(self.path / f'OSNMA_PublicKey_{pubk_id}.xml', 'w') as pubk_file:
             try:
                 pubk_file.write('<?xml version="1.0" encoding="UTF-8" ?>')
                 pubk_file.write(f'<PKID>{pubk_id}</PKID>')
@@ -94,7 +93,7 @@ class IOHandler:
                 logger.error(f'Error saving Public Key {pubk_id} to file.')
 
     def read_kroot(self, file_name='OSNMA_last_KROOT.txt'):
-        with open(self.path+file_name, 'r') as kroot_file:
+        with open(self.path/file_name, 'r') as kroot_file:
             try:
                 kroot_bits = BitArray(hex=kroot_file.readline())
                 nmah_bits = BitArray(hex=kroot_file.readline())
@@ -107,7 +106,7 @@ class IOHandler:
         if not kroot.is_verified():
             raise Exception(f'Saving a Kroot Key that has not been verified.')
 
-        with open(self.path + f'OSNMA_last_KROOT.txt', 'w') as kroot_file:
+        with open(self.path / f'OSNMA_last_KROOT.txt', 'w') as kroot_file:
             try:
                 data_stream = kroot.kroot_data_stream
                 kroot_file.write(data_stream.hex+'\n')

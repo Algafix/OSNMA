@@ -19,7 +19,7 @@ sys.path.insert(0, '..')
 
 from osnma.receiver.receiver import OSNMAReceiver
 from osnma.receiver.input import SBFAscii
-from osnma.receiver.input_sbf import SBF
+from osnma.receiver.input_sbf import SBF, SBFLive
 
 
 def sbf_config1():
@@ -310,29 +310,62 @@ def sbf_config1_wrong_kroot_id():
     osnma_r.start(max_iter)
 
 
-def sbf_config1_bin():
-
+def sbf_current_config():
     config_dict = {
-        'scenario_path': 'd339.sbf',
-        'exec_path': 'scenarios/config1/',
-        'pubk_name': 'OSNMA_PublicKey_1.xml'
+        'scenario_path': 'scenarios/current_config/current_config.sbf',
+        'exec_path': 'scenarios/current_config/',
+        'pubk_name': 'OSNMA_PublicKey.xml'
     }
 
-    #max_iter = 600
+    # max_iter = 600
     # ADKD12
     # max_iter = 1400
-    max_iter = 40000  # 3349 Authenticated
+    max_iter = 40000  #
 
-    #input_module = SBFAscii(config_dict['scenario_path'])
     input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
     osnma_r.start(max_iter)
 
+
+def sbf_current_config_14h():
+    config_dict = {
+        'scenario_path': 'scenarios/current_config_14h/current_config_14h.sbf',
+        'exec_path': 'scenarios/current_config_14h/',
+        'pubk_name': 'OSNMA_PublicKey.xml'
+    }
+
+    # max_iter = 600
+    # ADKD12
+    # max_iter = 1400
+    max_iter = 400000  #
+
+    input_module = SBF(config_dict['scenario_path'])
+    osnma_r = OSNMAReceiver(input_module, config_dict)
+
+    osnma_r.start(max_iter)
+
+
+def sbf_live():
+    config_dict = {
+        'exec_path': 'scenarios/live/',
+        'pubk_name': 'OSNMA_PublicKey.xml'
+    }
+
+    max_iter = 40000  #
+
+    input_module = SBFLive('192.168.3.1',20000)
+    osnma_r = OSNMAReceiver(input_module, config_dict)
+
+    osnma_r.start(max_iter)
+
+
 if __name__ == "__main__":
 
     #sbf_config1()
-    sbf_config1_bin()
+    sbf_current_config()
+    #sbf_current_config_14h()
+    #sbf_live()
     #sbf_config2()
     #sbf_config4()
     #sbf_config5()

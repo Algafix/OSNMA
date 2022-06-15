@@ -20,7 +20,6 @@ from datetime import datetime
 
 import osnma.utils.config as config
 
-
 str_to_log_level = {
     'debug': logging.DEBUG,
     'info': logging.INFO,
@@ -56,14 +55,12 @@ class CustomFormatter(logging.Formatter):
 
 
 def configure_loggers():
-
     logger = logging.getLogger('osnma')
     now = datetime.now()
 
-    file_path = config.LOGS_PATH if config.LOGS_PATH[-1] == '/' else config.LOGS_PATH + '/'
-    file_path += f'logs_{now.strftime("%Y%m%d_%H%M%S%f")}/'
+    file_path = config.LOGS_PATH / f'logs_{now.strftime("%Y%m%d_%H%M%S%f")}'
     os.makedirs(file_path)
-    file_name = file_path + 'general_logs.log'
+    file_name = file_path / 'general_logs.log'
 
     # File Handler
     f_handler = logging.FileHandler(file_name, mode='w')
@@ -83,9 +80,7 @@ def configure_loggers():
 
 
 def get_logger(name):
-
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
 
     return logger
-
