@@ -32,7 +32,7 @@ Currently supported:
 
 Future development:
 
-  * Support for SBF directly (no conversion to SBF Ascii).
+  * ~~Support for SBF directly (no conversion to SBF Ascii).~~ Done! Use the SBF input class on osnma/receiver/input_sbf.py file.
   * Development of an input iterator for real-time navigation data.
     * Integration with SBF logging real-time navigation data.
     * Integration with Galmon real-time navigation data.
