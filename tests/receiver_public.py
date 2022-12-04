@@ -20,6 +20,7 @@ sys.path.insert(0, '..')
 from osnma.receiver.receiver import OSNMAReceiver
 from osnma.receiver.input import SBFAscii
 from osnma.receiver.input_sbf import SBF, SBFLive
+from osnma.receiver.input_galmon import GALMON
 
 
 def sbf_config1():
@@ -360,12 +361,28 @@ def sbf_live():
     osnma_r.start(max_iter)
 
 
+def galmon_live():
+    config_dict = {
+        'exec_path': 'scenarios/galmon_live/',
+        'pubk_name': 'OSNMA_PublicKey.xml'
+    }
+
+    max_iter = 40000  #
+
+    input_module = GALMON()
+    osnma_r = OSNMAReceiver(input_module, config_dict)
+
+    osnma_r.start(max_iter)
+
+
 if __name__ == "__main__":
 
-    #sbf_config1()
-    sbf_current_config()
-    #sbf_current_config_14h()
+    galmon_live()
     #sbf_live()
+    #sbf_current_config()
+    #sbf_current_config_14h()
+
+    #sbf_config1()
     #sbf_config2()
     #sbf_config4()
     #sbf_config5()
