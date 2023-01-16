@@ -121,8 +121,11 @@ class OSNMAReceiver:
         self.receiver_state = ReceiverState()
         self.subframe_regenerator = SubFrameRegenerator()
 
+    def _is_dummy_page(self, data):
+        return data.nav_bits[2:8].uint == 63
+
     def _is_alert_page(self, data):
-        return data.nav_bits[2]
+        return data.nav_bits[1]
 
     def _sync_calculation(self, t_ref, t_sig):
         return (t_ref + config.B - config.TL < t_sig) and (config.B < config.TL//2)
@@ -149,6 +152,9 @@ class OSNMAReceiver:
                 continue
 
             if data.band != 'GAL_L1BC':
+                continue
+
+            if self._is_dummy_page(data):
                 continue
 
             if not data.crc:

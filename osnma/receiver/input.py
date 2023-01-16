@@ -157,3 +157,32 @@ class SBFAscii:
 
         return index, data
 
+
+class ICDTestVectors:
+
+    def __init__(self, path,):
+        self.path = path
+
+        # Load dataframe
+        nav_msg_header = ['TOW', 'WN', 'SVID', 'NAVBits']
+        nav_msg = pd.read_csv(self.path, header=None, names=nav_msg_header)
+
+        # Adapt column types
+        nav_msg.TOW = nav_msg.TOW.astype(int)
+        nav_msg.WN = nav_msg.WN.astype(int)
+        nav_msg.SVID = nav_msg.SVID.astype(int)
+
+        self.data_iter = nav_msg.iterrows()
+
+    def __iter__(self) -> 'ICDTestVectors':
+        return self
+
+    def __next__(self) -> (int, DataFormat):
+        index, row = next(self.data_iter)
+        nav_bits = BitArray(hex=row["NAVBits"])
+
+        data = DataFormat(row['SVID'], row['WN'], row['TOW'], nav_bits)
+
+        return index, data
+
+
