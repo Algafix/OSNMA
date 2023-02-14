@@ -54,7 +54,7 @@ class SubFrameRegenerator:
                 if saved_page is None and new_page is not None:
                     saved_block[index] = new_page
 
-    def _reset_references(self, dsm_id, block_id, gst_subframe, svid):
+    def _update_references(self, dsm_id, block_id, gst_subframe, svid):
         self.dsm_id = dsm_id
         self.bid_ref = block_id
         self.svid_ref = svid
@@ -74,23 +74,24 @@ class SubFrameRegenerator:
     def load_dsm_block(self, hkroot_subframe, gst_subframe, svid):
 
         block_id = None
+        # Get block_id from DSM Header
         if hkroot_subframe[DSM_HEADER] is not None:
             block_id = hkroot_subframe[DSM_HEADER][DSM_BLOCK_ID].uint
             dsm_id = hkroot_subframe[DSM_HEADER][DSM_ID].uint
             if dsm_id != self.dsm_id:
-                self._reset_references(dsm_id, block_id, gst_subframe, svid)
+                self._update_references(dsm_id, block_id, gst_subframe, svid)
+        # Get block_id from inferring
+        # TODO
 
-        # If doesnt have dsm header tries to calculate it using the references
-        # If it cant, save it and wait
-
-        if block_id == 0:
-            # Set number of blocks of the DSM message
-            # Should be done after reconstruction
+        # Get the number of blocks for the DSM message if the block id is 0 and it has the third page
+        # TODO: do it after reconstructing
+        if block_id == 0 and hkroot_subframe[DSM_NUMBER_OF_BLOCKS_PAGE] is not None:
+            #logger.warning(hkroot_subframe)
             raw_number_of_blocs = hkroot_subframe[DSM_NUMBER_OF_BLOCKS_PAGE][DSM_NUMBER_OF_BLOCKS_FIELD].uint
             self.num_blocks = self.num_blocks_lookup_table[raw_number_of_blocs]
 
         complete_block = self._is_block_complete(hkroot_subframe)
-        if not complete_block:
+        if not complete_block and block_id is not None:
             self._save_block(hkroot_subframe, block_id)
 
         return complete_block
