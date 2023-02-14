@@ -64,13 +64,15 @@ def test_sbf_config1(log_level=logging.INFO):
         tags_auth = len(re.findall(r'Tag AUTHENTICATED', log_text))
         data_auth = len(re.findall(r'INFO .* AUTHENTICATED: ADKD', log_text))
         kroot_auth = len(re.findall(r'INFO .*KROOT.*\n\tAUTHENTICATED\n', log_text))
+        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
         warnings = len(re.findall('WARNING', log_text))
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 1625
     assert data_auth == 1000
     assert kroot_auth == 25
-    assert warnings == 1
+    assert broken_kroot == 3
+    assert warnings == 4
     assert errors == 0
 
 
@@ -99,13 +101,15 @@ def test_sbf_config2(log_level=logging.INFO):
         kroot_auth = len(re.findall(r'INFO .*KROOT.*\n\tAUTHENTICATED\n', log_text))
         warnings = len(re.findall('WARNING', log_text))
         crc_failed = len(re.findall('WARNING.*CRC', log_text))
+        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 3416
     assert data_auth == 1194
     assert kroot_auth == 23
     assert crc_failed == 39
-    assert warnings == 40
+    assert broken_kroot == 3
+    assert warnings == 43
     assert errors == 0
 
 
@@ -133,6 +137,7 @@ def test_sbf_config5(log_level=logging.INFO):
         data_auth = len(re.findall(r'INFO .* AUTHENTICATED: ADKD', log_text))
         kroot_auth = len(re.findall(r'INFO .*KROOT.*\n\tAUTHENTICATED\n', log_text))
         warnings = len(re.findall('WARNING', log_text))
+        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
         crc_failed = len(re.findall('WARNING.*CRC', log_text))
         errors = len(re.findall('ERROR', log_text))
 
@@ -140,7 +145,8 @@ def test_sbf_config5(log_level=logging.INFO):
     assert data_auth == 1436
     assert kroot_auth == 17
     assert crc_failed == 22
-    assert warnings == 23
+    assert broken_kroot == 5
+    assert warnings == 28
     assert errors == 0
 
 
@@ -167,13 +173,15 @@ def test_sbf_config7(log_level=logging.INFO):
         tags_auth = len(re.findall(r'Tag AUTHENTICATED', log_text))
         data_auth = len(re.findall(r'INFO .* AUTHENTICATED: ADKD', log_text))
         kroot_auth = len(re.findall(r'INFO .*KROOT.*\n\tAUTHENTICATED\n', log_text))
+        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
         warnings = len(re.findall('WARNING', log_text))
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 4251
     assert data_auth == 2810
     assert kroot_auth == 53
-    assert warnings == 12
+    assert broken_kroot == 8
+    assert warnings == 19
     assert errors == 0
 
 
@@ -204,6 +212,7 @@ def test_sbf_eoc_1(log_level=logging.INFO):
         kroot_cid_3_auth = len(re.findall(r'INFO .*KROOT.*CID: 3.*\n\tAUTHENTICATED\n', log_text))
         warnings = len(re.findall('WARNING', log_text))
         crc_failed = len(re.findall('WARNING.*CRC', log_text))
+        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 3433
@@ -211,8 +220,9 @@ def test_sbf_eoc_1(log_level=logging.INFO):
     assert kroot_auth == 30
     assert kroot_cid_2_auth == 14
     assert kroot_cid_3_auth == 16
-    assert warnings == 5
+    assert broken_kroot == 6
     assert crc_failed == 4
+    assert warnings == 11
     assert errors == 0
 
 
@@ -241,13 +251,15 @@ def test_sbf_npk_1(log_level=logging.INFO):
         kroot_auth = len(re.findall(r'INFO .*KROOT.*\n\tAUTHENTICATED\n', log_text))
         warnings = len(re.findall('WARNING', log_text))
         crc_failed = len(re.findall('WARNING.*CRC', log_text))
+        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 3834
     assert data_auth == 1255
     assert kroot_auth == 17
-    assert warnings == 1
+    assert broken_kroot == 6
     assert crc_failed == 0
+    assert warnings == 7
     assert errors == 0
 
 
@@ -276,13 +288,15 @@ def test_sbf_npk_2(log_level=logging.INFO):
         kroot_auth = len(re.findall(r'INFO .*KROOT.*\n\tAUTHENTICATED\n', log_text))
         warnings = len(re.findall('WARNING', log_text))
         crc_failed = len(re.findall('WARNING.*CRC', log_text))
+        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 4672
     assert data_auth == 1513
     assert kroot_auth == 17
-    assert warnings == 9
     assert crc_failed == 8
+    assert broken_kroot == 7
+    assert warnings == 16
     assert errors == 0
 
 
@@ -311,14 +325,16 @@ def test_sbf_npk_12(log_level=logging.INFO):
         kroot_auth = len(re.findall(r'INFO .*KROOT.*\n\tAUTHENTICATED\n', log_text))
         warnings = len(re.findall('WARNING', log_text))
         crc_failed = len(re.findall('WARNING.*CRC', log_text))
+        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
         errors = len(re.findall('ERROR', log_text))
         adkd4_failed = len(re.findall(r'ERROR.*Tag FAILED\n\t.*\(255, 4, 0\)', log_text))
 
     assert tags_auth == 3147
     assert data_auth == 854
     assert kroot_auth == 12
-    assert warnings == 1
+    assert broken_kroot == 6
     assert crc_failed == 0
+    assert warnings == 7
     assert errors == 6
     assert adkd4_failed == 6
 
@@ -350,6 +366,7 @@ def test_sbf_pkrev_1(log_level=logging.INFO):
         kroot_5_auth = len(re.findall(r'INFO .*KROOT.*PKID: 5.*\n\tAUTHENTICATED\n', log_text))
         warnings = len(re.findall('WARNING', log_text))
         crc_failed = len(re.findall('WARNING.*CRC', log_text))
+        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
         nma_dont_use = len(re.findall(r'WARNING.*NMA.*Don\'t Use', log_text))
         errors = len(re.findall('ERROR', log_text))
 
@@ -358,8 +375,9 @@ def test_sbf_pkrev_1(log_level=logging.INFO):
     assert kroot_auth == 28
     assert kroot_4_auth == 24
     assert kroot_5_auth == 4
-    assert warnings == 176
     assert crc_failed == 11
+    assert broken_kroot == 7
+    assert warnings == 181
     assert nma_dont_use == 162
     assert errors == 0
 
@@ -388,14 +406,16 @@ def test_sbf_pkrev_2(log_level=logging.INFO):
         kroot_auth = len(re.findall(r'INFO .*KROOT.*\n\tAUTHENTICATED\n', log_text))
         warnings = len(re.findall('WARNING', log_text))
         crc_failed = len(re.findall('WARNING.*CRC', log_text))
+        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
         nma_dont_use = len(re.findall(r'WARNING.*NMA.*Don\'t Use', log_text))
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 1066
     assert data_auth == 325
     assert kroot_auth == 10
-    assert warnings == 284
     assert crc_failed == 17
+    assert broken_kroot == 8
+    assert warnings == 290
     assert nma_dont_use == 265
     assert errors == 0
 
@@ -425,14 +445,16 @@ def test_sbf_pkrev_2_with_pk(log_level=logging.INFO):
         kroot_auth = len(re.findall(r'INFO .*KROOT.*\n\tAUTHENTICATED\n', log_text))
         warnings = len(re.findall('WARNING', log_text))
         crc_failed = len(re.findall('WARNING.*CRC', log_text))
+        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
         nma_dont_use = len(re.findall(r'WARNING.*NMA.*Don\'t Use', log_text))
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 1066
     assert data_auth == 325
     assert kroot_auth == 11
-    assert warnings == 377
     assert crc_failed == 17
+    assert broken_kroot == 8
+    assert warnings == 383
     assert nma_dont_use == 357
     assert errors == 0
 
@@ -464,6 +486,7 @@ def test_sbf_pkrev_12(log_level=logging.INFO):
         kroot_5_auth = len(re.findall(r'INFO .*KROOT.*PKID: 5.*\n\tAUTHENTICATED\n', log_text))
         warnings = len(re.findall('WARNING', log_text))
         crc_failed = len(re.findall('WARNING.*CRC', log_text))
+        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
         nma_dont_use = len(re.findall(r'WARNING.*NMA.*Don\'t Use', log_text))
         errors = len(re.findall('ERROR', log_text))
 
@@ -472,8 +495,9 @@ def test_sbf_pkrev_12(log_level=logging.INFO):
     assert kroot_auth == 40
     assert kroot_4_auth == 24
     assert kroot_5_auth == 16
-    assert warnings == 569
     assert crc_failed == 28
+    assert broken_kroot == 15
+    assert warnings == 575
     assert nma_dont_use == 531
     assert errors == 0
 

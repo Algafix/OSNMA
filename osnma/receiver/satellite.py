@@ -26,7 +26,7 @@ class Satellite:
         self.hkroot_subframe = [None for i in range(15)]
         self.mack_subframe = BitArray()
         self.osnma_subframe = False
-        self.subframe_gst = 0
+        self.subframe_start_gst = 0
 
     def _load_osnma(self, page, page_number):
         """
@@ -39,21 +39,23 @@ class Satellite:
             self.hkroot_subframe[page_number] = page_hkroot
             self.mack_subframe += page_mack
 
-    def _start_subframe(self, page, gst_page, page_number):
+    def _new_subframe(self, page, page_number):
 
-        # self.hkroot_subframe = BitArray()
         self.hkroot_subframe = [None for i in range(15)]
         self.mack_subframe = BitArray()
 
         if page.has_osnma:
             self.osnma_subframe = True
-            self.start_gst = gst_page
             self._load_osnma(page, page_number)
         else:
             self.osnma_subframe = False
 
     def _check_sync(self, gst_page):
-        return True if self.start_gst + 30 > gst_page else False
+        return True if self.subframe_start_gst + 30 > gst_page else False
+
+    def _update_sync(self, gst_uint, page_number):
+        gst_page_start = gst_uint - (page_number * 2)
+        self.subframe_start_gst = gst_page_start
 
     def subframe_with_osnma(self):
         return self.osnma_subframe
@@ -66,16 +68,19 @@ class Satellite:
         :type gst_uint: int
         :return:
         """
+
         page_number = (gst_uint % 30) // 2
 
-        if page_number == 0:
-            self._start_subframe(page, gst_uint, page_number)
-        else:
-            if self.osnma_subframe and self._check_sync(gst_uint):
-                self._load_osnma(page, page_number)
+        if not self._check_sync(gst_uint):
+            # New subframe, update sync and save
+            self._update_sync(gst_uint, page_number)
+            self._new_subframe(page, page_number)
+        elif self.osnma_subframe:
+            # Current subframe, save
+            self._load_osnma(page, page_number)
 
-    def get_subframe(self):
-        return self.hkroot_subframe, self.mack_subframe
+    def get_mack_subframe(self):
+        return self.mack_subframe
 
     def get_hkroot_subframe(self):
         return self.hkroot_subframe

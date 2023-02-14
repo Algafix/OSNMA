@@ -245,7 +245,7 @@ class TESLAChain:
                 key_verified = True
                 break
             else:
-                raise TeslaKeyVerificationFailed(f"Tesla Key {new_tesla_key.index} from {new_tesla_key.svid},"
+                raise TeslaKeyVerificationFailed(f"Tesla Key {new_tesla_key.index} from svid {new_tesla_key.svid},"
                                                  f" received at {new_tesla_key.wn.uint} {new_tesla_key.tow.uint},"
                                                  f" has an invalid key index.\n\t{new_tesla_key.key}")
 

@@ -178,12 +178,15 @@ class OSNMAReceiver:
                 logger.info(f"--- SUBFRAME --- WN {wn} TOW {tow} SVID {satellite.svid} ---")
 
                 if satellite.subframe_with_osnma():
-                    hkroot_sf, mack_sf = satellite.get_subframe()
-                    hkroot_sf = self.subframe_regenerator.load_dsm_block(hkroot_sf, gst_sf, satellite.svid)
+                    raw_hkroot_sf = satellite.get_hkroot_subframe()
+                    hkroot_sf = self.subframe_regenerator.load_dsm_block(raw_hkroot_sf, gst_sf, satellite.svid)
                     if hkroot_sf:
+                        # The full subframe has been received consecutively. Use mack_sf.
                         nma_status = self.receiver_state.process_hkroot_subframe(hkroot_sf)
+                        mack_sf = satellite.get_mack_subframe()
                         self.receiver_state.process_mack_subframe(mack_sf, gst_sf, satellite.svid, nma_status)
                     else:
+                        # Broken subframe. Reconstruct if possible hkroot. Noting with mack, yet.
                         for regen_hkroot_sf, bid in self.subframe_regenerator.get_regenerated_blocks():
                             logger.info(f'Regenerated BID {bid}')
                             self.receiver_state.process_hkroot_subframe(regen_hkroot_sf)
