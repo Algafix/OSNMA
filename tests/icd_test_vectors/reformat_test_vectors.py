@@ -17,14 +17,14 @@ try:
 except:
     print(f"No patterns: {file_path}")
     exit(1)
-
 month = month2num[month]
 
 epoch = datetime(int(year),int(month),int(day),int(hour),int(minute),int(second))
 delta = epoch - GPS_START
 
 wn = delta.days//7
-tow = delta.seconds
+tow = delta.days%7 * 86400 + delta.seconds
+
 
 # Define constants
 bits_per_page = 240
