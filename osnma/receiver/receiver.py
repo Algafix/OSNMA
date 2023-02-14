@@ -168,7 +168,6 @@ class OSNMAReceiver:
             # Handle page
             gst_page = BitArray(uint=data.wn, length=12) + BitArray(uint=data.tow, length=20)
             self.receiver_state.load_page(data.nav_bits, gst_page, satellite.svid)
-            # gst_page.uint % 30 != data.tow % 30 wtf
             satellite.new_page(data, data.tow)
 
             # End of the subframe
@@ -191,8 +190,6 @@ class OSNMAReceiver:
                         # Satellite class is filtering and never relying
                         logger.warning('Broken HKROOT Subframe')
                 else:
-                    if tow == 473910:
-                        logger.info(satellite.get_subframe()[0])
                     logger.info(f"No OSNMA data.")
 
             if 0 < max_iter < index:

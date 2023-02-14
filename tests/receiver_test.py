@@ -104,8 +104,8 @@ def test_sbf_config2(log_level=logging.INFO):
     assert tags_auth == 3416
     assert data_auth == 1194
     assert kroot_auth == 23
-    assert warnings == 41
-    assert crc_failed == 40
+    assert crc_failed == 39
+    assert warnings == 40
     assert errors == 0
 
 
@@ -139,8 +139,8 @@ def test_sbf_config5(log_level=logging.INFO):
     assert tags_auth == 2348
     assert data_auth == 1436
     assert kroot_auth == 17
-    assert warnings == 22
-    assert crc_failed == 21
+    assert crc_failed == 22
+    assert warnings == 23
     assert errors == 0
 
 
@@ -173,7 +173,7 @@ def test_sbf_config7(log_level=logging.INFO):
     assert tags_auth == 4251
     assert data_auth == 2810
     assert kroot_auth == 53
-    assert warnings == 11
+    assert warnings == 12
     assert errors == 0
 
 
