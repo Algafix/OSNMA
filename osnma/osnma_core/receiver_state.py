@@ -150,11 +150,12 @@ class ReceiverState:
         cpks = cpks_lt[nma_header[4:7].uint]
         return nma_status, cid, cpks
 
-    def _subframe_actions(self, gst_sf):
+    def _subframe_actions(self, nma_header):
         if self.chain_status == CPKS.EOC and self.next_tesla_chain is not None:
-            if gst_sf.uint >= self.next_tesla_chain.GST0.uint:
-                logger.info(f"New chain in force {self.next_tesla_chain.GST0[:12].uint}"
-                            f" {self.next_tesla_chain.GST0[12:].uint}")
+            current_chain_in_force = nma_header[2:4].uint
+            if current_chain_in_force == self.next_tesla_chain.chain_id:
+                logger.info(f"New chain in force: CID {current_chain_in_force} GST0"
+                            f"{self.next_tesla_chain.GST0[:12].uint} {self.next_tesla_chain.GST0[12:].uint}")
                 self.tesla_chain_force = self.next_tesla_chain
                 self.next_tesla_chain = None
 
@@ -363,11 +364,14 @@ class ReceiverState:
         else:
             logger.error(f"PKR with NPKID {npkid} failed.")
 
-    def process_hkroot_subframe(self, hkroot_sf):
+    def process_hkroot_subframe(self, hkroot_sf, is_consecutive_hkroot=False):
 
-        # self._subframe_actions(gst_sf)
+        # Process EOC and other actions if the block was got in one piece, not reconstructed.
+        # It could potentially be done with reconstruction, but its better to time this rare actions correctly.
 
         sf_nma_header = hkroot_sf[:HKROOT.NMA_HEADER_END]
+        if is_consecutive_hkroot is not None:
+            self._subframe_actions(sf_nma_header)
         dsm_id = hkroot_sf[HKROOT.DSM_ID_START:HKROOT.DSM_ID_END].uint
         dsm_message = self.dsm_messages[dsm_id]
         dsm_message.load_dsm_subframe(hkroot_sf)

@@ -182,7 +182,7 @@ class OSNMAReceiver:
                     hkroot_sf = self.subframe_regenerator.load_dsm_block(raw_hkroot_sf, gst_sf, satellite.svid)
                     if hkroot_sf:
                         # The full subframe has been received consecutively. Use mack_sf.
-                        nma_status = self.receiver_state.process_hkroot_subframe(hkroot_sf)
+                        nma_status = self.receiver_state.process_hkroot_subframe(hkroot_sf, is_consecutive_hkroot=True)
                         mack_sf = satellite.get_mack_subframe()
                         self.receiver_state.process_mack_subframe(mack_sf, gst_sf, satellite.svid, nma_status)
                     else:
