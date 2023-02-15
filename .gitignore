@@ -132,3 +132,13 @@ dmypy.json
 
 # Pycharm
 .idea/
+
+# Generated KROOT for Hot Start (but not the one for testing hot start)
+tests/scenarios/*/OSNMA_last_KROOT.txt
+
+# Read keys in NPK and PKREV events
+tests/scenarios/npk_1/OSNMA_PublicKey_4.xml
+tests/scenarios/npk_12/OSNMA_PublicKey_4.xml
+tests/scenarios/pkrev_1/OSNMA_PublicKey_5.xml
+tests/scenarios/pkrev_2/OSNMA_PublicKey_5.xml
+tests/scenarios/pkrev_12/OSNMA_PublicKey_5.xml
