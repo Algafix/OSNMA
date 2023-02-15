@@ -134,10 +134,10 @@ mf_lt = {0: MF.HMAC_SHA_256, 1: MF.CMAC_AES}
 npkt_lt = {0: NPKT.ECDSA_P224, 1: NPKT.ECDSA_P256, 2: NPKT.ECDSA_P384, 3: NPKT.ECDSA_P521, 4: NPKT.OAM }
 
 
-NB_DP_lt = ["Reserved", "Reserved", "Reserved", "Reserved", "Reserved", "Reserved", "Reserved", 13, 14, 15, 16,
+NB_DP_lt = ["Reserved", "Reserved", "Reserved", "Reserved", "Reserved", 11, "Reserved", 13, 14, 15, 16,
             "Reserved", "Reserved", "Reserved", "Reserved", "Reserved"]
 
-NB_DP_size_lt = [None, None, None, None, None, None, None, 1352, 1456, 1560, 1664, None, None, None, None, None]
+NB_DP_size_lt = [None, None, None, None, None, 1144, None, 1352, 1456, 1560, 1664, None, None, None, None, None]
 
 NB_DK_lt = ["Reserved", 7, 8, 9, 10, 11, 12, 13, 14, "Reserved", "Reserved", "Reserved", "Reserved", "Reserved",
             "Reserved", "Reserved"]
@@ -151,7 +151,7 @@ KS_lt = [96, 104, 112, 120, 128, 160, 192, 224, 256, "Reserved", "Reserved", "Re
 
 TS_lt = [10, 12, 14, 16, 18, 20, 24, 28, 32, 40, "Reserved", "Reserved", "Reserved", "Reserved", "Reserved", "Reserved"]
 
-NPKT_size_lt = [232, 264, 392, 536, None, None, None, None, None, None, None, None, None, None, None, None]
+NPKT_size_lt = [232, 264, 392, 536, 104, None, None, None, None, None, None, None, None, None, None, None]
 
 NPK_DS_lt = [448, 512, 768, 1056]
 

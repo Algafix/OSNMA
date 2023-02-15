@@ -129,7 +129,7 @@ def icd_test_vectors_NPK_step_2():
     config_dict = {
         'scenario_path': 'icd_test_vectors/NPK_step_2/11_DEC_2020_GST_08_00_01_fixed.csv',
         'exec_path': 'icd_test_vectors/NPK_step_2/',
-        'pubk_name': 'OSNMA_PublicKey_2.xml'
+        'pubk_name': 'OSNMA_PublicKey_1.xml'
     }
 
     #max_iter = 2000
@@ -158,6 +158,69 @@ def icd_test_vectors_NPK_step_3():
     osnma_r.start(max_iter)
 
 
+def icd_test_vectors_PKREV_step_1():
+    config_dict = {
+        'scenario_path': 'icd_test_vectors/PKREV_step_1/15_DEC_2020_GST_08_00_01_fixed.csv',
+        'exec_path': 'icd_test_vectors/PKREV_step_1/',
+        'pubk_name': 'OSNMA_PublicKey_2.xml'
+    }
+
+    # max_iter = 2000
+    max_iter = 0
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    osnma_r = OSNMAReceiver(input_module, config_dict)
+
+    osnma_r.start(max_iter)
+
+
+def icd_test_vectors_PKREV_step_2():
+    config_dict = {
+        'scenario_path': 'icd_test_vectors/PKREV_step_2/15_DEC_2020_GST_10_00_01_fixed.csv',
+        'exec_path': 'icd_test_vectors/PKREV_step_2/',
+        'pubk_name': 'OSNMA_PublicKey_3.xml'
+    }
+
+    # max_iter = 2000
+    max_iter = 0
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    osnma_r = OSNMAReceiver(input_module, config_dict)
+
+    osnma_r.start(max_iter)
+
+
+def icd_test_vectors_PKREV_step_3():
+    config_dict = {
+        'scenario_path': 'icd_test_vectors/PKREV_step_3/16_DEC_2020_GST_08_00_01_fixed.csv',
+        'exec_path': 'icd_test_vectors/PKREV_step_3/',
+        'pubk_name': 'OSNMA_PublicKey_3.xml'
+    }
+
+    # max_iter = 2000
+    max_iter = 0
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    osnma_r = OSNMAReceiver(input_module, config_dict)
+
+    osnma_r.start(max_iter)
+
+
+def icd_test_vectors_OAM():
+    config_dict = {
+        'scenario_path': 'icd_test_vectors/OAM/23_FEB_2021_GST_09_00_31_fixed.csv',
+        'exec_path': 'icd_test_vectors/OAM/'
+    }
+
+    # max_iter = 2000
+    max_iter = 0
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    osnma_r = OSNMAReceiver(input_module, config_dict)
+
+    osnma_r.start(max_iter)
+
+
 if __name__ == "__main__":
 
     #icd_test_vectors_configuration_A()
@@ -167,11 +230,15 @@ if __name__ == "__main__":
 
     #icd_test_vectors_EOC_step_1()
     #icd_test_vectors_EOC_step_2()
-    # Error in test vector:
-    # KROOT with CID 2 is Chain in Force at TOW 298800
-    # but before 298800 it is transmitted with a time
-    # of applicability of 208800
 
-    icd_test_vectors_NPK_step_1()
+    #icd_test_vectors_NPK_step_1()
     #icd_test_vectors_NPK_step_2()
+    # 5 tags with ADKD 4 failed. Multiple epochs and from multiple sats, strange.
     #icd_test_vectors_NPK_step_3()
+
+    #icd_test_vectors_PKREV_step_1()
+    #icd_test_vectors_PKREV_step_2()
+    # 3 tags with ADKD 4 failed. Multiple epochs and from multiple sats, strange.
+    #icd_test_vectors_PKREV_step_3()
+
+    icd_test_vectors_OAM()

@@ -35,6 +35,7 @@ class DSMPKR(DSM):
         self.hash_f = None
         self.key_curve = None
         self.public_key_obj = None
+        self.is_OAM = False
 
     def _extra_actions(self, name):
 
@@ -83,6 +84,8 @@ class DSMPKR(DSM):
         elif npkt == NPKT.ECDSA_P521:
             self.hash_f = hashlib.sha512
             self.key_curve = curves.NIST521p
+        elif npkt == NPKT.OAM:
+            self.is_OAM = True
 
     def _length_verification(self):
         length_adding = 1040 + self.get_size('NPK') + self.get_size('P_DP')
@@ -145,7 +148,7 @@ class DSMPKR(DSM):
 
         self.verified = is_length_correct and is_padding_correct and is_pkr_correct
 
-        if self.verified:
+        if self.verified and not self.is_OAM:
             self._store_key_object()
 
         return self.verified

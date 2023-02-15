@@ -66,8 +66,11 @@ class DigitalSignatureMessage:
         logger.info(f"\tDSM ID {self.dsm_id} blocks: {self.blocks_received.keys()}\n")
 
         if bid == 0:
-            self.total_of_blocks = self.translate_blocks[dsm_subframe[HKROOT.NB_START:HKROOT.NB_END].uint]
+            number_of_blocks_field = dsm_subframe[HKROOT.NB_START:HKROOT.NB_END].uint
+            self.total_of_blocks = self.translate_blocks[number_of_blocks_field]
             logger.info(f"DSM ID {self.dsm_id} number of blocks: {self.total_of_blocks}\n")
+            if self.total_of_blocks == "Reserved":
+                logger.warning(f'The Number of Blocks field is {number_of_blocks_field} with value "Reserved"\n')
 
     def is_complete(self):
         return len(self.blocks_received) == self.total_of_blocks
@@ -326,8 +329,8 @@ class ReceiverState:
             dsm_kroot = DSMKroot(self.pkr_dict)
             dsm_kroot.set_value('NMA_H', nma_header)
             dsm_kroot.process_data(kroot)
-        except PublicKeyObjectError:
-            logger.error(f"Missing the Public Key for read DSM_KROOT.")
+        except PublicKeyObjectError as e:
+            logger.error(f"Problem with the Public Key for authenticating this DSMKroot: {e}")
             if self.start_status == StartStates.WARM_START:
                 self._fallback_to_cold_start()
         else:
@@ -352,6 +355,13 @@ class ReceiverState:
         npkid = dsm_pkr.get_value('NPKID').uint
         if dsm_pkr.pkr_verification():
             logger.info(f"PKR with NPKID {npkid} verified.")
+
+            if dsm_pkr.is_OAM:
+                logger.warning("OAM Detected - Please connect to the GSC OSNMA Server")
+                logger.info("Falling back to Cold Start - Discarding any cryptographic material.\n")
+                self.start_status = StartStates.COLD_START
+                return
+
             if npkid not in self.pkr_dict:
                 self.pkr_dict[npkid] = dsm_pkr
                 self.io_handler.store_pubk(dsm_pkr)
@@ -365,9 +375,6 @@ class ReceiverState:
             logger.error(f"PKR with NPKID {npkid} failed.")
 
     def process_hkroot_subframe(self, hkroot_sf, is_consecutive_hkroot=False):
-
-        # Process EOC and other actions if the block was got in one piece, not reconstructed.
-        # It could potentially be done with reconstruction, but its better to time this rare actions correctly.
 
         sf_nma_header = hkroot_sf[:HKROOT.NMA_HEADER_END]
         if is_consecutive_hkroot is not None:
