@@ -375,9 +375,60 @@ def galmon_live():
     osnma_r.start(max_iter)
 
 
+def sbf_live_parc_leopold():
+    config_dict = {
+        'scenario_path': 'scenarios/live_parc_leopold/parc_leopold.sbf',
+        'exec_path': 'scenarios/live_parc_leopold',
+        'pubk_name': 'OSNMA_PublicKey.xml'
+    }
+
+    input_module = SBF(config_dict['scenario_path'])
+    osnma_r = OSNMAReceiver(input_module, config_dict)
+
+    #osnma_r.start(1200)
+    osnma_r.start()
+
+
+def sbf_live_palace_to_parlament():
+    config_dict = {
+        'scenario_path': 'scenarios/live_palace_to_parlament/palace_to_parlament.sbf',
+        'exec_path': 'scenarios/live_palace_to_parlament',
+        'pubk_name': 'OSNMA_PublicKey.xml'
+    }
+
+    input_module = SBF(config_dict['scenario_path'])
+    osnma_r = OSNMAReceiver(input_module, config_dict)
+
+    #osnma_r.start(1200)
+    osnma_r.start()
+
+
+def sbf_live_manneken():
+    config_dict = {
+        'scenario_path': 'scenarios/live_to_manneken/to_manneken.sbf',
+        'exec_path': 'scenarios/live_to_manneken',
+        'pubk_name': 'OSNMA_PublicKey.xml'
+    }
+
+    input_module = SBF(config_dict['scenario_path'])
+    osnma_r = OSNMAReceiver(input_module, config_dict)
+
+    #osnma_r.start(1200)
+    osnma_r.start()
+
+
 if __name__ == "__main__":
 
-    galmon_live()
+    sbf_live_parc_leopold()
+    #sbf_live_palace_to_parlament()  # 1 tag failed: (13, 0, 6) PRN_A: 13 GST_SF: 1210 52530 TAG0
+    #sbf_live_manneken()
+    # 3 tags failed
+    # (10, 0, 5) PRN_A: 10 GST_SF: 1210 37830 TAG0
+    # (36, 0, 7) PRN_A: 36 GST_SF: 1210 38880 TAG0
+    # (9, 0, 2) PRN_A: 9 GST_SF: 1210 40290 TAG0
+
+    #galmon_live()
+
     #sbf_live()
     #sbf_current_config()
     #sbf_current_config_14h()
