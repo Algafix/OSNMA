@@ -419,8 +419,10 @@ def sbf_live_manneken():
 
 if __name__ == "__main__":
 
-    sbf_live_parc_leopold()
-    #sbf_live_palace_to_parlament()  # 1 tag failed: (13, 0, 6) PRN_A: 13 GST_SF: 1210 52530 TAG0
+    #sbf_live_parc_leopold()
+    sbf_live_palace_to_parlament()
+    # 1 tag failed:
+    # (13, 0, 6) PRN_A: 13 GST_SF: 1210 52530 TAG0
     #sbf_live_manneken()
     # 3 tags failed
     # (10, 0, 5) PRN_A: 10 GST_SF: 1210 37830 TAG0

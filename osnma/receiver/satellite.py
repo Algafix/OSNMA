@@ -23,8 +23,8 @@ class Satellite:
 
     def __init__(self, svid=0):
         self.svid = svid
-        self.hkroot_subframe = [None for i in range(15)]
-        self.mack_subframe = BitArray()
+        self.hkroot_subframe = [None for _ in range(15)]
+        self.mack_subframe = [None for _ in range(15)]
         self.osnma_subframe = False
         self.subframe_start_gst = 0
 
@@ -37,12 +37,12 @@ class Satellite:
         if page.has_osnma:
             page_hkroot, page_mack = page.get_osnma()
             self.hkroot_subframe[page_number] = page_hkroot
-            self.mack_subframe += page_mack
+            self.mack_subframe[page_number] = page_mack
 
     def _new_subframe(self, page, page_number):
 
-        self.hkroot_subframe = [None for i in range(15)]
-        self.mack_subframe = BitArray()
+        self.hkroot_subframe = [None for _ in range(15)]
+        self.mack_subframe = [None for _ in range(15)]
 
         if page.has_osnma:
             self.osnma_subframe = True

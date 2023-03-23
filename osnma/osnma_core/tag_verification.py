@@ -119,16 +119,15 @@ class TagStateStructure:
 
         for tag in tag_list:
             if tag.adkd.uint != 12:
-                tag.key_id = self.tesla_chain.get_key_index(tag.gst_subframe, tag.mack_block) + 1
+                tag.key_id = self.tesla_chain.get_key_index(tag.gst_subframe) + 1
             else:
-                subframe_id = self.tesla_chain.get_key_index(tag.gst_subframe, tag.mack_block)
+                subframe_id = self.tesla_chain.get_key_index(tag.gst_subframe)
                 tag.key_id = subframe_id + 10 * self.tesla_chain.nmack + 1
 
     def set_macseq_key(self, macseq):
-        macseq.key_id = self.tesla_chain.get_key_index(macseq.gst, 1) + 1
+        macseq.key_id = self.tesla_chain.get_key_index(macseq.gst) + 1
 
     def verify_maclt(self, mack_message: MACKMessage):
-        # TODO: 2 functions for sections == 1 or 2
 
         tag_list = []
         flex_list = []
@@ -136,28 +135,34 @@ class TagStateStructure:
         if self.maclt_dict['sections'] == 1:
             sequence = self.maclt_dict["sequence"]
         elif self.maclt_dict['sections'] == 2:
-            #sf_index = 1 if mack_message.gst_sf.uint % 60 else 0
             sf_index = 1 if mack_message.gst_sf[12:].uint % 60 else 0
             sequence = self.maclt_dict["sequence"][sf_index]
         else:
             raise ValueError(f"MACLT {self.tesla_chain.maclt} sections not 1 nor 2: {self.maclt_dict['sections']}")
 
-        if self.maclt_dict['NMACK'] == 1:
-            sequence = [sequence]
+        if self.maclt_dict['NMACK'] != 1:
+            logger.critical(f"MACLT number {self.maclt_dict['ID']} NOT SUPPORTED. With the new ICD only 1 MACK block"
+                            f"per MACK message is supported")
+            exit(1)
 
-        for mack_block, maclt_block in zip(mack_message.mack_blocks, sequence):
-            for tag, slot in zip(mack_block.tags, maclt_block):
-                if slot != 'FLX':
+        is_flx_tag_missing = False
+
+        for tag, slot in zip(mack_message.tags, sequence):
+            if slot != 'FLX':
+                if tag is not None:
                     if verify_maclt_slot(tag, slot):
                         tag_list.append(tag)
                     else:
                         logger.error(f"TAG - MACLT ERROR:\n\t{slot}\t{tag}\n")
+            else:
+                if tag is None:
+                    is_flx_tag_missing = True
                 else:
                     flex_list.append(tag)
 
         macseq_object = mack_message.get_macseq(flex_list)
 
-        return tag_list, macseq_object
+        return tag_list, macseq_object, is_flx_tag_missing
 
     def add_tags_waiting_key(self, tag_list):
 
@@ -198,10 +203,11 @@ class TagStateStructure:
 
     def load_mack_message(self, mack_message: MACKMessage):
 
-        tag_list, macseq = self.verify_maclt(mack_message)
+        tag_list, macseq, is_flx_tag_missing = self.verify_maclt(mack_message)
         self.set_tag_keys(tag_list)
-        self.set_macseq_key(macseq)
-        self.macseq_awaiting_key.append(macseq)
+        if not is_flx_tag_missing:
+            self.set_macseq_key(macseq)
+            self.macseq_awaiting_key.append(macseq)
         self.add_tags_waiting_key(tag_list)
 
 

@@ -24,10 +24,11 @@ from osnma.utils.exceptions import FieldValueNotRecognized, TeslaKeyVerification
 from Crypto.Hash import CMAC
 from Crypto.Cipher import AES
 from bitstring import BitArray
-from typing import Union
+from typing import Union, List
 
 import hashlib
 import hmac
+import traceback
 
 import osnma.utils.logger_factory as logger_factory
 logger = logger_factory.get_logger(__name__)
@@ -146,7 +147,7 @@ class TESLAChain:
 
         return computed_tesla_key
 
-    def parse_mack_message(self, mack_message: BitArray, gst_sf: BitArray, prn_a: int, nma_status: BitArray):
+    def parse_mack_message(self, mack_message: List[BitArray], gst_sf: BitArray, prn_a: int, nma_status: BitArray):
         """Parse a MACK message bit stream. Then handles the MACK object to the tag structure to add the new tags to the
         tag list. Finally, add the key(s) received to the TESLA key chain.
 
@@ -165,22 +166,19 @@ class TESLAChain:
             self.tags_structure.load_mack_message(mack_object)
         except Exception as e:
             raise MackParsingError(f"Error parsing MACK Message from SVID {prn_a} at "
-                                   f"{gst_sf[:12].uint} {gst_sf[12:].uint}\n{e}")
+                                   f"{gst_sf[:12].uint} {gst_sf[12:].uint}\n{traceback.print_exc()}")
         else:
-            for key in mack_object.get_keys():
-                self.add_key(key)
+            self.add_key(mack_object.get_key())
 
     def update_tag_lists(self):
         self.tags_structure.update_tag_lists()
 
-    def get_key_index(self, gst_sf: BitArray, n_block: int) -> int:
+    def get_key_index(self, gst_sf: BitArray) -> int:
         """Computes the key index that would have a key received on the subframe specified and in the position specified
         The index is relative to the first kroot received for this chain.
 
         :param gst_sf: GST value at the start of the subframe where the key is received.
         :type gst_sf: BitArray
-        :param n_block: MACK block where the key has been received.
-        :type n_block: int
         :return: index of the key
         """
         # ICD 1.1
@@ -189,7 +187,7 @@ class TESLAChain:
 
         # ICD 1.2 Test Phase: All satellites transmit the same key at the same epoch
         past_keys = (gst_sf.uint - self.GST0.uint) // 30
-        index = past_keys * self.nmack + n_block
+        index = past_keys * self.nmack + 1
 
         return index
 
@@ -221,7 +219,7 @@ class TESLAChain:
         """
 
         # Calculate the index of the new key
-        new_tesla_key.calculate_index(self.GST0, self.nmack)
+        new_tesla_key.calculate_index(self.GST0, 1)
 
         # Starts with the hashes
         new_key_index = new_tesla_key.index
@@ -246,8 +244,9 @@ class TESLAChain:
                 break
             else:
                 raise TeslaKeyVerificationFailed(f"Tesla Key {new_tesla_key.index} from svid {new_tesla_key.svid},"
-                                                 f" received at {new_tesla_key.wn.uint} {new_tesla_key.tow.uint},"
-                                                 f" has an invalid key index.\n\t{new_tesla_key.key}")
+                                                 f" received at {new_tesla_key.wn.uint} {new_tesla_key.tow.uint} failed verification.\n"
+                                                 f"Last authenticated key: {last_tesla_key.index} at {last_tesla_key.tow.uint}.\n"
+                                                 f"Last hash: {key_index} {tesla_key.key}")
 
         return key_verified, new_key_index
 

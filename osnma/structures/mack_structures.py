@@ -111,9 +111,6 @@ class TESLAKey:
         :rtype: int
         """
         if self.index is None:
-            # ICD 1.1
-            # past_keys = ((self.gst_sf.uint - gst_0.uint) // 30) * ns * nmack
-            # self.index = past_keys + (self.n_block - 1) * ns + ((self.svid - 1) % ns) + 1
 
             # ICD 1.2 Test Phase: All satellites transmit the same key at the same epoch
             past_keys = (self.gst_sf.uint - gst_0.uint) // 30
@@ -126,7 +123,7 @@ class MACSeqObject:
 
     def __init__(self, gst, svid, macseq_value, flex_list=None, key_id=None):
         self.gst = gst
-        self.svid = BitArray(uint=svid, length=8)
+        self.svid = svid
         self.macseq_value = macseq_value
         self.flex_list = flex_list
         self.key_id = key_id
@@ -145,16 +142,15 @@ class MACSeqObject:
 class TagAndInfo:
 
     def __init__(self, tag_value: BitArray, prn_d: BitArray, adkd: BitArray, iod_tag: BitArray, gst_subframe: BitArray,
-                 prn_a: int, ctr: int, mack_block: int, nma_status: BitArray):
+                 prn_a: BitArray, ctr: int, nma_status: BitArray):
         self.tag_value = tag_value
         self.prn_d = prn_d
-        self.prn_a = BitArray(uint=prn_a, length=8)
+        self.prn_a = prn_a
         self.adkd = adkd
         self.iod_tag = iod_tag
         self.new_data = iod_tag[0]
         self.ctr = ctr
         self.gst_subframe = gst_subframe
-        self.mack_block = mack_block
         self.nma_status = nma_status
 
         self.id = (self.prn_d.uint, self.adkd.uint, self.iod_tag[1:].uint)
@@ -178,11 +174,11 @@ class TagAndInfo:
 
 class Tag0AndSeq(TagAndInfo):
 
-    def __init__(self, tag0_value: BitArray, prn_a: int, iod_tag: BitArray, gst_subframe: BitArray, mac_seq: BitArray,
+    def __init__(self, tag0_value: BitArray, prn_a: BitArray, iod_tag: BitArray, gst_subframe: BitArray, mac_seq: BitArray,
                  nma_status: BitArray):
-        prn_d = BitArray(uint=prn_a, length=8)  # PRN_D used to compute the id as bitarray
+        prn_d = prn_a  # PRN_D used to compute the id as bitarray
         adkd = BitArray('0x0')  # TAG0 has adkd 0
-        super().__init__(tag0_value, prn_d, adkd, iod_tag, gst_subframe, prn_a, 1, 1, nma_status)
+        super().__init__(tag0_value, prn_d, adkd, iod_tag, gst_subframe, prn_a, 1, nma_status)
         self.mac_seq = mac_seq
         self.is_tag0 = True
 
@@ -193,113 +189,44 @@ class Tag0AndSeq(TagAndInfo):
         return f"{super().get_log()} TAG0"
 
 
-class MACKBlock:
+class MACKMessage:
 
-    def __init__(self, block_number: int, ntags: int, tags=None, tesla_key=None):
-        """
-        :param block_number: Position of the block
-        :type block_number: int
-        :param ntags: number of tags in this block.
-        :type ntags: int
-        :param tags: List of tags.
-        :type tags: List[TagAndInfo]
-        :param tesla_key: Tesla Key of this MACK block.
-        :type tesla_key: TESLAKey
-        """
-        self.block_number = block_number
+    def __init__(self, gst_sf: BitArray, chain_id: int, svid: BitArray, nr_tags, tags=None, tesla_key=None):
+
+        self.svid = svid
+        self.gst_sf = gst_sf
+        self.chain_id = chain_id
+        self.nr_tags = nr_tags
         self.tesla_key = tesla_key
-        self.ntags = ntags
-
         self.tags = tags if tags else []
+
+        self.tag0_and_seq = None
+        self.macseq = None
 
     def add_key(self, key: TESLAKey):
         self.tesla_key = key
 
-    def add_tag(self, tag):
-        if len(self.tags) >= self.ntags:
-            raise ValueError(f"No more tags can be added to this block. Block tags due to NMACK: {self.ntags};"
+    def add_tag(self, tag: TagAndInfo):
+        if len(self.tags) >= self.nr_tags:
+            raise ValueError(f"No more tags can be added to this MACKMessage. Block tags: {self.nr_tags};"
                              f" current tags: {len(self.tags)}.")
         else:
             self.tags.append(tag)
 
-    def add_tags(self, tags):
-        if len(tags) >= self.ntags:
-            raise ValueError(f"Tag list parameter has more tags than the maximum amount due to chain properties. Max "
-                             f"block tags: {self.ntags}; tags to be added: {len(tags)}.")
+    def add_tag0(self, tag0: Tag0AndSeq):
+        if self.tag0_and_seq is None:
+            self.tag0_and_seq = tag0
+            self.macseq = MACSeqObject(self.gst_sf, self.svid, self.tag0_and_seq.mac_seq)
+            self.add_tag(tag0)
         else:
-            self.tags = tags
-
-
-class MACKHeaderBlock(MACKBlock):
-
-    def __init__(self, ntags, tags=None, tesla_key=None):
-        super().__init__(1, ntags, tags, tesla_key)
-
-    def get_tag_header(self) -> Tag0AndSeq:
-        return self.tags[0]
-
-    def add_tag(self, tag):
-        if tag.ctr == 1 and not isinstance(tag, Tag0AndSeq):
-            raise TypeError(f"The first tag must be a MACHeader, not {type(tag)}")
-        else:
-            super().add_tag(tag)
-
-    def add_tags(self, tags):
-        if tags[0] is not isinstance(tags[0], Tag0AndSeq):
-            raise TypeError(f"The first tag must be a MACHeader, not {type(tags[0])}")
-        else:
-            super().add_tags(tags)
-
-
-class MACKMessage:
-
-    def __init__(self, gst_sf, chain_id, nmack, svid, mack_blocks=None):
-        """
-        :param gst_sf: Galileo Satellite Time of the subframe, 32 bits value.
-        :type gst_sf: BitArray
-
-        :param chain_id: ID of the TESLA Chain in force when this MACKMessage was received.
-        :type chain_id: int
-
-        :param nmack: Number of MACK blocks per MACKMessage
-        :type nmack: int
-
-        :param mack_blocks: List of MACKBlock
-        :type mack_blocks: List[MACKHeaderBlock, MACKBlock]
-        """
-        self.svid = svid
-        self.gst_sf = gst_sf
-        self.chain_id = chain_id
-        self.nmack = nmack
-        self.macseq = None
-
-        self.mack_blocks = mack_blocks if mack_blocks else []
-
-    def add_mack_block(self, mack_block: MACKBlock):
-
-        if mack_block.block_number == 1 and not isinstance(mack_block, MACKHeaderBlock):
-            raise TypeError(f"The first mack block must be a MACKHeaderBlock, not {type(mack_block)}")
-        elif len(self.mack_blocks) >= self.nmack:
-            raise ValueError(f"No more blocks can be added to this message. NMACK of {self.nmack}; current blocks:"
-                             f" {len(self.mack_blocks)}.")
-        else:
-            self.mack_blocks.append(mack_block)
-            if mack_block.block_number == 1:
-                self.set_macseq()
-
-    def set_macseq(self):
-        self.macseq = MACSeqObject(self.gst_sf, self.svid, self.get_tag0().mac_seq)
+            raise ValueError(f"Tag0 of this MACKMessage already filled.")
 
     def get_macseq(self, tag_list):
         self.macseq.flex_list = tag_list
         return self.macseq
 
-    def get_keys(self):
-        """
-        Return a list with the key or keys in the block.
-        :return: List[TESLAKey]
-        """
-        return [block.tesla_key for block in self.mack_blocks]
+    def get_key(self) -> TESLAKey:
+        return self.tesla_key
 
-    def get_tag0(self):
-        return self.mack_blocks[0].get_tag_header()
+    def get_tag0(self) -> Tag0AndSeq:
+        return self.tag0_and_seq
