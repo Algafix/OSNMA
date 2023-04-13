@@ -222,7 +222,8 @@ class MACKMessage:
             raise ValueError(f"Tag0 of this MACKMessage already filled.")
 
     def get_macseq(self, tag_list):
-        self.macseq.flex_list = tag_list
+        if self.macseq:
+            self.macseq.flex_list = tag_list
         return self.macseq
 
     def get_key(self) -> TESLAKey:

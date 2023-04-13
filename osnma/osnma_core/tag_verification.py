@@ -205,7 +205,7 @@ class TagStateStructure:
 
         tag_list, macseq, is_flx_tag_missing = self.verify_maclt(mack_message)
         self.set_tag_keys(tag_list)
-        if not is_flx_tag_missing:
+        if macseq and not is_flx_tag_missing:
             self.set_macseq_key(macseq)
             self.macseq_awaiting_key.append(macseq)
         self.add_tags_waiting_key(tag_list)

@@ -163,12 +163,13 @@ class TESLAChain:
 
         try:
             mack_object = self.mac_msg_parser.parse_mack_message(mack_message, gst_sf, prn_a, nma_status)
-            self.tags_structure.load_mack_message(mack_object)
         except Exception as e:
             raise MackParsingError(f"Error parsing MACK Message from SVID {prn_a} at "
                                    f"{gst_sf[:12].uint} {gst_sf[12:].uint}\n{traceback.print_exc()}")
         else:
-            self.add_key(mack_object.get_key())
+            self.tags_structure.load_mack_message(mack_object)
+            if tesla_key := mack_object.get_key():
+                self.add_key(tesla_key)
 
     def update_tag_lists(self):
         self.tags_structure.update_tag_lists()

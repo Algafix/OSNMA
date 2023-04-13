@@ -90,7 +90,7 @@ class ReceiverState:
 
         self.start_status = StartStates.COLD_START
         self.chain_status = CPKS.NOMINAL
-        self.nma_status = NMAS.OPERATIONAL
+        self.nma_status = NMAS.TEST
 
         self.nma_header = None
 

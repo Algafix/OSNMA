@@ -141,7 +141,7 @@ def test_sbf_config5(log_level=logging.INFO):
         crc_failed = len(re.findall('WARNING.*CRC', log_text))
         errors = len(re.findall('ERROR', log_text))
 
-    assert tags_auth == 2348
+    assert tags_auth == 2349
     assert data_auth == 1436
     assert kroot_auth == 17
     assert crc_failed == 22
@@ -177,8 +177,8 @@ def test_sbf_config7(log_level=logging.INFO):
         warnings = len(re.findall('WARNING', log_text))
         errors = len(re.findall('ERROR', log_text))
 
-    assert tags_auth == 4251
-    assert data_auth == 2810
+    assert tags_auth == 4252
+    assert data_auth == 2811
     assert kroot_auth == 53
     assert broken_kroot == 8
     assert warnings == 19
@@ -215,7 +215,7 @@ def test_sbf_eoc_1(log_level=logging.INFO):
         broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
         errors = len(re.findall('ERROR', log_text))
 
-    assert tags_auth == 3433
+    assert tags_auth == 3434
     assert data_auth == 1290
     assert kroot_auth == 30
     assert kroot_cid_2_auth == 14
@@ -254,7 +254,7 @@ def test_sbf_npk_1(log_level=logging.INFO):
         broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
         errors = len(re.findall('ERROR', log_text))
 
-    assert tags_auth == 3834
+    assert tags_auth == 3839
     assert data_auth == 1255
     assert kroot_auth == 17
     assert broken_kroot == 6
@@ -291,7 +291,7 @@ def test_sbf_npk_2(log_level=logging.INFO):
         broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
         errors = len(re.findall('ERROR', log_text))
 
-    assert tags_auth == 4672
+    assert tags_auth == 4675
     assert data_auth == 1513
     assert kroot_auth == 17
     assert crc_failed == 8
@@ -377,8 +377,8 @@ def test_sbf_pkrev_1(log_level=logging.INFO):
     assert kroot_5_auth == 4
     assert crc_failed == 11
     assert broken_kroot == 7
-    assert warnings == 181
-    assert nma_dont_use == 162
+    assert warnings == 183
+    assert nma_dont_use == 164
     assert errors == 0
 
 
@@ -415,8 +415,8 @@ def test_sbf_pkrev_2(log_level=logging.INFO):
     assert kroot_auth == 10
     assert crc_failed == 17
     assert broken_kroot == 8
-    assert warnings == 290
-    assert nma_dont_use == 265
+    assert warnings == 292
+    assert nma_dont_use == 267
     assert errors == 0
 
 
@@ -454,8 +454,8 @@ def test_sbf_pkrev_2_with_pk(log_level=logging.INFO):
     assert kroot_auth == 11
     assert crc_failed == 17
     assert broken_kroot == 8
-    assert warnings == 383
-    assert nma_dont_use == 357
+    assert warnings == 386
+    assert nma_dont_use == 360
     assert errors == 0
 
 
@@ -497,8 +497,8 @@ def test_sbf_pkrev_12(log_level=logging.INFO):
     assert kroot_5_auth == 16
     assert crc_failed == 28
     assert broken_kroot == 15
-    assert warnings == 575
-    assert nma_dont_use == 531
+    assert warnings == 585
+    assert nma_dont_use == 541
     assert errors == 0
 
 

@@ -124,7 +124,7 @@ class MACKMessageParser:
             key_pages_bits.append(mack_message[key_page])
 
         if missing_key_pages:
-            logger.warning(f"Missing a page from the TESLA key")
+            logger.info(f"Missing a page from the TESLA key")  # TODO: log info to TESLA key regenerated, not if not
         else:
             tesla_key_bits = key_pages_bits[key_slice]
             tesla_key = TESLAKey(gst_sf[:12], gst_sf[12:], tesla_key_bits, prn_a.uint, 1)  # TODO: remove nrblock to 1

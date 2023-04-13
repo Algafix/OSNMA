@@ -158,7 +158,7 @@ class OSNMAReceiver:
                 continue
 
             if not data.crc:
-                logger.warning(f'CRC FAILED\tSVID: {data.svid} - TOW: {data.tow} - Page: {data.tow%30}.'
+                logger.warning(f'CRC FAILED\tSVID: {data.svid:02} - TOW: {data.tow} - Page: {(data.tow%30):02}. '
                                f'Page NOT processed.')
                 continue
 
@@ -186,12 +186,15 @@ class OSNMAReceiver:
                         mack_sf = satellite.get_mack_subframe()
                         self.receiver_state.process_mack_subframe(mack_sf, gst_sf, satellite.svid, nma_status)
                     else:
-                        # Broken subframe. Reconstruct if possible hkroot. Noting with mack, yet.
+                        # Broken subframe. Reconstruct if possible hkroot. Reconstruct TESLA MACK in future
+                        logger.warning('Broken HKROOT Subframe. Trying to regenerate HKROOT and process MACK.')
                         for regen_hkroot_sf, bid in self.subframe_regenerator.get_regenerated_blocks():
-                            logger.info(f'Regenerated BID {bid}')
+                            logger.info(f'HKROOT regenerated. BID {bid}')
                             self.receiver_state.process_hkroot_subframe(regen_hkroot_sf)
-                        # Satellite class is filtering and never relying
-                        logger.warning('Broken HKROOT Subframe')
+                        mack_sf = satellite.get_mack_subframe()
+                        self.receiver_state.process_mack_subframe(
+                            mack_sf, gst_sf, satellite.svid, BitArray(uint=self.receiver_state.nma_status.value, length=2))  # TODO: review nma
+
                 else:
                     logger.info(f"No OSNMA data.")
 
