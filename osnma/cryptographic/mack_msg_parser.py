@@ -46,6 +46,9 @@ class MACKMessageParser:
         self.full_tag_size = self.tag_size + TAG_INFO_SIZE
         self.nma_status = None
 
+        self.sf_reconstructed_tesla = None
+        self.pages_reconstructed_tesla = []
+
     def _get_pages_and_slice(self, global_bit_start, size):
 
         page_start = global_bit_start // MACK_PAGE_SIZE
@@ -57,7 +60,7 @@ class MACKMessageParser:
             page_end = page_end - 1
         page_bit_end = page_bit_start + size
 
-        return list(range(page_start, page_end + 1)), slice(page_bit_start, page_bit_end)
+        return slice(page_start, page_end+1), slice(page_bit_start, page_bit_end)
 
     def parse_mack_header(self, tag0_seq_msg, gst_sf, prn_a) -> Tag0AndSeq:
         tag0 = tag0_seq_msg[:self.tag_size]
@@ -79,6 +82,16 @@ class MACKMessageParser:
 
         return tag_and_info
 
+    def extract_from_mack_message(self, key_pages):
+        key_pages_bits = BitArray()
+        missing_key_pages = False
+        for key_page in key_pages:
+            if key_page is None:
+                missing_key_pages = True
+                break
+            key_pages_bits.append(key_page)
+        return key_pages_bits, missing_key_pages
+
     def parse_mack_message(self, mack_message: List[BitArray], gst_sf: BitArray, prn_a: int,
                            nma_status: BitArray) -> MACKMessage:
 
@@ -87,24 +100,16 @@ class MACKMessageParser:
 
         mack_msg_parsed = MACKMessage(gst_sf, self.chain_id, prn_a, self.num_tags)
 
-        # Extract tags if we have the pages
+        # TAGS
         for nr_tag in range(self.num_tags):
 
-            tag_pages, tag_slice = self._get_pages_and_slice(nr_tag*self.full_tag_size, self.full_tag_size)
-            page_bits = BitArray()
-            missing_pages = False
-
-            for tag_page in tag_pages:
-                if mack_message[tag_page] is None:
-                    missing_pages = True
-                    break
-                page_bits.append(mack_message[tag_page])
+            tag_pages_slice, tag_bit_slice = self._get_pages_and_slice(nr_tag*self.full_tag_size, self.full_tag_size)
+            page_bits, missing_pages = self.extract_from_mack_message(mack_message[tag_pages_slice])
 
             if missing_pages:
                 mack_msg_parsed.add_tag(None)
                 continue
-
-            complete_tag_bits = page_bits[tag_slice]
+            complete_tag_bits = page_bits[tag_bit_slice]
 
             if nr_tag == 0:
                 complete_tag = self.parse_mack_header(complete_tag_bits, gst_sf, prn_a)
@@ -113,21 +118,28 @@ class MACKMessageParser:
                 complete_tag = self.parse_complete_tag(complete_tag_bits, gst_sf, prn_a, nr_tag)
                 mack_msg_parsed.add_tag(complete_tag)
 
-        # check pages for tesla key
-        key_pages, key_slice = self._get_pages_and_slice(self.full_tag_size * self.num_tags, self.key_size)
-        key_pages_bits = BitArray()
-        missing_key_pages = False
-        for key_page in key_pages:
-            if mack_message[key_page] is None:
-                missing_key_pages = True
-                break
-            key_pages_bits.append(mack_message[key_page])
+        # TESLA KEY
+        reconstructed = False
+        key_pages_slice, key_bit_slice = self._get_pages_and_slice(self.full_tag_size * self.num_tags, self.key_size)
 
+        key_pages_bits, missing_key_pages = self.extract_from_mack_message(mack_message[key_pages_slice])
         if missing_key_pages:
-            logger.info(f"Missing a page from the TESLA key")  # TODO: log info to TESLA key regenerated, not if not
-        else:
-            tesla_key_bits = key_pages_bits[key_slice]
-            tesla_key = TESLAKey(gst_sf[:12], gst_sf[12:], tesla_key_bits, prn_a.uint, 1)  # TODO: remove nrblock to 1
+            if gst_sf != self.sf_reconstructed_tesla:
+                # Start new saved key
+                self.sf_reconstructed_tesla = gst_sf
+                self.pages_reconstructed_tesla = mack_message[key_pages_slice]
+            else:
+                # Update saved list
+                for i, (saved_page, new_page) in enumerate(zip(self.pages_reconstructed_tesla, mack_message[key_pages_slice])):
+                    if saved_page is None and new_page is not None:
+                        self.pages_reconstructed_tesla[i] = new_page
+                # Check again if we are complete
+                key_pages_bits, missing_key_pages = self.extract_from_mack_message(self.pages_reconstructed_tesla)
+                reconstructed = True
+
+        if not missing_key_pages:
+            tesla_key_bits = key_pages_bits[key_bit_slice]
+            tesla_key = TESLAKey(gst_sf[:12], gst_sf[12:], tesla_key_bits, prn_a.uint, 1, reconstructed=reconstructed)  # TODO: remove nrblock to 1
             mack_msg_parsed.add_key(tesla_key)
 
         return mack_msg_parsed

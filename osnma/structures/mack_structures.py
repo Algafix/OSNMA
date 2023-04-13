@@ -24,7 +24,7 @@ class TESLAKey:
     """
 
     def __init__(self, wn: Union[BitArray, int, str], tow: Union[BitArray, int, str], key: Union[BitArray, str, bytes],
-                 svid: int = None, n_block: int = None, index: int = None):
+                 svid: int = None, n_block: int = None, index: int = None, reconstructed: bool = False):
         """Instantiates the TESLAKey object. Verified is set to false by default. Special treatment for KROOT (index
         = 0) key.
 
@@ -40,6 +40,7 @@ class TESLAKey:
         self.n_block = n_block
         self.svid = svid
         self.key = BitArray(key)
+        self.reconstructed = reconstructed
 
         if isinstance(wn, BitArray) or isinstance(wn, str):
             self.wn = BitArray(wn)

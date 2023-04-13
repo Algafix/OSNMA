@@ -12,12 +12,12 @@ the navigation and authentication data, perform the authentication verification,
 
 The software has been succesfully tested using the official ICD test vectors from the [Receiver Guidelines for the Test Phase v1.1](https://www.gsc-europa.eu/sites/default/files/sites/all/files/Galileo_OSNMA_Receiver_Guidelines_for_the_Test_Phase_v1.1.pdf) available [here](https://www.gsc-europa.eu/sites/default/files/sites/all/files/osnma_annex_2.zip). It has also been tested with old test vectors and real live data recorded by me.
 
-Supports Python 3.8, 3.9 and 3.10. Tested on Linux and Windows.
+Supports Python 3.8, 3.9 and 3.10+. Tested on Linux and Windows.
 
 Features
 ---
 
-Current OSNMA **features supported**:
+Current OSNMA ICD **features supported**:
 
   * Verification of the public key retrieved from the DSM-PKR message.
   * Verification of the TESLA root key retrieved from the DSM-KROOT message (all algorithms).
@@ -31,7 +31,11 @@ Current OSNMA **features supported**:
   * Support for Cold Start, Warm Start and Hot Start.
   * Support for the following events: EOC, NPK, PKREV, OAM.
     * Missing data to validate the CREV event.
+  
+**Extra optimizations** for a faster TTFAF:
   * Reconstruct broken HKROOT messages.
+  * Reconstruct TESLA key from partial MACK messages.
+  * Extract non-FLX tags from broken MACK messages.
 
 Current data **format supported**:
 
@@ -46,8 +50,8 @@ Future development:
   * **Done!** ~~Development of an input iterator for real-time navigation data.~~
     * ~~Integration with SBF logging real-time navigation data.~~
     * ~~Integration with Galmon real-time navigation data.~~
-  * **WIP** Reconstruct MACK subframes.
-  * TTFAF metric displayed in the logs.
+  *  ~~Reconstruct MACK subframes.~~
+  * **WIP** TTFAF metric displayed in the logs.
   * Time synchronization options.
 
 Documentation

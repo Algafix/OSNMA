@@ -181,20 +181,19 @@ class OSNMAReceiver:
                     raw_hkroot_sf = satellite.get_hkroot_subframe()
                     hkroot_sf = self.subframe_regenerator.load_dsm_block(raw_hkroot_sf, gst_sf, satellite.svid)
                     if hkroot_sf:
-                        # The full subframe has been received consecutively. Use mack_sf.
+                        # The full subframe has been received consecutively.
                         nma_status = self.receiver_state.process_hkroot_subframe(hkroot_sf, is_consecutive_hkroot=True)
                         mack_sf = satellite.get_mack_subframe()
                         self.receiver_state.process_mack_subframe(mack_sf, gst_sf, satellite.svid, nma_status)
                     else:
-                        # Broken subframe. Reconstruct if possible hkroot. Reconstruct TESLA MACK in future
+                        # Broken subframe. Reconstruct if possible hkroot. Extract what is possible from MACK.
                         logger.warning('Broken HKROOT Subframe. Trying to regenerate HKROOT and process MACK.')
                         for regen_hkroot_sf, bid in self.subframe_regenerator.get_regenerated_blocks():
                             logger.info(f'HKROOT regenerated. BID {bid}')
                             self.receiver_state.process_hkroot_subframe(regen_hkroot_sf)
                         mack_sf = satellite.get_mack_subframe()
                         self.receiver_state.process_mack_subframe(
-                            mack_sf, gst_sf, satellite.svid, BitArray(uint=self.receiver_state.nma_status.value, length=2))  # TODO: review nma
-
+                            mack_sf, gst_sf, satellite.svid, BitArray(uint=self.receiver_state.nma_status.value, length=2))
                 else:
                     logger.info(f"No OSNMA data.")
 

@@ -244,7 +244,8 @@ class TESLAChain:
                 key_verified = True
                 break
             else:
-                raise TeslaKeyVerificationFailed(f"Tesla Key {new_tesla_key.index} from svid {new_tesla_key.svid},"
+                raise TeslaKeyVerificationFailed(f"Tesla Key {new_tesla_key.index} from svid {new_tesla_key.svid}"
+                                                 f"{' Reconstructed' if new_tesla_key.reconstructed else ''},"
                                                  f" received at {new_tesla_key.wn.uint} {new_tesla_key.tow.uint} failed verification.\n"
                                                  f"Last authenticated key: {last_tesla_key.index} at {last_tesla_key.tow.uint}.\n"
                                                  f"Last hash: {key_index} {tesla_key.key}")
