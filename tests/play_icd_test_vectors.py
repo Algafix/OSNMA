@@ -21,7 +21,6 @@ from osnma.receiver.receiver import OSNMAReceiver
 from osnma.receiver.input import ICDTestVectors
 
 
-
 def icd_test_vectors_configuration_A():
 
     config_dict = {

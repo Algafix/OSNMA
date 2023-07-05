@@ -27,7 +27,7 @@ from osnma.utils.iohandler import IOHandler
 from osnma.utils.exceptions import PublicKeyObjectError, TeslaKeyVerificationFailed, MackParsingError, \
     ReceiverStatusError
 
-import osnma.utils.config as config
+from osnma.utils.config import Config
 import osnma.utils.logger_factory as log_factory
 logger = log_factory.get_logger(__name__)
 
@@ -102,7 +102,7 @@ class ReceiverState:
         self.next_tesla_chain = None
 
         self.nav_data_structure = NavigationDataManager()
-        self.io_handler = IOHandler(config.EXEC_PATH)
+        self.io_handler = IOHandler(Config.EXEC_PATH)
 
         self.dsm_messages = []
         for i in range(16):
@@ -114,9 +114,9 @@ class ReceiverState:
 
     def _initialize_status(self):
 
-        merkle_file = config.MERKLE_NAME
-        pubkey_file = config.PUBK_NAME
-        kroot_file = config.KROOT_NAME
+        merkle_file = Config.MERKLE_NAME
+        pubkey_file = Config.PUBK_NAME
+        kroot_file = Config.KROOT_NAME
         self.merkle_root = self.io_handler.read_merkle_root(merkle_file)
         logger.info(f"\nStart status {self.start_status.name}\n")
 

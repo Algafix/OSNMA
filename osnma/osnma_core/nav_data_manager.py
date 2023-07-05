@@ -19,7 +19,7 @@ from osnma.structures.mack_structures import TagAndInfo
 
 from bitstring import BitArray
 
-import osnma.utils.config as config
+from osnma.utils.config import Config
 import osnma.utils.logger_factory as logger_factory
 logger = logger_factory.get_logger(__name__)
 
@@ -319,7 +319,7 @@ class NavigationDataManager:
     def authenticated_data(self):
 
         for tag_id, tag in self.tags_accumulated.items():
-            if tag.acc_length >= config.TAG_LENGTH and tag.new_tags:
+            if tag.acc_length >= Config.TAG_LENGTH and tag.new_tags:
                 tag.log_authenticated()
                 tag.new_tags = False
                 # TODO: Eliminar quan les dades deixen de ser valides:

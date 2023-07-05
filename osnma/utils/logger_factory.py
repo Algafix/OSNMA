@@ -18,7 +18,7 @@ import logging
 import os
 from datetime import datetime
 
-import osnma.utils.config as config
+from osnma.utils.config import Config
 
 str_to_log_level = {
     'debug': logging.DEBUG,
@@ -58,22 +58,22 @@ def configure_loggers():
     logger = logging.getLogger('osnma')
     now = datetime.now()
 
-    file_path = config.LOGS_PATH / f'logs_{now.strftime("%Y%m%d_%H%M%S%f")}'
+    file_path = Config.LOGS_PATH / f'logs_{now.strftime("%Y%m%d_%H%M%S%f")}'
     os.makedirs(file_path)
     file_name = file_path / 'general_logs.log'
 
     # File Handler
     f_handler = logging.FileHandler(file_name, mode='w')
-    f_handler.setLevel(config.FILE_LOG_LEVEL)
+    f_handler.setLevel(Config.FILE_LOG_LEVEL)
     f_format = logging.Formatter('%(asctime)s | %(name)-35s | %(levelname)-8s | %(message)s')
 
     f_handler.setFormatter(f_format)
     logger.addHandler(f_handler)
 
     # Console Handler
-    if config.LOG_CONSOLE:
+    if Config.LOG_CONSOLE:
         c_handler = logging.StreamHandler()
-        c_handler.setLevel(config.CONSOLE_LOG_LEVEL)
+        c_handler.setLevel(Config.CONSOLE_LOG_LEVEL)
         c_handler.setFormatter(CustomFormatter())
 
         logger.addHandler(c_handler)

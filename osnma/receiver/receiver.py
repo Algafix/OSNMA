@@ -14,107 +14,27 @@
 # See the Licence for the specific language governing permissions and limitations under the Licence.
 #
 
-import json
-from enum import IntEnum
-from pathlib import Path
-
 from bitstring import BitArray
 
 from .satellite import Satellite
 from .subframe_regen import SubFrameRegenerator
 from osnma.osnma_core.receiver_state import ReceiverState
 
-import osnma.utils.config as config
+from osnma.utils.config import Config, SYNC_SOURCE
 import osnma.utils.logger_factory as log_factory
 
 logger = log_factory.get_logger(__name__)
-
-
-def load_configuration_parameters(custom_parameters):
-    with open(Path(__file__).parent.parent / 'utils/config_params.json') as params_file:
-        param_dict = json.load(params_file)
-        param_dict.update(custom_parameters)
-
-    if 'exec_path' in param_dict:
-        config.EXEC_PATH = Path(param_dict['exec_path'])
-    else:
-        raise AttributeError("The 'exec_path' is a mandatory parameter.")
-
-    if 'scenario_path' in param_dict:
-        config.SCENARIO_PATH = Path(param_dict['scenario_path'])
-    else:
-        raise AttributeError("The 'scenario_path' is a mandatory parameter.")
-
-    if 'merkle_name' in param_dict:
-        config.MERKLE_NAME = str(param_dict['merkle_name'])
-
-    if 'pubk_name' in param_dict:
-        config.PUBK_NAME = str(param_dict['pubk_name'])
-
-    if 'kroot_name' in param_dict:
-        config.KROOT_NAME = str(param_dict['kroot_name'])
-
-    if 'console_log_level' in param_dict:
-        console_log_level = param_dict['console_log_level']
-        try:
-            config.CONSOLE_LOG_LEVEL = log_factory.str_to_log_level[console_log_level]
-        except KeyError:
-            if isinstance(console_log_level, int):
-                config.CONSOLE_LOG_LEVEL = console_log_level
-            else:
-                raise KeyError(f'Log level {console_log_level} not defined.')
-
-    if 'file_log_level' in param_dict:
-        file_log_level = param_dict['file_log_level']
-        try:
-            config.FILE_LOG_LEVEL = log_factory.str_to_log_level[file_log_level]
-        except KeyError:
-            if isinstance(file_log_level, int):
-                config.FILE_LOG_LEVEL = file_log_level
-            else:
-                raise KeyError(f'Log level {file_log_level} not defined.')
-
-    if 'log_console' in param_dict:
-        config.LOG_CONSOLE = param_dict['log_console']
-
-    if 'logs_path' in param_dict:
-        config.LOGS_PATH = Path(param_dict['logs_path']) if param_dict['logs_path'] else Path(config.EXEC_PATH)
-
-    if 'sync_source' in param_dict:
-        config.SYNC_SOURCE = param_dict['sync_source']
-
-    if config.SYNC_SOURCE == SYNC_SOURCE.DEFINED and 'sync_time' in param_dict:
-        config.SYNC_TIME = param_dict['sync_time']
-
-    if 'tl' in param_dict:
-        config.TL = param_dict['tl']
-
-    if 'b' in param_dict:
-        config.B = param_dict['b']
-
-    if 'ns' in param_dict:
-        config.NS = param_dict['ns']
-
-    if 'tag_length' in param_dict:
-        config.TAG_LENGTH = param_dict['tag_length']
-
-
-class SYNC_SOURCE(IntEnum):
-    SBF = 0
-    DEFINED = 1
-    NTP = 2
-    RTC = 3
 
 
 class OSNMAReceiver:
 
     def __init__(self, input_module, param_dict):
 
-        load_configuration_parameters(param_dict)
+        Config.load_configuration_parameters(param_dict)
         log_factory.configure_loggers()
 
         self.satellites = {}
-        for svid in range(config.NS):
+        for svid in range(Config.NS):
             self.satellites[svid + 1] = Satellite(svid + 1)
 
         self.nav_data_input = input_module
@@ -128,19 +48,19 @@ class OSNMAReceiver:
         return data.nav_bits[1]
 
     def _sync_calculation(self, t_ref, t_sig):
-        return (t_ref + config.B - config.TL < t_sig) and (config.B < config.TL // 2)
+        return (t_ref + Config.B - Config.TL < t_sig) and (Config.B < Config.TL // 2)
 
     def sync_check(self, index, data):
-        if config.SYNC_SOURCE == SYNC_SOURCE.SBF:
+        if Config.SYNC_SOURCE == SYNC_SOURCE.SBF:
             return True
-        elif config.SYNC_SOURCE == SYNC_SOURCE.DEFINED and index == 0:
-            t_ref = config.sync_time
-        elif config.SYNC_SOURCE == SYNC_SOURCE.NTP:
+        elif Config.SYNC_SOURCE == SYNC_SOURCE.DEFINED and index == 0:
+            t_ref = Config.SYNC_TIME
+        elif Config.SYNC_SOURCE == SYNC_SOURCE.NTP:
             t_ref = None
-        elif config.SYNC_SOURCE == SYNC_SOURCE.RTC:
+        elif Config.SYNC_SOURCE == SYNC_SOURCE.RTC:
             t_ref = None
         else:
-            raise Exception(f"{config.sync_source} is not a valid option.")
+            raise Exception(f"{Config.SYNC_SOURCE} is not a valid option.")
 
         return self._sync_calculation(t_ref, data.wn)
 

@@ -15,25 +15,62 @@
 #
 
 import logging
+import json
+from typing import Dict, Any
+from pathlib import Path
+from enum import IntEnum
 
-SCENARIO_PATH = ''
-EXEC_PATH = ''
-MERKLE_NAME = 'OSNMA_MerkleTree.xml'
-PUBK_NAME = ''
-KROOT_NAME = ''
-
-FILE_LOG_LEVEL = logging.INFO
-CONSOLE_LOG_LEVEL = logging.DEBUG
-LOG_CONSOLE = True
-LOGS_PATH = ''
-
-SYNC_SOURCE = 0
-SYNC_TIME = None
-TL = 30
-B = 1
-
-NS = 36
-TAG_LENGTH = 80
+import osnma.utils.logger_factory as log_factory
 
 
+class Config:
 
+    SCENARIO_PATH = ''
+    EXEC_PATH = ''
+    MERKLE_NAME = 'OSNMA_MerkleTree.xml'
+    PUBK_NAME = ''
+    KROOT_NAME = ''
+
+    FILE_LOG_LEVEL = logging.INFO
+    CONSOLE_LOG_LEVEL = logging.DEBUG
+    LOG_CONSOLE = True
+    LOGS_PATH = ''
+
+    SYNC_SOURCE = 0
+    SYNC_TIME = None
+    TL = 30
+    B = 1
+
+    NS = 36
+    TAG_LENGTH = 80
+
+    @classmethod
+    def load_configuration_parameters(cls, custom_parameters: Dict):
+
+        with open(Path(__file__).parent.parent / 'utils/config_params.json') as params_file:
+            param_dict: Dict[str, Any] = json.load(params_file)
+            param_dict.update(custom_parameters)
+
+        if not param_dict['exec_path']:
+            raise AttributeError("The 'exec_path' is a mandatory parameter.")
+
+        if not param_dict['scenario_path']:
+            raise AttributeError("The 'scenario_path' is a mandatory parameter.")
+
+        for k, v in param_dict.items():
+            if k.upper() in cls.__dict__:
+                if 'LOG_LEVEL' in k.upper():
+                    v = log_factory.str_to_log_level[v]
+                elif k.upper().endswith('_PATH'):
+                    v = Path(v)
+                setattr(cls, k.upper(), v)
+
+        if not param_dict['logs_path']:
+            cls.LOGS_PATH = cls.EXEC_PATH
+
+
+class SYNC_SOURCE(IntEnum):
+    SBF = 0
+    DEFINED = 1
+    NTP = 2
+    RTC = 3

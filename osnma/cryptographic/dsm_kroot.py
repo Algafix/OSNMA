@@ -121,4 +121,3 @@ class DSMKroot(DSM):
 
         self.verified = is_length_correct and is_padding_correct and is_ds_correct
         return self.verified
-
