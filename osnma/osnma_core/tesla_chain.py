@@ -242,9 +242,8 @@ class TESLAChain:
                                                  f" received at {new_tesla_key.wn.uint} {new_tesla_key.tow.uint} failed verification.\n"
                                                  f"Last authenticated key: {last_tesla_key.index} at {last_tesla_key.tow.uint}.\n"
                                                  f"Last hash: {key_index} {tesla_key.key}")
-
-        # if key_verified and new_tesla_key.tow.uint != last_tesla_key.tow.uint:
-        #     logger.info(f"Subframe with Tesla Key Authenticated {new_tesla_key.wn.uint} {new_tesla_key.tow.uint} {' - Regenerated' if new_tesla_key.reconstructed else ''}\n")
+        if key_verified:
+            logger.info(f"Tesla Key Authenticated {new_tesla_key.wn.uint} {new_tesla_key.tow.uint}{' - Regenerated' if new_tesla_key.reconstructed else ''}\n")
 
         return key_verified, new_key_index
 

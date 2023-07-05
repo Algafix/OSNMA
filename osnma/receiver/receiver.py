@@ -107,13 +107,15 @@ class OSNMAReceiver:
                         self.receiver_state.process_mack_subframe(mack_sf, gst_sf, satellite.svid, nma_status)
                     else:
                         # Broken subframe. Reconstruct if possible hkroot. Extract what is possible from MACK.
-                        logger.warning('Broken HKROOT Subframe. Trying to regenerate HKROOT and process MACK.')
-                        for regen_hkroot_sf, bid in self.subframe_regenerator.get_regenerated_blocks():
-                            logger.info(f'HKROOT regenerated. BID {bid}')
-                            self.receiver_state.process_hkroot_subframe(regen_hkroot_sf)
-                        mack_sf = satellite.get_mack_subframe()
-                        self.receiver_state.process_mack_subframe(
-                            mack_sf, gst_sf, satellite.svid, BitArray(uint=self.receiver_state.nma_status.value, length=2))
+                        logger.warning('Broken HKROOT Subframe. Regenerating HKROOT and processing MACK if active.')
+                        if Config.DO_HKROOT_REGEN:
+                            for regen_hkroot_sf, bid in self.subframe_regenerator.get_regenerated_blocks():
+                                logger.info(f'HKROOT regenerated. BID {bid}')
+                                self.receiver_state.process_hkroot_subframe(regen_hkroot_sf)
+                        if Config.DO_CRC_FAILED_EXTRACTION:
+                            mack_sf = satellite.get_mack_subframe()
+                            self.receiver_state.process_mack_subframe(
+                                mack_sf, gst_sf, satellite.svid, BitArray(uint=self.receiver_state.nma_status.value, length=2))
                 else:
                     logger.info(f"No OSNMA data.")
 

@@ -14,13 +14,15 @@
 # See the Licence for the specific language governing permissions and limitations under the Licence.
 #
 
-from ..structures.mack_structures import MACKMessage, Tag0AndSeq, TagAndInfo, TESLAKey
-from ..structures.fields_information import field_info
-
 from typing import List
 from bitstring import BitArray
 
+from ..structures.mack_structures import MACKMessage, Tag0AndSeq, TagAndInfo, TESLAKey
+from ..structures.fields_information import field_info
+from ..utils.config import Config
+
 import osnma.utils.logger_factory as logger_factory
+
 logger = logger_factory.get_logger(__name__)
 
 MACK_MSG_SIZE = field_info['MACK_MSG']['size']
@@ -46,8 +48,9 @@ class MACKMessageParser:
         self.full_tag_size = self.tag_size + TAG_INFO_SIZE
         self.nma_status = None
 
-        self.sf_reconstructed_tesla = None
+        self.gst_sf_reconstructed_tesla = None
         self.pages_reconstructed_tesla = []
+        self.sf_with_TK_reconstructed = False
 
     def _get_pages_and_slice(self, global_bit_start, size):
 
@@ -123,12 +126,13 @@ class MACKMessageParser:
         key_pages_slice, key_bit_slice = self._get_pages_and_slice(self.full_tag_size * self.num_tags, self.key_size)
 
         key_pages_bits, missing_key_pages = self.extract_from_mack_message(mack_message[key_pages_slice])
-        if missing_key_pages:
-            if gst_sf != self.sf_reconstructed_tesla:
+        if missing_key_pages and Config.DO_TESLA_KEY_REGEN:
+            if gst_sf != self.gst_sf_reconstructed_tesla:
                 # Start new saved key
-                self.sf_reconstructed_tesla = gst_sf
+                self.gst_sf_reconstructed_tesla = gst_sf
                 self.pages_reconstructed_tesla = mack_message[key_pages_slice]
-            else:
+                self.sf_with_TK_reconstructed = False
+            elif not self.sf_with_TK_reconstructed:
                 # Update saved list
                 for i, (saved_page, new_page) in enumerate(zip(self.pages_reconstructed_tesla, mack_message[key_pages_slice])):
                     if saved_page is None and new_page is not None:
@@ -136,6 +140,7 @@ class MACKMessageParser:
                 # Check again if we are complete
                 key_pages_bits, missing_key_pages = self.extract_from_mack_message(self.pages_reconstructed_tesla)
                 reconstructed = True
+                self.sf_with_TK_reconstructed = not missing_key_pages
 
         if not missing_key_pages:
             tesla_key_bits = key_pages_bits[key_bit_slice]

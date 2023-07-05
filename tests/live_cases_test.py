@@ -35,6 +35,15 @@ def print_stats():
         tags_auth = len(re.findall(r'Tag AUTHENTICATED', log_text))
         data_auth = len(re.findall(r'INFO .* AUTHENTICATED: ADKD', log_text))
         kroot_auth = len(re.findall(r'INFO .*KROOT.*\n\tAUTHENTICATED\n', log_text))
+
+        total_tesla_keys = re.findall(r'Tesla Key Authenticated ([0-9]+ [0-9]+)', log_text)
+        nominal_tesla_keys = re.findall(r'Tesla Key Authenticated ([0-9]+ [0-9]+)\n', log_text)
+        regen_tesla_keys = re.findall(r'Tesla Key Authenticated ([0-9]+ [0-9]+) .* Regenerated', log_text)
+        total_sf_with_tesla_key = set(total_tesla_keys)
+        total_sf_with_nominal_tesla_key = set(nominal_tesla_keys)
+        total_sf_with_regen_tesla_key = set(regen_tesla_keys)
+        total_sf_with_only_regen_tesla_key = {i for i in total_sf_with_regen_tesla_key if i not in total_sf_with_nominal_tesla_key}
+
         broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
         crc_failed = len(re.findall('WARNING.*CRC', log_text))
         warnings = len(re.findall('WARNING', log_text))
@@ -43,11 +52,17 @@ def print_stats():
     print('')
     print(f"Tags Authenticated: {tags_auth}")
     print(f"KROOT Authenticated: {kroot_auth}")
+    print(f"Nominal Tesla Keys: {len(nominal_tesla_keys)}")
+    print(f"Regenerated Tesla Keys: {len(regen_tesla_keys)}")
+    print(f"SF with TK: {len(total_sf_with_tesla_key)}")
+    print(f"SF with only regen TK: {len(total_sf_with_only_regen_tesla_key)}")
     print(f"Warnings: {warnings}")
     print(f"Errors: {errors}")
 
 
-def sbf_live_parc_leopold(log_level=logging.INFO):
+def sbf_live_parc_leopold(extra_config_dict=None, log_level=logging.INFO):
+
+    extra_config_dict = extra_config_dict if extra_config_dict else {}
 
     config_dict = {
         'console_log_level': log_level,
@@ -56,6 +71,7 @@ def sbf_live_parc_leopold(log_level=logging.INFO):
         'exec_path': Path(__file__).parent / 'scenarios/live_parc_leopold',
         'pubk_name': 'OSNMA_PublicKey.xml'
     }
+    config_dict.update(extra_config_dict)
 
     input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
@@ -65,7 +81,9 @@ def sbf_live_parc_leopold(log_level=logging.INFO):
     print_stats()
 
 
-def sbf_live_palace_to_parlament(log_level=logging.INFO):
+def sbf_live_palace_to_parlament(extra_config_dict=None, log_level=logging.INFO):
+
+    extra_config_dict = extra_config_dict if extra_config_dict else {}
 
     config_dict = {
         'console_log_level': log_level,
@@ -74,6 +92,7 @@ def sbf_live_palace_to_parlament(log_level=logging.INFO):
         'exec_path': Path(__file__).parent / 'scenarios/live_palace_to_parlament',
         'pubk_name': 'OSNMA_PublicKey.xml'
     }
+    config_dict.update(extra_config_dict)
 
     input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
@@ -83,7 +102,9 @@ def sbf_live_palace_to_parlament(log_level=logging.INFO):
     print_stats()
 
 
-def sbf_live_manneken(log_level=logging.INFO):
+def sbf_live_manneken(extra_config_dict=None, log_level=logging.INFO):
+
+    extra_config_dict = extra_config_dict if extra_config_dict else {}
 
     config_dict = {
         'console_log_level': log_level,
@@ -92,6 +113,7 @@ def sbf_live_manneken(log_level=logging.INFO):
         'exec_path': Path(__file__).parent / 'scenarios/live_to_manneken',
         'pubk_name': 'OSNMA_PublicKey.xml'
     }
+    config_dict.update(extra_config_dict)
 
     input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
@@ -103,86 +125,132 @@ def sbf_live_manneken(log_level=logging.INFO):
 
 if __name__ == "__main__":
 
-    sbf_live_parc_leopold()
+    sbf_live_parc_leopold({'do_hkroot_regen': True, 'do_crc_failed_extraction': True, 'do_tesla_key_regen': True})
 
     # ONLY CONSECUTIVE
     #   Tags Authenticated: 1165
     #   KROOT Authenticated: 27
-    #   Warnings: 3636
+    #   Nominal Tesla Keys: 381
+    #   Regenerated Tesla Keys: 0
+    #   SF with TK: 159
+    #   SF with only TK: 0
+    #   Warnings: 3894
     #   Errors: 0
 
     # HKROOT REGEN
     #   Tags Authenticated: 1165
     #   KROOT Authenticated: 33
+    #   Nominal Tesla Keys: 381
+    #   Regenerated Tesla Keys: 0
+    #   SF with TK: 159
+    #   SF with only TK: 0
     #   Warnings: 3894
     #   Errors: 0
 
     # HKROOT REGEN, TAG EXTRACTION
     #   Tags Authenticated: 1529
     #   KROOT Authenticated: 33
+    #   Nominal Tesla Keys: 505
+    #   Regenerated Tesla Keys: 0
+    #   SF with TK: 170
+    #   SF with only TK: 0
     #   Warnings: 3894
     #   Errors: 3 - TAG0
 
-    # HKROOT REGEN, TESLA REGEN, TAG EXTRACTION
+    # HKROOT REGEN, TAG EXTRACTION, TESLA REGEN
     #   Tags Authenticated: 1529
     #   KROOT Authenticated: 33
+    #   Nominal Tesla Keys: 505
+    #   Regenerated Tesla Keys: 7
+    #   SF with TK: 170
+    #   SF with only TK: 0
     #   Warnings: 3894
     #   Errors: 3 - TAG0
 
 #############################################################
 
-    #sbf_live_palace_to_parlament()
+    #sbf_live_palace_to_parlament({'do_hkroot_regen': True, 'do_crc_failed_extraction': True, 'do_tesla_key_regen': True})
 
     # ONLY CONSECUTIVE
     #   Tags Authenticated: 1498
     #   KROOT Authenticated: 33
-    #   Warnings: 4245
+    #   Nominal Tesla Keys: 540
+    #   Regenerated Tesla Keys: 8
+    #   SF with TK: 190
+    #   SF with only TK: 0
+    #   Warnings: 4554
     #   Errors: 1
 
     # HKROOT REGEN
     #   Tags Authenticated: 1498
     #   KROOT Authenticated: 38
+    #   Nominal Tesla Keys: 540
+    #   Regenerated Tesla Keys: 8
+    #   SF with TK: 190
+    #   SF with only TK: 0
     #   Warnings: 4554
     #   Errors: 1 - TAG0
 
     # HKROOT REGEN, TAG EXTRACTION
     #   Tags Authenticated: 1966
     #   KROOT Authenticated: 38
+    #   Nominal Tesla Keys: 594
+    #   Regenerated Tesla Keys: 0
+    #   SF with TK: 204
+    #   SF with only TK: 0
     #   Warnings: 4554
     #   Errors: 4 - TAG0
 
     # HKROOT REGEN, TESLA REGEN, TAG EXTRACTION
     #   Tags Authenticated: 1966
     #   KROOT Authenticated: 38
+    #   Nominal Tesla Keys: 594
+    #   Regenerated Tesla Keys: 8
+    #   SF with TK: 204
+    #   SF with only TK: 0
     #   Warnings: 4554
     #   Errors: 4 - TAG0
 
 #############################################################
 
-    #sbf_live_manneken()
+    #sbf_live_manneken({'do_hkroot_regen': True, 'do_crc_failed_extraction': True, 'do_tesla_key_regen': True})
 
     # ONLY CONSECUTIVE
     #   Tags Authenticated: 654
     #   KROOT Authenticated: 10
-    #   Warnings: 3797
-    #   Errors: 19
-    #   Check errors. HKROOT takes a lot. The oldest saved MACSEQ and tags adkd 0 and 4 fail auth.
-    #   Cant be a data problem because MACSEQ fails. ADKD 12 is fine. Change of kroot?
+    #   Nominal Tesla Keys: 148
+    #   Regenerated Tesla Keys: 0
+    #   SF with TK: 96
+    #   SF with only TK: 0
+    #   Warnings: 3909
+    #   Errors: 3
 
     # HKROOT REGEN
     #   Tags Authenticated: 665
     #   KROOT Authenticated: 12
+    #   Nominal Tesla Keys: 156
+    #   Regenerated Tesla Keys: 0
+    #   SF with TK: 102
+    #   SF with only TK: 0
     #   Warnings: 3909
     #   Errors: 3 - TAG0
 
     # HKROOT REGEN, TAG EXTRACTION
     #   Tags Authenticated: 870
     #   KROOT Authenticated: 12
+    #   Nominal Tesla Keys: 221
+    #   Regenerated Tesla Keys: 0
+    #   SF with TK: 129
+    #   SF with only TK: 0
     #   Warnings: 3909
     #   Errors: 3 - TAG0
 
     # HKROOT REGEN, TESLA REGEN, TAG EXTRACTION
     #   Tags Authenticated: 870
     #   KROOT Authenticated: 12
+    #   Nominal Tesla Keys: 221
+    #   Regenerated Tesla Keys: 0
+    #   SF with TK: 129
+    #   SF with only TK: 0
     #   Warnings: 3909
     #   Errors: 3 - TAG0

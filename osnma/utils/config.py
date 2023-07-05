@@ -44,6 +44,10 @@ class Config:
     NS = 36
     TAG_LENGTH = 80
 
+    DO_HKROOT_REGEN = True
+    DO_CRC_FAILED_EXTRACTION = True
+    DO_TESLA_KEY_REGEN = True
+
     @classmethod
     def load_configuration_parameters(cls, custom_parameters: Dict):
 
