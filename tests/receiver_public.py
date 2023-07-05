@@ -435,6 +435,9 @@ if __name__ == "__main__":
     #sbf_current_config()
     #sbf_current_config_14h()
 
+
+    ## Old ICD might not be compatible anymore
+
     #sbf_config1()
     #sbf_config2()
     #sbf_config4()
@@ -451,6 +454,9 @@ if __name__ == "__main__":
     #sbf_pkrev_2()
     #sbf_pkrev_2_with_pk()
     #sbf_pkrev_12()
+
+
+    ## This should still be ok
 
     #sbf_config1_hot_start()
     #sbf_config1_wrong_pubk()

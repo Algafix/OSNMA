@@ -139,7 +139,7 @@ class MACKMessageParser:
 
         if not missing_key_pages:
             tesla_key_bits = key_pages_bits[key_bit_slice]
-            tesla_key = TESLAKey(gst_sf[:12], gst_sf[12:], tesla_key_bits, prn_a.uint, 1, reconstructed=reconstructed)  # TODO: remove nrblock to 1
+            tesla_key = TESLAKey(gst_sf[:12], gst_sf[12:], tesla_key_bits, prn_a.uint, reconstructed=reconstructed)
             mack_msg_parsed.add_key(tesla_key)
 
         return mack_msg_parsed

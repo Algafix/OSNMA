@@ -26,11 +26,11 @@ from osnma.osnma_core.receiver_state import ReceiverState
 
 import osnma.utils.config as config
 import osnma.utils.logger_factory as log_factory
+
 logger = log_factory.get_logger(__name__)
 
 
 def load_configuration_parameters(custom_parameters):
-
     with open(Path(__file__).parent.parent / 'utils/config_params.json') as params_file:
         param_dict = json.load(params_file)
         param_dict.update(custom_parameters)
@@ -115,7 +115,7 @@ class OSNMAReceiver:
 
         self.satellites = {}
         for svid in range(config.NS):
-            self.satellites[svid+1] = Satellite(svid+1)
+            self.satellites[svid + 1] = Satellite(svid + 1)
 
         self.nav_data_input = input_module
         self.receiver_state = ReceiverState()
@@ -128,7 +128,7 @@ class OSNMAReceiver:
         return data.nav_bits[1]
 
     def _sync_calculation(self, t_ref, t_sig):
-        return (t_ref + config.B - config.TL < t_sig) and (config.B < config.TL//2)
+        return (t_ref + config.B - config.TL < t_sig) and (config.B < config.TL // 2)
 
     def sync_check(self, index, data):
         if config.SYNC_SOURCE == SYNC_SOURCE.SBF:
@@ -158,7 +158,7 @@ class OSNMAReceiver:
                 continue
 
             if not data.crc:
-                logger.warning(f'CRC FAILED\tSVID: {data.svid:02} - TOW: {data.tow} - Page: {(data.tow%30):02}. '
+                logger.warning(f'CRC FAILED\tSVID: {data.svid:02} - TOW: {data.tow} - Page: {(data.tow % 30):02}. '
                                f'Page NOT processed.')
                 continue
 
@@ -173,7 +173,7 @@ class OSNMAReceiver:
             # End of the subframe
             if data.tow % 30 == 29:
                 wn = data.wn
-                tow = data.tow//30 * 30
+                tow = data.tow // 30 * 30
                 gst_sf = BitArray(uint=wn, length=12) + BitArray(uint=tow, length=20)
                 logger.info(f"--- SUBFRAME --- WN {wn} TOW {tow} SVID {satellite.svid} ---")
 

@@ -87,7 +87,7 @@ class TESLAChain:
 
         #gst0_tow = 604770 if gst0_tow == 0 else gst0_tow # TODO: solucionar amb anell a gst
         # Define the two keys that the chain will be storing at any time: kroot and last verified tesla key
-        root_key = TESLAKey(gst0_wn, gst0_tow - 30, dsm_kroot.get_value('KROOT'), 0, 0, 0)
+        root_key = TESLAKey(gst0_wn, gst0_tow - 30, dsm_kroot.get_value('KROOT'), is_kroot=True)
         root_key.set_verified(dsm_kroot.is_verified())
         self.root_tesla_key = root_key
         self.last_tesla_key = root_key
@@ -220,7 +220,7 @@ class TESLAChain:
         """
 
         # Calculate the index of the new key
-        new_tesla_key.calculate_index(self.GST0, 1)
+        new_tesla_key.calculate_index(self.GST0)
 
         # Starts with the hashes
         new_key_index = new_tesla_key.index
@@ -231,13 +231,6 @@ class TESLAChain:
             if key_index > last_tesla_key.index:
                 # Normal case when a new key is received. If its not the first key, it will compute only 1 key
                 tesla_key = self._compute_next_key(tesla_key)
-            elif key_index == last_tesla_key.index - 1:
-                # When NMACK is 2, the key received can be one index less than the last key received.
-                last_tesla_key = self._compute_next_key(last_tesla_key)
-                if tesla_key.key == last_tesla_key.key:
-                    new_tesla_key.set_verified(True)
-                    key_verified = True
-                    break
             elif key_index == last_tesla_key.index and tesla_key.key == last_tesla_key.key:
                 new_tesla_key.set_verified(True)
                 self.last_tesla_key = new_tesla_key
@@ -249,6 +242,9 @@ class TESLAChain:
                                                  f" received at {new_tesla_key.wn.uint} {new_tesla_key.tow.uint} failed verification.\n"
                                                  f"Last authenticated key: {last_tesla_key.index} at {last_tesla_key.tow.uint}.\n"
                                                  f"Last hash: {key_index} {tesla_key.key}")
+
+        # if key_verified and new_tesla_key.tow.uint != last_tesla_key.tow.uint:
+        #     logger.info(f"Subframe with Tesla Key Authenticated {new_tesla_key.wn.uint} {new_tesla_key.tow.uint} {' - Regenerated' if new_tesla_key.reconstructed else ''}\n")
 
         return key_verified, new_key_index
 
@@ -271,18 +267,11 @@ class TESLAChain:
         :type wanted_key_index: int
         """
 
-        last_index = self.last_tesla_key.index
         return_tesla_key = self.last_tesla_key
+        number_of_hashes = abs(wanted_key_index - self.last_tesla_key.index)
+        for _ in range(number_of_hashes):
+            return_tesla_key = self._compute_next_key(return_tesla_key)
 
-        for key_index in reversed(range(last_index + 1)):
-            if key_index > wanted_key_index:
-                return_tesla_key = self._compute_next_key(return_tesla_key)
-            elif key_index == wanted_key_index:
-                self._update_tags_key(return_tesla_key, key_index)
-                break
-            else:
-                raise ValueError(f'Retrieving tesla key with index {wanted_key_index} when'
-                                 f'the current authenticated index is {last_index}.')
         return return_tesla_key
 
     def key_check(self, mack_structure: Union[MACSeqObject, TagAndInfo]) -> bool:
@@ -294,7 +283,6 @@ class TESLAChain:
         :return: True if the index is less than self.last_tesla_key.index
         :rtype: bool
         """
-        # TODO: definir una estructura conjunta pel tagandinfo i macseq
 
         tag_has_key = False
         if mack_structure.has_key:

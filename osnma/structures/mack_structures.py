@@ -24,23 +24,27 @@ class TESLAKey:
     """
 
     def __init__(self, wn: Union[BitArray, int, str], tow: Union[BitArray, int, str], key: Union[BitArray, str, bytes],
-                 svid: int = None, n_block: int = None, index: int = None, reconstructed: bool = False):
-        """Instantiates the TESLAKey object. Verified is set to false by default. Special treatment for KROOT (index
-        = 0) key.
+                 svid: int = None, index: int = None, reconstructed: bool = False, is_kroot: bool = False):
+        """Instantiates the TESLAKey object. If the Telsa Key is_kroot, index and svid are set to 0.
 
         :param wn: GST Week Number at the start of the Galileo subframe where the TESLA key is received.
         :param tow: GST Time of Week (seconds) at the start of the Galileo subframe where the TESLA key is received.
         :param key: Value of the TESLA key received.
-        :param svid: Satellite number (NS). Value between 1 and 36. 0 for KROOT.
-        :param n_block: MACK block where the key has been received (1, 2 or 3). 0 for KROOT.
-        :param index: Index of the key if it is known.
+        :param svid: Satellite number (NS). Value between 1 and 36. Set to 0 for KROOT.
+        :param is_kroot: If this Tesla Key comes from an HKROOT message.
+        :param index: Index of the key if it is known. Set to 0 for KROOT.
         """
         self.verified = False
-        self.index = index
-        self.n_block = n_block
-        self.svid = svid
         self.key = BitArray(key)
         self.reconstructed = reconstructed
+
+        self.is_kroot = is_kroot
+        if is_kroot:
+            self.index = 0
+            self.svid = 0
+        else:
+            self.index = index
+            self.svid = svid
 
         if isinstance(wn, BitArray) or isinstance(wn, str):
             self.wn = BitArray(wn)
@@ -64,7 +68,7 @@ class TESLAKey:
         :return: TESLA key in a dictionary object with 'Index', 'WN', 'TOW', 'Key' and 'Verified' keys.
         :rtype: dict
         """
-        return {'Index': self.index, 'WN': self.wn.uint, 'TOW': self.tow.uint, 'Block Index': self.n_block,
+        return {'Index': self.index, 'WN': self.wn.uint, 'TOW': self.tow.uint, 'is_kroot': self.is_kroot,
                 'Key': self.key.hex, 'Verified': self.verified}
 
     def set_gst(self, gst_sf: BitArray):
@@ -100,22 +104,20 @@ class TESLAKey:
         """
         return self.verified
 
-    def calculate_index(self, gst_0: BitArray, nmack: int) -> int:
-        """Computes the key index if it is not already set and returns it. This method needs the correct values for
-        the TESLA Chain where the key belongs to be able to compute the index.
+    def calculate_index(self, gst_0: BitArray) -> int:
+        """Computes the key index based on the GST0 of the first HKROOT of this chain and returns it. This method is not
+        intended to be called on the Tesla key from the first kroot message, which requires the index to be set to 0 on
+        the constructor.
 
         :param gst_0: Time applicability of the chain GST_0, is the same as the GST for the first key. Not the KROOT.
         :type gst_0: BitArray
-        :param nmack: Number of MACK blocs transmitted per MACK message within a subframe.
-        :type nmack: int
         :return: Index of the Key in the TESLA Chain.
         :rtype: int
         """
         if self.index is None:
-
             # ICD 1.2 Test Phase: All satellites transmit the same key at the same epoch
             past_keys = (self.gst_sf.uint - gst_0.uint) // 30
-            self.index = past_keys * nmack + self.n_block
+            self.index = past_keys + 1
 
         return self.index
 

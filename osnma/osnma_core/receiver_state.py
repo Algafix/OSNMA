@@ -377,7 +377,7 @@ class ReceiverState:
     def process_hkroot_subframe(self, hkroot_sf, is_consecutive_hkroot=False):
 
         sf_nma_header = hkroot_sf[:HKROOT.NMA_HEADER_END]
-        if is_consecutive_hkroot is not None:
+        if is_consecutive_hkroot:
             self._subframe_actions(sf_nma_header)
         dsm_id = hkroot_sf[HKROOT.DSM_ID_START:HKROOT.DSM_ID_END].uint
         dsm_message = self.dsm_messages[dsm_id]

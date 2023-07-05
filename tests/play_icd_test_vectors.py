@@ -240,7 +240,7 @@ def icd_test_vectors_OAM():
 
 if __name__ == "__main__":
 
-    #icd_test_vectors_configuration_A()
+    icd_test_vectors_configuration_A()
     #icd_test_vectors_configuration_B()
     #icd_test_vectors_configuration_C()
     #icd_test_vectors_configuration_D()
@@ -258,4 +258,4 @@ if __name__ == "__main__":
     # 3 tags with ADKD 4 failed. Multiple epochs and from multiple sats, strange.
     #icd_test_vectors_PKREV_step_3()
 
-    icd_test_vectors_OAM()
+    #icd_test_vectors_OAM()
