@@ -417,11 +417,17 @@ class ReceiverState:
                 logger.error(f"ERROR: Unable to parse the MACK message correctly.\n{e}")
                 if self.start_status == StartStates.HOT_START:
                     self._fallback_to_warm_start()
+                else:
+                    logger.warning("WARNING: Deleting first mack message from waiting list")
+                    self.kroot_waiting_mack = self.kroot_waiting_mack[1:]
             except TeslaKeyVerificationFailed as e:
                 # Unable to verify the TESLA key
                 logger.error(f"Failed authenticating a TESLA key.\n{e}")
                 if self.start_status == StartStates.HOT_START:
                     self._fallback_to_warm_start()
+                else:
+                    logger.warning("WARNING: Deleting first mack message from waiting list")
+                    self.kroot_waiting_mack = self.kroot_waiting_mack[1:]
             else:
                 if self.start_status == StartStates.HOT_START:
                     self.start_status = StartStates.STARTED
