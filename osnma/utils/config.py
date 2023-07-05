@@ -59,7 +59,7 @@ class Config:
 
         for k, v in param_dict.items():
             if k.upper() in cls.__dict__:
-                if 'LOG_LEVEL' in k.upper():
+                if 'LOG_LEVEL' in k.upper() and type(v) == str:
                     v = log_factory.str_to_log_level[v]
                 elif k.upper().endswith('_PATH'):
                     v = Path(v)
