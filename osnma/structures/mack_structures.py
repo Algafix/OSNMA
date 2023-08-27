@@ -162,7 +162,7 @@ class TagAndInfo:
         self.tesla_key = None
 
     def __repr__(self) -> str:
-        return f"{{ID: {self.id} PRN_A: {self.prn_a.uint} New: {self.iod_tag[0]} GST TOW: " \
+        return f"{{ID: {self.id} PRN_A: {self.prn_a.uint} KeyID: {self.key_id} GST TOW: " \
                f"{self.gst_subframe[12:].uint}}}"
 
     @property

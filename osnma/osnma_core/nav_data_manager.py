@@ -48,6 +48,8 @@ class TagAccumulation:
         self.iod = iod
         self.new_tags = False
         self.log_message = self._generate_message(tag.adkd.uint, tag.prn_d.uint, iod)
+        self.prn_d = tag.prn_d.uint
+        self.adkd = tag.adkd.uint
 
     def _generate_message(self, adkd, prn_d, iod):
         if iod is None:
@@ -254,6 +256,8 @@ class NavigationDataManager:
         self.adkd0_data = {}
         self.adkd4_data = ADKD4DataStructure()
 
+        self.auth_sats_prn = []
+
         self.active_words = set()
         for adkd, words in self.words_per_adkd.items():
             if adkd in self.ACTIVE_ADKD:
@@ -316,7 +320,7 @@ class NavigationDataManager:
             elif word_type in self.words_per_adkd[ADKD5]:
                 pass
 
-    def authenticated_data(self):
+    def authenticated_data(self, gst_subframe):
 
         for tag_id, tag in self.tags_accumulated.items():
             if tag.acc_length >= Config.TAG_LENGTH and tag.new_tags:
@@ -325,3 +329,12 @@ class NavigationDataManager:
                 # TODO: Eliminar quan les dades deixen de ser valides:
                 #       Tinc noves dades al complert I no hi ha cap tag esperant key apuntant a elles
                 #       O han passat 4h(?)
+
+                if tag.adkd != 4 and tag.prn_d not in self.auth_sats_prn:
+                    self.auth_sats_prn.append(tag.prn_d)
+                    if len(self.auth_sats_prn) == 4:
+                        logger.info(f"FIRST AUTHENTICATED FIX {gst_subframe[:12].uint} {gst_subframe[12:].uint}")
+                        logger.info(f"FIRST TOW {Config.FIRST_TOW}")
+                        logger.info(f"TTFAF {gst_subframe[12:].uint - Config.FIRST_TOW}")
+                        if Config.STOP_AT_FAF:
+                            raise Exception("Stopped by FAF")

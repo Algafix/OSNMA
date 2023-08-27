@@ -171,8 +171,8 @@ class TESLAChain:
             if tesla_key := mack_object.get_key():
                 self.add_key(tesla_key)
 
-    def update_tag_lists(self):
-        self.tags_structure.update_tag_lists()
+    def update_tag_lists(self, gst_subframe):
+        self.tags_structure.update_tag_lists(gst_subframe)
 
     def get_key_index(self, gst_sf: BitArray) -> int:
         """Computes the key index that would have a key received on the subframe specified and in the position specified

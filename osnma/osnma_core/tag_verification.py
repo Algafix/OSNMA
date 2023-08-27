@@ -175,7 +175,7 @@ class TagStateStructure:
 
             self.tags_awaiting_key.append(tag)
 
-    def update_tag_lists(self):
+    def update_tag_lists(self, gst_subframe):
 
         # Check for MACSEQ key to update tag list
         for macseq in list(self.macseq_awaiting_key):
@@ -194,12 +194,14 @@ class TagStateStructure:
                     else:
                         self.verify_tag(tag, nav_data_block)
                 else:
+                    pass
                     # The key has arrived but no data: discard tag
+                    #logger.info(f"No data when key arrive: {tag}")
                     self.tags_awaiting_key.remove(tag)
 
         # Check if any data can be authenticated
         logger.info(f"Data authenticated:\n")
-        self.nav_data_m.authenticated_data()
+        self.nav_data_m.authenticated_data(gst_subframe)
 
     def load_mack_message(self, mack_message: MACKMessage):
 

@@ -158,11 +158,12 @@ def parse_GALRawINAV(block):
 
 class SBF:
 
-    def __init__(self, path):
+    def __init__(self, path, start_at_tow=0):
 
         self.file = open(path, 'br')
         self.file_pos = self.file.tell()
         self.index = -1
+        self.start_at_tow = start_at_tow
 
     def __iter__(self):
         return self
@@ -202,7 +203,9 @@ class SBF:
                         nav_bits.insert('0b000000', 114)
                         data_format = DataFormat(svid, wn, tow, nav_bits, band, crc_passed)
                         self.file_pos = self.file.tell()
-                        break
+
+                        if tow >= self.start_at_tow:
+                            break
 
                 # It was a valid block, update descriptor and continue
                 self.file_pos = self.file.tell()

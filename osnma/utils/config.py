@@ -42,11 +42,14 @@ class Config:
     B = 1
 
     NS = 36
-    TAG_LENGTH = 80
+    TAG_LENGTH = 20
 
     DO_HKROOT_REGEN = True
     DO_CRC_FAILED_EXTRACTION = True
     DO_TESLA_KEY_REGEN = True
+
+    STOP_AT_FAF = False
+    FIRST_TOW = None
 
     @classmethod
     def load_configuration_parameters(cls, custom_parameters: Dict):

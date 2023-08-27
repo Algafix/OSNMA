@@ -68,6 +68,9 @@ class OSNMAReceiver:
 
         for index, data in self.nav_data_input:
 
+            if index == 0:
+                Config.FIRST_TOW = data.tow
+
             if self._is_alert_page(data):
                 continue
 
