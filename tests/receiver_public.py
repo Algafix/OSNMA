@@ -417,10 +417,25 @@ def sbf_live_manneken():
     osnma_r.start()
 
 
+def sbf_new_config():
+    config_dict = {
+        'scenario_path': 'scenarios/new_live_config/osnma_new_config.sbf',
+        'exec_path': 'scenarios/new_live_config/',
+        'pubk_name': 'OSNMA_PublicKey.xml'
+    }
+
+    input_module = SBF(config_dict['scenario_path'])
+    osnma_r = OSNMAReceiver(input_module, config_dict)
+
+    osnma_r.start()
+
+
 if __name__ == "__main__":
 
+    sbf_new_config()
+
     #sbf_live_parc_leopold()
-    sbf_live_palace_to_parlament()
+    #sbf_live_palace_to_parlament()
     # 1 tag failed:
     # (13, 0, 6) PRN_A: 13 GST_SF: 1210 52530 TAG0
     #sbf_live_manneken()

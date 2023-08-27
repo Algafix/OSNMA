@@ -66,7 +66,7 @@ adkd_masks = [
             }
         }
     },
-    None, # 5 Data from F/NAV
+    None,
     None,
     None,
     None,

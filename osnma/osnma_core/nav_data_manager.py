@@ -175,9 +175,6 @@ class ADKD0DataStructure:
             else:
                 break
 
-        if iod[-3:] != tag.iod_tag[-3:]:
-            raise ValueError(f"IOD from tag {tag.id} and data don't match: Tag {tag.iod_tag[-3:]} - Data {iod[-3:]}.")
-            # print(f"Warning: IOD from tag {tag.id} and data don't match: Tag {tag.iod_tag[-3:]} - Data {iod[-3:]}.")
         return iod
 
 
@@ -232,10 +229,7 @@ class ADKD4DataStructure:
                 if word.gst_start.uint < gst_tag.uint:
                     nav_data[word_type] = BitArray(word.data)
 
-        # Set the TOW to the previous subframe
         if nav_data[6] and nav_data[10]:
-            tow_data = gst_tag[12:].uint - 25
-            nav_data[6].append(BitArray(uint=tow_data, length=20))
             return ADKD4DataBlock(gst_tag, nav_data[6] + nav_data[10])
         else:
             return None

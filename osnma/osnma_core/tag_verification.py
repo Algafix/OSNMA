@@ -80,12 +80,9 @@ class TagStateStructure:
 
     def verify_tag(self, tag: TagAndInfo, nav_data_block):
 
-        # If PRN_D is 255, PRN_D is PRN_A for the formula.
-        prn_d = tag.prn_a if tag.prn_d.uint == 255 else tag.prn_d
-
         nav_data = nav_data_block.nav_data_stream
         tesla_key = tag.tesla_key
-        auth_data = prn_d + tag.prn_a + tag.gst_subframe + BitArray(uint=tag.ctr, length=8) + tag.nma_status \
+        auth_data = tag.prn_d + tag.prn_a + tag.gst_subframe + BitArray(uint=tag.ctr, length=8) + tag.nma_status \
             + nav_data
         mac = self.tesla_chain.mac_function(tesla_key.key, auth_data)
         computed_tag0 = mac[:self.tesla_chain.tag_size]
