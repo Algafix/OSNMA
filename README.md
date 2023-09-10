@@ -6,8 +6,9 @@
 OSNMAlib
 ========
 
-**NOTE:** This branch implements the new ICD 1.0 transmitted live since 2023-08-03 11:00. It will be a branch until test vectors are released for this new ICD, then master and this branch will be swapped.
-**NOTE:** While there are some corner cases not yet implemented, this branch should work correctly with the new ICD data in the majority of situations. Do not execute the tests, as they use data from the previous ICD.
+###**NOTE:** This branch implements the new ICD 1.0 transmitted live since 2023-08-03 11:00. It will be a branch until test vectors are released for this new ICD, then master and this branch will be swapped.
+
+###**NOTE:** While there are some corner cases not yet implemented, this branch should work correctly with the new ICD data in the majority of situations. The run folders contain the current Public Key and Merkle Tree root.
 
 
 OSNMAlib is an open-source Python library that can be integrated into existing receivers and applications to incorporate 
@@ -124,50 +125,6 @@ Then just execute the software. By default it connects to `192.168.3.1:20000`.
 ```
 $ live_septentrio_run/
 $ python run.py
-```
-
-Custom data format
----
-
-If you want to use a different data format, go to [Execution with Custom Data](#execution-with-custom-data). 
-
-Test Execution
-===
-
-The software is provided with several test scenarios under the folder `tests/scenarios/`. The scenarios cover 
-different configurations and events of the OSNMA protocol. The data used by this tests was recorded on the OSNMA 
-Internal and Public Test Phases (2020 - 2022).
-
-To run the test is recommended to use the Python framework `pytest`, although they can be run calling the traditional 
-Python interpreter. Keep in mind that this execution may take a few minutes, since each test comprises several hours of satellite data.
-
-By default, all tests are executed with `info` logging level on the file handler. That is, the log files will
-contain the maximum amount of information. This log files are stored under the folder `tests/test_logs`.
-For each sub-test (in this case, for each scenario) a subfolder is created with the name format `logs_YYYYmmdd_HHMMSS`.
-
-Pytest
----
-
-The `pytest` framework is the easiest way to execute the OSNMA Open Implementation receiver tests. To do so, the 
-following shell commands are provided. Note that the users interpreter work directory is assumed to be the top
-folder of the provided software and `python pip` shall be already installed.
-
-```
-$ pip install -r requirements.txt
-$ cd tests
-$ pytest receiver_test.py
-```
-
-Python interpreter
----
-
-The tests can also be executed using the traditional Python interpreter. In that case, the following shell commands 
-should be executed.
-
-```
-$ pip install -r requirements.txt
-$ cd tests
-$ python3 receiver_test.py
 ```
 
 Execution with Custom Data
