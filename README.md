@@ -6,9 +6,9 @@
 OSNMAlib
 ========
 
-###**NOTE:** This branch implements the new ICD 1.0 transmitted live since 2023-08-03 11:00. It will be a branch until test vectors are released for this new ICD, then master and this branch will be swapped.
+### **NOTE:** This branch implements the new ICD 1.0 transmitted live since 2023-08-03 11:00. It will be a branch until test vectors are released for this new ICD, then master and this branch will be swapped.
 
-###**NOTE:** While there are some corner cases not yet implemented, this branch should work correctly with the new ICD data in the majority of situations. The run folders contain the current Public Key and Merkle Tree root.
+### **NOTE:** While there are some corner cases not yet implemented, this branch should work correctly with the new ICD data in the majority of situations. The run folders contain the current Public Key and Merkle Tree root.
 
 
 OSNMAlib is an open-source Python library that can be integrated into existing receivers and applications to incorporate 
