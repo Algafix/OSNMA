@@ -61,9 +61,6 @@ class Config:
         if not param_dict['exec_path']:
             raise AttributeError("The 'exec_path' is a mandatory parameter.")
 
-        if not param_dict['scenario_path']:
-            raise AttributeError("The 'scenario_path' is a mandatory parameter.")
-
         for k, v in param_dict.items():
             if k.upper() in cls.__dict__:
                 if 'LOG_LEVEL' in k.upper() and type(v) == str:

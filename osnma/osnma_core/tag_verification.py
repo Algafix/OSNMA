@@ -19,6 +19,7 @@ from osnma.structures.maclt import mac_lookup_table
 from osnma.osnma_core.nav_data_manager import NavigationDataManager
 
 from bitstring import BitArray
+from typing import List
 
 import osnma.utils.logger_factory as logger_factory
 logger = logger_factory.get_logger(__name__)
@@ -49,7 +50,7 @@ class TagStateStructure:
         self.nav_data_m = nav_data_m
         self.maclt_dict = mac_lookup_table[tesla_chain.maclt]
         self.macseq_awaiting_key = []
-        self.tags_awaiting_key = []
+        self.tags_awaiting_key: List[TagAndInfo] = []
 
     def _check_deprecated_data(self, tag, nav_data_block):
         # In case a satellite leaves sight but we still have data and receive cross-tags
@@ -161,16 +162,18 @@ class TagStateStructure:
 
         return tag_list, macseq_object, is_flx_tag_missing
 
-    def add_tags_waiting_key(self, tag_list):
+    def add_tags_waiting_key(self, tag_list: List[TagAndInfo]):
 
-        for tag in tag_list:
-            for tag_wait in list(self.tags_awaiting_key):
-                if tag.id[:2] == tag_wait.id[:2] and (tag.id[2] != tag_wait.id[2] or tag.new_data):
+        for new_tag in tag_list:
+            # Clean tags for which data will never come
+            for old_tag in list(self.tags_awaiting_key):
+                new_tag_cop = new_tag.cop.uint
+                old_tag_cop = old_tag.cop.uint
+                if new_tag.id == old_tag.id and new_tag_cop < old_tag_cop:
                     # If the tag has data allocated but is waiting for the key, we keep it.
-                    if self.nav_data_m.get_data(tag_wait.id, tag_wait.gst_subframe) is None:
-                        self.tags_awaiting_key.remove(tag_wait)
-
-            self.tags_awaiting_key.append(tag)
+                    if self.nav_data_m.get_data(old_tag.id, old_tag.gst_subframe) is None:
+                        self.tags_awaiting_key.remove(old_tag)
+            self.tags_awaiting_key.append(new_tag)
 
     def update_tag_lists(self, gst_subframe):
 
