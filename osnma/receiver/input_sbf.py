@@ -85,7 +85,7 @@ def parse_header(header):
     id = int.from_bytes(header[4:6], "little")
     length = int.from_bytes(header[6:8], "little")
 
-    block_num = id & 0x0fff
+    block_num = id & 0xdfff
     rev_num = id >> 13
 
     return crc, id, length, block_num, rev_num
