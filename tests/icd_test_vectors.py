@@ -71,7 +71,7 @@ def test_vectors_icd_configuration_A(log_level=logging.INFO):
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 12120
-    assert data_auth == 4478
+    assert data_auth == 4624
     assert kroot_auth == 133
     assert broken_kroot == 3
     assert crc_failed == 0
@@ -110,7 +110,7 @@ def test_vectors_icd_configuration_B(log_level=logging.INFO):
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 17162
-    assert data_auth == 3994
+    assert data_auth == 4209
     assert kroot_auth == 119
     assert broken_kroot == 0
     assert crc_failed == 0
@@ -149,7 +149,7 @@ def test_vectors_icd_configuration_C(log_level=logging.INFO):
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 9454
-    assert data_auth == 4131
+    assert data_auth == 4264
     assert kroot_auth == 22
     assert broken_kroot == 1
     assert crc_failed == 0
@@ -188,7 +188,7 @@ def test_vectors_icd_configuration_D(log_level=logging.INFO):
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 7648
-    assert data_auth == 3905
+    assert data_auth == 4117
     assert kroot_auth == 132
     assert broken_kroot == 0
     assert crc_failed == 0
@@ -227,7 +227,7 @@ def test_vectors_icd_EOC_step_1(log_level=logging.INFO):
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 19610
-    assert data_auth == 8418
+    assert data_auth == 8573
     assert kroot_auth == 273
     assert broken_kroot == 12
     assert crc_failed == 0
@@ -266,7 +266,7 @@ def test_vectors_icd_EOC_step_2(log_level=logging.INFO):
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 25498
-    assert data_auth == 8042
+    assert data_auth == 8231
     assert kroot_auth == 222
     assert broken_kroot == 0
     assert crc_failed == 0
@@ -305,7 +305,7 @@ def test_vectors_icd_NPK_step_1(log_level=logging.INFO):
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 33887
-    assert data_auth == 8382
+    assert data_auth == 8691
     assert kroot_auth == 167
     assert broken_kroot == 5
     assert crc_failed == 0
@@ -344,7 +344,7 @@ def test_vectors_icd_NPK_step_2(log_level=logging.INFO):
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 26297
-    assert data_auth == 11439
+    assert data_auth == 11595
     assert kroot_auth == 135
     assert broken_kroot == 2
     assert crc_failed == 0
@@ -383,7 +383,7 @@ def test_vectors_icd_NPK_step_3(log_level=logging.INFO):
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 21309
-    assert data_auth == 8423
+    assert data_auth == 8563
     assert kroot_auth == 192
     assert broken_kroot == 0
     assert crc_failed == 0
@@ -421,7 +421,7 @@ def test_vectors_icd_PKREV_step_1(log_level=logging.INFO):
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 11329
-    assert data_auth == 4667
+    assert data_auth == 4812
     assert kroot_auth == 189
     assert broken_kroot == 2
     assert crc_failed == 0
@@ -459,7 +459,7 @@ def test_vectors_icd_PKREV_step_2(log_level=logging.INFO):
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 9152
-    assert data_auth == 3690
+    assert data_auth == 3811
     assert kroot_auth == 89
     assert broken_kroot == 1
     assert crc_failed == 0
@@ -497,7 +497,7 @@ def test_vectors_icd_PKREV_step_3(log_level=logging.INFO):
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 19078
-    assert data_auth == 7889
+    assert data_auth == 8046
     assert kroot_auth == 155
     assert broken_kroot == 0
     assert crc_failed == 0

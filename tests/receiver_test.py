@@ -69,7 +69,7 @@ def test_sbf_config1(log_level=logging.INFO):
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 1625
-    assert data_auth == 1000
+    assert data_auth == 1033
     assert kroot_auth == 25
     assert broken_kroot == 3
     assert warnings == 4
@@ -105,7 +105,7 @@ def test_sbf_config2(log_level=logging.INFO):
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 3416
-    assert data_auth == 1194
+    assert data_auth == 1254
     assert kroot_auth == 23
     assert crc_failed == 39
     assert broken_kroot == 3
@@ -142,7 +142,7 @@ def test_sbf_config5(log_level=logging.INFO):
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 2349
-    assert data_auth == 1436
+    assert data_auth == 1499
     assert kroot_auth == 17
     assert crc_failed == 22
     assert broken_kroot == 5
@@ -178,7 +178,7 @@ def test_sbf_config7(log_level=logging.INFO):
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 4252
-    assert data_auth == 2811
+    assert data_auth == 2914
     assert kroot_auth == 53
     assert broken_kroot == 8
     assert warnings == 19
@@ -216,7 +216,7 @@ def test_sbf_eoc_1(log_level=logging.INFO):
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 3434
-    assert data_auth == 1290
+    assert data_auth == 1384
     assert kroot_auth == 30
     assert kroot_cid_2_auth == 14
     assert kroot_cid_3_auth == 16
@@ -255,7 +255,7 @@ def test_sbf_npk_1(log_level=logging.INFO):
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 3839
-    assert data_auth == 1255
+    assert data_auth == 1323
     assert kroot_auth == 17
     assert broken_kroot == 6
     assert crc_failed == 0
@@ -292,7 +292,7 @@ def test_sbf_npk_2(log_level=logging.INFO):
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 4675
-    assert data_auth == 1513
+    assert data_auth == 1606
     assert kroot_auth == 17
     assert crc_failed == 8
     assert broken_kroot == 7
@@ -330,7 +330,7 @@ def test_sbf_npk_12(log_level=logging.INFO):
         adkd4_failed = len(re.findall(r'ERROR.*Tag FAILED\n\t.*\(255, 4, 0\)', log_text))
 
     assert tags_auth == 3147
-    assert data_auth == 854
+    assert data_auth == 911
     assert kroot_auth == 12
     assert broken_kroot == 6
     assert crc_failed == 0
@@ -371,7 +371,7 @@ def test_sbf_pkrev_1(log_level=logging.INFO):
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 3408
-    assert data_auth == 1054
+    assert data_auth == 1111
     assert kroot_auth == 28
     assert kroot_4_auth == 24
     assert kroot_5_auth == 4
@@ -411,7 +411,7 @@ def test_sbf_pkrev_2(log_level=logging.INFO):
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 1066
-    assert data_auth == 325
+    assert data_auth == 353
     assert kroot_auth == 10
     assert crc_failed == 17
     assert broken_kroot == 8
@@ -450,7 +450,7 @@ def test_sbf_pkrev_2_with_pk(log_level=logging.INFO):
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 1066
-    assert data_auth == 325
+    assert data_auth == 353
     assert kroot_auth == 11
     assert crc_failed == 17
     assert broken_kroot == 8
@@ -491,7 +491,7 @@ def test_sbf_pkrev_12(log_level=logging.INFO):
         errors = len(re.findall('ERROR', log_text))
 
     assert tags_auth == 4474
-    assert data_auth == 1412
+    assert data_auth == 1477
     assert kroot_auth == 40
     assert kroot_4_auth == 24
     assert kroot_5_auth == 16
