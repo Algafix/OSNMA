@@ -42,7 +42,7 @@ class Config:
     B = 1
 
     NS = 36
-    TAG_LENGTH = 20
+    TAG_LENGTH = 40
 
     DO_HKROOT_REGEN = True
     DO_CRC_FAILED_EXTRACTION = True

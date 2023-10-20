@@ -46,7 +46,7 @@ class TagAccumulation:
         self.start_gst = (tag.gst_subframe[:12].uint, tag.gst_subframe[12:].uint)
         self.last_gst = self.start_gst
         self.iod = iod
-        self.new_tags = False
+        self.new_tags = True
         self.log_message = self._generate_message(tag.adkd.uint, tag.prn_d.uint, iod)
         self.prn_d = tag.prn_d.uint
         self.adkd = tag.adkd.uint
@@ -81,7 +81,7 @@ class TagAccumulation:
 
     def __repr__(self):
         return f"{{acc_length: {self.acc_length}, start_gst: [{self.start_gst[0]}, {self.start_gst[1]}], " \
-               f"last_gst: [{self.last_gst[0]}, {self.last_gst[1]}], iod: {self.iod}}}"
+               f"last_gst: [{self.last_gst[0]}, {self.last_gst[1]}], iod: {self.iod}, new_tags: {self.new_tags}}}"
 
 
 class ADKD0DataBlock:
@@ -96,7 +96,8 @@ class ADKD0DataBlock:
 
     def __repr__(self):
         return f"gst_start: {self.gst_start[:12].uint} - {self.gst_start[12:].uint}, iod: {self.iod}," \
-               f" words: {self.words}\n\t"
+               f" words: {self.words}\n\t last_gst_updated: {self.last_gst_updated[:12].uint} - " \
+               f"{self.last_gst_updated[12:].uint}, gst_limit: {self.gst_limit}\n\t"
 
     def add_word(self, word_type, data, gst_page):
         self.last_gst_updated = gst_page
@@ -162,6 +163,7 @@ class ADKD0DataStructure:
             if nav_data.gst_start.uint < gst_tag.uint:
                 tmp_data = nav_data.get_nav_data()
                 data = None if nav_data.gst_limit.uint < gst_tag.uint else tmp_data
+                # logger.critical(f"GST: {gst_tag[:12].uint} - {gst_tag[12:].uint}, data {data}")
             else:
                 break
         return data
@@ -327,8 +329,10 @@ class NavigationDataManager:
                 if tag.adkd != 4 and tag.prn_d not in self.auth_sats_prn:
                     self.auth_sats_prn.append(tag.prn_d)
                     if len(self.auth_sats_prn) == 4:
-                        logger.info(f"FIRST AUTHENTICATED FIX {gst_subframe[:12].uint} {gst_subframe[12:].uint}")
+                        # Everything is checked at the end of the SF, so add 30 seconds to the gst of the subframe
+                        gst_subframe_end = BitArray(uint=gst_subframe.uint+30, length=32)
+                        logger.info(f"FIRST AUTHENTICATED FIX {gst_subframe_end[:12].uint} {gst_subframe_end[12:].uint}")
                         logger.info(f"FIRST TOW {Config.FIRST_TOW}")
-                        logger.info(f"TTFAF {gst_subframe[12:].uint - Config.FIRST_TOW}")
+                        logger.info(f"TTFAF {gst_subframe_end[12:].uint - Config.FIRST_TOW}")
                         if Config.STOP_AT_FAF:
                             raise Exception("Stopped by FAF")
