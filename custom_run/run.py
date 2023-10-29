@@ -4,7 +4,7 @@ import sys
 sys.path.insert(0, '..')
 
 from osnma.receiver.receiver import OSNMAReceiver
-from osnma.receiver.input_sbf import SBF
+from osnma.input_formats.input_sbf import SBF
 
 
 parser = argparse.ArgumentParser(description='Runs OSNMAlib against the provided SBF file that contains the block '

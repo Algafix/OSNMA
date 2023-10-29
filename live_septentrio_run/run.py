@@ -4,7 +4,7 @@ import sys
 sys.path.insert(0, '..')
 
 from osnma.receiver.receiver import OSNMAReceiver
-from osnma.receiver.input_sbf import SBFLive
+from osnma.input_formats.input_sbf import SBFLive
 
 
 parser = argparse.ArgumentParser(description='Runs OSNMAlib using GALMON live data.')
