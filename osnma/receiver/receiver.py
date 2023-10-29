@@ -16,9 +16,10 @@
 
 from bitstring import BitArray
 
-from .satellite import Satellite
-from .subframe_regen import SubFrameRegenerator
+from osnma.receiver.satellite import Satellite
+from osnma.receiver.subframe_regen import SubFrameRegenerator
 from osnma.osnma_core.receiver_state import ReceiverState
+from osnma.input_formats.base_classes import PageIterator
 
 from osnma.utils.config import Config, SYNC_SOURCE
 import osnma.utils.logger_factory as log_factory
@@ -28,7 +29,7 @@ logger = log_factory.get_logger(__name__)
 
 class OSNMAReceiver:
 
-    def __init__(self, input_module, param_dict):
+    def __init__(self, input_module: PageIterator, param_dict: dict):
 
         Config.load_configuration_parameters(param_dict)
         log_factory.configure_loggers()

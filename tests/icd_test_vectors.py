@@ -21,7 +21,7 @@ import logging
 from pathlib import Path
 
 from osnma.receiver.receiver import OSNMAReceiver
-from osnma.receiver.input import ICDTestVectors
+from osnma.input_formats.input_misc import ICDTestVectors
 import osnma.utils.logger_factory as logger_factory
 LOGS_PATH = Path(__file__).parent / 'icd_test_logs/'
 

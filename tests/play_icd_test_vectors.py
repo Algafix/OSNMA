@@ -18,7 +18,7 @@ import sys
 sys.path.insert(0, '..')
 
 from osnma.receiver.receiver import OSNMAReceiver
-from osnma.receiver.input import ICDTestVectors
+from osnma.input_formats.input_misc import ICDTestVectors
 
 
 def icd_test_vectors_configuration_A():

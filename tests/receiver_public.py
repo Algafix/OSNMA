@@ -18,9 +18,8 @@ import sys
 sys.path.insert(0, '..')
 
 from osnma.receiver.receiver import OSNMAReceiver
-from osnma.receiver.input import SBFAscii
-from osnma.receiver.input_sbf import SBF, SBFLive
-from osnma.receiver.input_galmon import GALMON
+from osnma.input_formats.input_sbf import SBF, SBFLive, SBFAscii
+from osnma.input_formats.input_galmon import GALMON
 
 
 def sbf_config1():
