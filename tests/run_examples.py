@@ -18,8 +18,8 @@ import sys
 sys.path.insert(0, '..')
 
 from osnma.receiver.receiver import OSNMAReceiver
-from osnma.receiver.input_sbf import SBF, SBFLive
-from osnma.receiver.input_galmon import GALMON
+from osnma.input_formats.input_sbf import SBF, SBFLive
+from osnma.input_formats.input_galmon import GALMON
 
 
 def sbf_live():
@@ -28,12 +28,10 @@ def sbf_live():
         'pubk_name': 'OSNMA_PublicKey.xml'
     }
 
-    max_iter = 40000  #
-
     input_module = SBFLive('192.168.3.1', 20000)
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def galmon_live():
@@ -42,12 +40,10 @@ def galmon_live():
         'pubk_name': 'OSNMA_PublicKey.xml'
     }
 
-    max_iter = 40000  #
-
     input_module = GALMON()
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def sbf_new_config():
