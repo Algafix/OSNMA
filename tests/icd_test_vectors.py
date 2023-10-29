@@ -50,11 +50,9 @@ def test_vectors_icd_configuration_A(log_level=logging.INFO):
         'pubk_name': 'OSNMA_PublicKey_2.xml'
     }
 
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
@@ -89,11 +87,9 @@ def test_vectors_icd_configuration_B(log_level=logging.INFO):
         'pubk_name': 'OSNMA_PublicKey_3.xml'
     }
 
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
@@ -128,11 +124,9 @@ def test_vectors_icd_configuration_C(log_level=logging.INFO):
         'pubk_name': 'OSNMA_PublicKey_8.xml'
     }
 
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
@@ -167,11 +161,9 @@ def test_vectors_icd_configuration_D(log_level=logging.INFO):
         'pubk_name': 'OSNMA_PublicKey_2.xml'
     }
 
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
@@ -206,11 +198,9 @@ def test_vectors_icd_EOC_step_1(log_level=logging.INFO):
         'pubk_name': 'OSNMA_PublicKey_3.xml'
     }
 
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
@@ -245,11 +235,9 @@ def test_vectors_icd_EOC_step_2(log_level=logging.INFO):
         'pubk_name': 'OSNMA_PublicKey_3.xml'
     }
 
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
@@ -284,11 +272,9 @@ def test_vectors_icd_NPK_step_1(log_level=logging.INFO):
         'pubk_name': 'OSNMA_PublicKey_3.xml'
     }
 
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
@@ -323,11 +309,9 @@ def test_vectors_icd_NPK_step_2(log_level=logging.INFO):
         'pubk_name': 'OSNMA_PublicKey_1.xml'
     }
 
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
@@ -362,11 +346,9 @@ def test_vectors_icd_NPK_step_3(log_level=logging.INFO):
         'pubk_name': 'OSNMA_PublicKey_2.xml'
     }
 
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
@@ -400,11 +382,9 @@ def test_vectors_icd_PKREV_step_1(log_level=logging.INFO):
         'pubk_name': 'OSNMA_PublicKey_2.xml'
     }
 
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
@@ -438,11 +418,9 @@ def test_vectors_icd_PKREV_step_2(log_level=logging.INFO):
         'pubk_name': 'OSNMA_PublicKey_3.xml'
     }
 
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
@@ -476,11 +454,9 @@ def test_vectors_icd_PKREV_step_3(log_level=logging.INFO):
         'pubk_name': 'OSNMA_PublicKey_3.xml'
     }
 
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
@@ -513,11 +489,9 @@ def test_vectors_icd_OAM(log_level=logging.INFO):
         'exec_path': Path(__file__).parent / 'icd_test_vectors/OAM/'
     }
 
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)

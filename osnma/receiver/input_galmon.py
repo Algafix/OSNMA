@@ -12,7 +12,6 @@ class GALMON:
 
     def __init__(self, host='86.82.68.237', port=10000):
 
-        self.index = -1
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((host, port))
 
@@ -25,7 +24,6 @@ class GALMON:
     def __next__(self):
 
         data_format = None
-        self.index += 1
 
         while True:
             sync = self.s.recv(4)
@@ -85,5 +83,4 @@ class GALMON:
         if data_format is None:
             raise StopIteration
 
-        return self.index, data_format
-
+        return data_format

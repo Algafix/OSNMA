@@ -141,7 +141,7 @@ class SBFAscii:
     def __iter__(self) -> 'SBFAscii':
         return self
 
-    def __next__(self) -> (int, DataFormat):
+    def __next__(self) -> DataFormat:
         index, row = next(self.data_iter)
 
         # Reconstruct double page 240 bits
@@ -155,12 +155,12 @@ class SBFAscii:
         crc = True if row['CRCPassed'] == 'Passed' else False
         data = DataFormat(row['SVID'], wn, tow, nav_bits, band=band, crc=crc)
 
-        return index, data
+        return data
 
 
 class ICDTestVectors:
 
-    def __init__(self, path,):
+    def __init__(self, path):
         self.path = path
 
         # Load dataframe
@@ -177,12 +177,12 @@ class ICDTestVectors:
     def __iter__(self) -> 'ICDTestVectors':
         return self
 
-    def __next__(self) -> (int, DataFormat):
+    def __next__(self) -> DataFormat:
         index, row = next(self.data_iter)
         nav_bits = BitArray(hex=row["NAVBits"])
 
         data = DataFormat(row['SVID'], row['WN'], row['TOW'], nav_bits)
 
-        return index, data
+        return data
 
 

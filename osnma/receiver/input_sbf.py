@@ -158,12 +158,11 @@ def parse_GALRawINAV(block):
 
 class SBF:
 
-    def __init__(self, path, start_at_tow=0):
+    def __init__(self, path, use_satellites_list=False):
 
         self.file = open(path, 'br')
         self.file_pos = self.file.tell()
-        self.index = -1
-        self.start_at_tow = start_at_tow
+        self.use_satellites_list = use_satellites_list
 
     def __iter__(self):
         return self
@@ -171,7 +170,6 @@ class SBF:
     def __next__(self):
 
         data_format = None
-        self.index += 1
 
         while header := self.file.read(8):
             if header[:2] == SYNC:
@@ -196,16 +194,20 @@ class SBF:
                 if block_id == 4023:
                     # We have a block and its a gal raw nav block
                     tow, wn_c, svid, crc_passed, band, nav_bits_hex = parse_GALRawINAV(block)
+
+                    if self.use_satellites_list and svid not in self.use_satellites_list:
+                        self.file_pos = self.file.tell()
+                        continue
+
                     if band == 'GAL_L1BC' and tow != 'DNU' and wn_c != 'DNU':
+                        # print(f"WN: {wn_c} TOW: {tow} SVID: {svid} BAND: {band} CRC: {crc_passed}")
                         tow = tow // 1000 - 2
                         wn = wn_c - 1024
                         nav_bits = BitArray(hex="".join(nav_bits_hex))[:234]
                         nav_bits.insert('0b000000', 114)
                         data_format = DataFormat(svid, wn, tow, nav_bits, band, crc_passed)
                         self.file_pos = self.file.tell()
-
-                        if tow >= self.start_at_tow:
-                            break
+                        break
 
                 # It was a valid block, update descriptor and continue
                 self.file_pos = self.file.tell()
@@ -216,14 +218,13 @@ class SBF:
         if data_format is None:
             raise StopIteration
 
-        return self.index, data_format
+        return data_format
 
 
 class SBFLive:
 
     def __init__(self, host, port):
 
-        self.index = -1
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((host, port))
 
@@ -233,7 +234,6 @@ class SBFLive:
     def __next__(self):
 
         data_format = None
-        self.index += 1
 
         while sync := self.s.recv(2):
             if sync == SYNC:
@@ -262,4 +262,4 @@ class SBFLive:
         if data_format is None:
             raise StopIteration
 
-        return self.index, data_format
+        return data_format

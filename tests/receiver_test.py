@@ -50,10 +50,9 @@ def test_sbf_config1(log_level=logging.INFO):
         'pubk_name': 'OSNMA_PublicKey_1.xml'
     }
 
-    max_iter = 40000  # 3349 Authenticated
     input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
@@ -85,10 +84,9 @@ def test_sbf_config2(log_level=logging.INFO):
         'exec_path': Path(__file__).parent / 'scenarios/config2/'
     }
 
-    max_iter = 40000  # 5507 authenticated # 40 failed (CRC)
     input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
@@ -122,10 +120,9 @@ def test_sbf_config5(log_level=logging.INFO):
         'exec_path': Path(__file__).parent / 'scenarios/config5/'
     }
 
-    max_iter = 60000  # 5039 authenticated # 21 failed (CRC)
     input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
@@ -159,10 +156,9 @@ def test_sbf_config7(log_level=logging.INFO):
         'pubk_name': 'OSNMA_PublicKey_test.xml'
     }
 
-    max_iter = 80000
     input_module = SBFAscii(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
@@ -194,10 +190,9 @@ def test_sbf_eoc_1(log_level=logging.INFO):
         'exec_path': Path(__file__).parent / 'scenarios/eoc/'
     }
 
-    max_iter = 14000  # 5945 # 4 failed (crc)
     input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
@@ -215,11 +210,11 @@ def test_sbf_eoc_1(log_level=logging.INFO):
         broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
         errors = len(re.findall('ERROR', log_text))
 
-    assert tags_auth == 3434
-    assert data_auth == 1384
-    assert kroot_auth == 30
-    assert kroot_cid_2_auth == 14
-    assert kroot_cid_3_auth == 16
+    assert tags_auth == 3743
+    assert data_auth == 1541
+    assert kroot_auth == 33
+    assert kroot_cid_2_auth == 16
+    assert kroot_cid_3_auth == 17
     assert broken_kroot == 6
     assert crc_failed == 4
     assert warnings == 11
@@ -235,10 +230,9 @@ def test_sbf_npk_1(log_level=logging.INFO):
         'exec_path': Path(__file__).parent / 'scenarios/npk_1/'
     }
 
-    max_iter = 40000  # 6184 authenticated
     input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
@@ -272,10 +266,9 @@ def test_sbf_npk_2(log_level=logging.INFO):
         'exec_path': Path(__file__).parent / 'scenarios/npk_2/'
     }
 
-    max_iter = 40000  # 7526 Authenticated # 8 failed (CRC)
     input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
@@ -309,10 +302,9 @@ def test_sbf_npk_12(log_level=logging.INFO):
         'exec_path': Path(__file__).parent / 'scenarios/npk_12/'
     }
 
-    max_iter = 40000  # 4861 authenticated # 6 adkd4 failed al canvi de TOW
     input_module = SBFAscii(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
@@ -348,10 +340,9 @@ def test_sbf_pkrev_1(log_level=logging.INFO):
         'exec_path': Path(__file__).parent / 'scenarios/pkrev_1/'
     }
 
-    max_iter = 40000  # 5357 # 11 crc failed # 2 broken subframe
     input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
@@ -390,10 +381,9 @@ def test_sbf_pkrev_2(log_level=logging.INFO):
         'exec_path': Path(__file__).parent / 'scenarios/pkrev_2/'
     }
 
-    max_iter = 40000  # 1720 # 17 crc failed # 2 broken subframes
     input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
@@ -429,10 +419,9 @@ def test_sbf_pkrev_2_with_pk(log_level=logging.INFO):
         'exec_path': Path(__file__).parent / 'scenarios/pkrev_2_with_pk/'
     }
 
-    max_iter = 40000  # 1721 # 17 crc failed # 2 broken subframe
     input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
@@ -468,10 +457,9 @@ def test_sbf_pkrev_12(log_level=logging.INFO):
         'exec_path': Path(__file__).parent / 'scenarios/pkrev_12/'
     }
 
-    max_iter = 40000  # 7115 # 28 crc failed # 9 broken subframes
     input_module = SBFAscii(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
