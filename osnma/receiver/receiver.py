@@ -41,62 +41,68 @@ class OSNMAReceiver:
         self.receiver_state = ReceiverState()
         self.subframe_regenerator = SubFrameRegenerator()
 
-    def _is_dummy_page(self, data):
+    def _is_dummy_page(self, data) -> bool:
         return data.nav_bits[2:8].uint == 63
 
-    def _is_alert_page(self, data):
+    def _is_alert_page(self, data) -> bool:
         return data.nav_bits[1]
 
     def _sync_calculation(self, t_ref, t_sig):
         return (t_ref + Config.B - Config.TL < t_sig) and (Config.B < Config.TL // 2)
 
-    def sync_check(self, index, data):
-        if Config.SYNC_SOURCE == SYNC_SOURCE.SBF:
+    def filter_page(self, data):
+        """
+        Filter page if it is not useful for teh current OSNMA implementation.
+        Checks for CRC, alert pages, dummy pages, other signals aside from E1BC, etc.
+        Also, sets the FIST_TOW variable if not specified.
+
+        :param data: Complete page to filter if needed.
+        :return: True if needs to be filtered out, False otherwise.
+        """
+
+        if Config.FIRST_TOW is None:
+            Config.FIRST_TOW = data.tow
+
+        if data.tow < Config.FIRST_TOW:
             return True
-        elif Config.SYNC_SOURCE == SYNC_SOURCE.DEFINED and index == 0:
-            t_ref = Config.SYNC_TIME
-        elif Config.SYNC_SOURCE == SYNC_SOURCE.NTP:
-            t_ref = None
-        elif Config.SYNC_SOURCE == SYNC_SOURCE.RTC:
-            t_ref = None
-        else:
-            raise Exception(f"{Config.SYNC_SOURCE} is not a valid option.")
 
-        return self._sync_calculation(t_ref, data.wn)
+        if data.band != 'GAL_L1BC':
+            return True
 
-    def start(self, max_iter=0):
+        if self._is_alert_page(data):
+            return True
 
-        for index, data in self.nav_data_input:
+        if self._is_dummy_page(data):
+            return True
 
-            if index == 0:
-                Config.FIRST_TOW = data.tow
+        if not data.crc:
+            logger.warning(f'CRC FAILED\tSVID: {data.svid:02} - TOW: {data.tow} - Page: {(data.tow % 30):02}. '
+                           f'Page NOT processed.')
+            return True
 
-            if self._is_alert_page(data):
+        return False
+
+    def start(self, start_at_tow=None):
+
+        # If not defined, it will select the first tow read
+        Config.FIRST_TOW = start_at_tow
+
+        for page in self.nav_data_input:
+
+            if self.filter_page(page):
                 continue
 
-            if data.band != 'GAL_L1BC':
-                continue
-
-            if self._is_dummy_page(data):
-                continue
-
-            if not data.crc:
-                logger.warning(f'CRC FAILED\tSVID: {data.svid:02} - TOW: {data.tow} - Page: {(data.tow % 30):02}. '
-                               f'Page NOT processed.')
-                continue
-
-            self.sync_check(index, data)
-            satellite = self.satellites[data.svid]
+            satellite = self.satellites[page.svid]
 
             # Handle page
-            gst_page = BitArray(uint=data.wn, length=12) + BitArray(uint=data.tow, length=20)
-            self.receiver_state.load_page(data.nav_bits, gst_page, satellite.svid)
-            satellite.new_page(data, data.tow)
+            gst_page = BitArray(uint=page.wn, length=12) + BitArray(uint=page.tow, length=20)
+            self.receiver_state.load_page(page.nav_bits, gst_page, satellite.svid)
+            satellite.new_page(page, page.tow)
 
             # End of the subframe
-            if data.tow % 30 == 29:
-                wn = data.wn
-                tow = data.tow // 30 * 30
+            if page.tow % 30 == 29:
+                wn = page.wn
+                tow = page.tow // 30 * 30
                 gst_sf = BitArray(uint=wn, length=12) + BitArray(uint=tow, length=20)
                 logger.info(f"--- SUBFRAME --- WN {wn} TOW {tow} SVID {satellite.svid} ---")
 
@@ -121,7 +127,3 @@ class OSNMAReceiver:
                                 mack_sf, gst_sf, satellite.svid, BitArray(uint=self.receiver_state.nma_status.value, length=2))
                 else:
                     logger.info(f"No OSNMA data.")
-
-            if 0 < max_iter < index:
-                logger.info("Exit by reaching max iters.")
-                return
