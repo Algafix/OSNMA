@@ -1,9 +1,26 @@
+#
+# Copyright © European Union 2022
+#
+# Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+# the European Commission - subsequent versions of the EUPL (the "Licence");
+# You may not use this work except in compliance with the Licence.
+# You may obtain a copy of the Licence at:
+# https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the Licence is distributed on an "AS IS" basis,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#
+# See the Licence for the specific language governing permissions and limitations under the Licence.
+#
 
 import socket
+import pandas as pd
 
 from bitstring import BitArray
 
-from osnma.receiver.input import DataFormat
+from osnma.input_formats.base_classes import DataFormat, PageIterator
+
 
 SYNC = b'$@'
 
@@ -156,18 +173,15 @@ def parse_GALRawINAV(block):
     return tow, wn_c, svid, crc_passed, source, nav_bits_hex
 
 
-class SBF:
+class SBF(PageIterator):
 
     def __init__(self, path, use_satellites_list=False):
-
+        super().__init__()
         self.file = open(path, 'br')
         self.file_pos = self.file.tell()
         self.use_satellites_list = use_satellites_list
 
-    def __iter__(self):
-        return self
-
-    def __next__(self):
+    def __next__(self) -> 'DataFormat':
 
         data_format = None
 
@@ -221,17 +235,14 @@ class SBF:
         return data_format
 
 
-class SBFLive:
+class SBFLive(PageIterator):
 
     def __init__(self, host, port):
-
+        super().__init__()
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((host, port))
 
-    def __iter__(self):
-        return self
-
-    def __next__(self):
+    def __next__(self) -> 'DataFormat':
 
         data_format = None
 
@@ -263,3 +274,49 @@ class SBFLive:
             raise StopIteration
 
         return data_format
+
+
+class SBFAscii(PageIterator):
+
+    def __init__(self, path, svid=None):
+        super().__init__()
+        self.path = path
+        self.svid = svid
+        self.real_size = 234
+
+        # Load dataframe
+        nav_msg_header = ['TOW', 'WN', 'SVID', 'CRCPassed', 'ViterbiCnt', 'signalType',
+                          'concatenated', 'VITERBI_TYPE', 'RxChannel', 'NAVBits']
+        nav_msg = pd.read_csv(self.path, header=None, names=nav_msg_header)
+
+        # Filter the dataframe
+        nav_msg.dropna(inplace=True)
+        nav_msg.SVID = nav_msg.SVID.apply(lambda x: int(x[1:]))
+        if self.svid is not None:
+            mask = nav_msg['SVID'].values == self.svid
+            nav_msg = nav_msg[mask]
+        nav_msg.reset_index(inplace=True, drop=True)
+
+        # Adapt column types
+        nav_msg.TOW = nav_msg.TOW.astype(int)
+        nav_msg.WN = nav_msg.WN.astype(int)
+        nav_msg.NAVBits = nav_msg.NAVBits.apply(lambda x: x.replace(' ', ''))
+
+        self.data_iter = nav_msg.iterrows()
+
+    def __next__(self) -> DataFormat:
+        index, row = next(self.data_iter)
+
+        # Reconstruct double page 240 bits
+        nav_bits = BitArray(hex=row["NAVBits"])[:self.real_size]
+        nav_bits.insert('0b000000', 114)
+
+        # WN counts from GPS WN 0, and TOW counts at the end of the SF
+        wn = row['WN']-1024
+        tow = row['TOW']-2
+        band = row['signalType']
+        crc = True if row['CRCPassed'] == 'Passed' else False
+        data = DataFormat(row['SVID'], wn, tow, nav_bits, band=band, crc=crc)
+
+        return data
+

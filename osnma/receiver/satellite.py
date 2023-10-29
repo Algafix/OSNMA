@@ -16,7 +16,7 @@
 
 from bitstring import BitArray
 
-from .input import DataFormat
+from osnma.input_formats.base_classes import DataFormat
 
 
 class Satellite:

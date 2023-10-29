@@ -7,8 +7,7 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 
 from osnma.receiver.receiver import OSNMAReceiver
-from osnma.receiver.input_sbf import SBF
-from osnma.receiver.input import ICDTestVectors
+from osnma.input_formats.input_sbf import SBF
 import osnma.utils.logger_factory as logger_factory
 
 
