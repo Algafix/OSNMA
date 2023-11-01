@@ -6,7 +6,7 @@
 OSNMAlib
 ========
 
-OSNMAlib is an open source Python library that can be integrated in existing receivers and applications to incorporate 
+OSNMAlib is an open-source Python library that can be integrated into existing receivers and applications to incorporate 
 navigation message authentication to the positioning process. It can read the Galileo I/NAV pages when received, store 
 the navigation and authentication data, perform the authentication verification, and report the status.
 
@@ -115,7 +115,8 @@ $ live_galmon_run/
 $ python run.py
 ```
 
-You will see information printed about every 30s approximately. There may be some sync problems with the galmon data.
+You will see information printed about every 30s approximately.
+There may be some problems with the data received from galmon due to the P2P nature of this service.
 
 The IP and Port are defaulted to `86.82.68.237:10000`. You can specify your own in the Galmon input class constructor.
 
@@ -190,11 +191,13 @@ Septentrio Binary Format (SBF)
 ---
 
 If the custom navigation data is available in Septentrio Binary Format (SBF), the receiver already includes the input 
-iterator `SBF` to handle it (located at `osnma/receiver/input_sbf.py`). The SBF file used needs to contain the block
-with the raw Galileo INAV bits (GALRawINAV) so the OSNMAlib can process them.
+iterator `SBF` to handle it. The SBF file used needs to contain the block with the raw Galileo INAV bits (GALRawINAV)
+so OSNMAlib can process them.
 
-We are also including the iterator `SBFAscii` (located at `osnma/receiver/input.py`) for the cases where the GALRawINAV
+We are also including the iterator `SBFAscii` for the cases where the GALRawINAV
 data is in SBF ascii mode (converted from an SBF file using the official tools).
+
+Both can be found [here](https://github.com/Algafix/OSNMA/blob/master/osnma/input_formats/input_sbf.py).
 
 Custom format
 ---
