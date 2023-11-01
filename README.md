@@ -127,73 +127,46 @@ $ live_septentrio_run/
 $ python run.py
 ```
 
+
 Execution with Custom Data
 ===
 
-The OSNMA Open Implementation receiver can be used with custom data files. However, the receiver is only guaranteed to 
-work with data consistent with the OSNMA User ICD for the Test Phase version 1.0.
+The OSNMA Open Implementation receiver can be used with custom data files. However, the receiver is only guaranteed to work with data consistent with the OSNMA SIS ICD issue 1.0.
 
-Data Format
+Septentrio Binary Format (SBF)
 ---
 
-The receiver works by instantiating an iterator that, for each iteration, returns the iteration index and a `DataFormat`
-object. The `DataFormat` class and the different iterators are defined under the Python file `osnma/receiver/input.py`.
-
-In Python, an iterator is an object which implements the iterator protocol, which consist of the methods 
-`__iter__()` and `__next__()`. The `__iter__()` method allows to do some initializing, but must always return the 
-iterator object itself. The `__next__()` method also allows to do operations, and must return the next item in the 
-sequence.
-
-The `DataFormat` object must contain the SVID of the satellite transmitting the navigation data as an `integer`, the
-WN and TOW at the start of the navigation data page as an `integer`, and the navigation data bits for a nominal page 
-(also called double page) which are 240 bits as a `BitArray` object. The `BitArray` object can be initialized from data
-in binary format, hex format, integer or any Python Byte Array objects.
-
-Additionally, the `DataFormat` object will take as parameter the signal frequency band and the CRC status. The only 
-signal frequency band supported by the receiver is the E1-B, identified with the string `GAL_L1BC`, if no band is 
-specified, the receiver will take that as default. The CRC status is a boolean value that indicated if the page has 
-passed the CRC verification, it is set to `True` by default.
-
-### Septentrio Binary Format
-
 If the custom navigation data is available in Septentrio Binary Format (SBF), the receiver already includes the input 
-iterator `SBF` to handle it (located at `osnma/receiver/input_sbf.py`). The SBF file used needs to contain the block
-with the raw Galileo INAV bits (GALRawINAV) so the OSNMAlib can process them.
+iterator `SBF` to handle it. The SBF file used needs to contain the block with the raw Galileo INAV bits (GALRawINAV)
+so OSNMAlib can process them.
 
-We are also including the iterator `SBFAscii` (located at `osnma/receiver/input.py`) for the cases where the GALRawINAV
+We are also including the iterator `SBFAscii` for the cases where the GALRawINAV
 data is in SBF ascii mode (converted from an SBF file using the official tools).
 
-### Custom format
+Both can be found [here](https://github.com/Algafix/OSNMA/blob/master/osnma/input_formats/input_sbf.py).
 
-If the custom format of the data is not supported by the receiver, a new input iterator should be developed following
-the instructions in Section Data Format. The new input iterator can be forwarded as a parameter to the receiver as any 
-of the native input iterators without any difference.
+Custom format
+---
+
+If the format of the custom data is not supported by OSNMAlib, a new input iterator should be developed following
+the instructions on the [Input Data wiki page](https://github.com/Algafix/OSNMA/wiki/Input-Data).
 
 
 Receiver Options
 ---
 
-The receiver has several configuration parameters that can be defined previous to execution. Those parameters can be 
+The receiver has several configuration parameters that should be defined previous to execution. Those parameters can be 
 specified within code in a Python dictionary or in a separate JSON File and served as an input parameter to the 
 receiver. The receiver will load default values for the configuration parameters not specified.
 
-Those configuration parameters are:
+The most important parameters are:
 
 * `scenario_path`: Path to the scenario data file.
 * `exec_path`: Path to the folder where the receiver will search for the Merkle Tree root, Public Key and KROOT files, and where will store the keys and the logs (if no log path is specified).
 * `merkle_name`: Name of the Merkle Tree root file. Shall be in the GSA XML format.
 * `pubkey_name`: Name of the stored Public Key file. Shall be in the GSA XML format.
-* `kroot_name`: Name of the stored KROOT file. Shall have one line with the DSM KROOT complete message in hexadecimal and another line with the NMA Header in hexadecimal.
-* `file_log_level`: Log level for the file logs. Possible values are: `debug`, `info`, `warning`, `error`, and `critical`. Default set to `info`.
-* `console_log_level`: Log level for the console logs. Possible values are: `debug`, `info`, `warning`, `error`, and `critical`. Default set to `debug`.
-* `log_console`: Boolean value indicating if the receiver should log to console. Default set to `True`.
-* `logs_path`: Path to the folder where the logs will be saved. It defaults to the same folder as the {exec\_path`.
-* `sync_source`: Source used to perform the synchronization check. Possible values are: 0 (subframe time), 1 (user defined time), 2 (NTP), 3 (RTC). Default set to 0.
-* `sync_time`: If the synchronization source is set to user defined, this will be the UTC time used.
-* `tl`: Loose time synchronization requirement for a secure TESLA protocol initialization. Default to 30 seconds.
-* `b`: Maximum error of time reference at the beginning of the 1st bit of information from the file. Default to [TBD].
-* `ns`: Number of satellites in the Galileo constellation. Default to 36 satellites. 
-* `tag_length`: Number of bits from verified tags to accumulate to consider the corespondent data authenticated. Default set to 80 bits.
+
+For a full description see the wiki page [Receiver Options [TBC]](https://github.com/Algafix/OSNMA/wiki/Receiver-Options-%5BTBC%5D).
 
 
 Support
