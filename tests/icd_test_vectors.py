@@ -58,29 +58,29 @@ def test_vectors_icd_configuration_X(log_level=logging.INFO):
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
 
-    # with open(log_filename, 'r') as log_file:
-    #     log_text = log_file.read()
-    #
-    #     tags_auth = len(re.findall(r'Tag AUTHENTICATED', log_text))
-    #     data_auth = len(re.findall(r'INFO .* AUTHENTICATED: ADKD', log_text))
-    #     kroot_auth = len(re.findall(r'INFO .*KROOT.*\n\tAUTHENTICATED\n', log_text))
-    #     broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
-    #     crc_failed = len(re.findall('WARNING.*CRC', log_text))
-    #     warnings = len(re.findall('WARNING', log_text))
-    #     errors = len(re.findall('ERROR', log_text))
-    #
-    # assert tags_auth == 12120
-    # assert data_auth == 4624
-    # assert kroot_auth == 133
-    # assert broken_kroot == 3
-    # assert crc_failed == 0
-    # assert warnings == 4
-    # assert errors == 0
+    with open(log_filename, 'r') as log_file:
+        log_text = log_file.read()
+
+        tags_auth = len(re.findall(r'Tag AUTHENTICATED', log_text))
+        data_auth = len(re.findall(r'INFO .* AUTHENTICATED: ADKD', log_text))
+        kroot_auth = len(re.findall(r'INFO .*KROOT.*\n\tAUTHENTICATED\n', log_text))
+        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
+        crc_failed = len(re.findall('WARNING.*CRC', log_text))
+        warnings = len(re.findall('WARNING', log_text))
+        errors = len(re.findall('ERROR', log_text))
+    
+    assert tags_auth == 11427
+    assert data_auth == 6056
+    assert kroot_auth == 115
+    assert broken_kroot == 0
+    assert crc_failed == 0
+    assert warnings == 1
+    assert errors == 0
 
 
 if __name__ == "__main__":
 
-    general_log_level = logging.INFO
+    general_log_level = logging.CRITICAL
     test_passed = 0
     test_done = 0
 

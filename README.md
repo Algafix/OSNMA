@@ -1,4 +1,4 @@
-[![ICD Test Vectors](https://github.com/Algafix/OSNMA/actions/workflows/icd_test_vectors.yml/badge.svg)](https://github.com/Algafix/OSNMA/actions/workflows/icd_test_vectors.yml)
+[![ICD 1.0 Test Vectors](https://github.com/Algafix/OSNMA/actions/workflows/icd_test_vectors.yml/badge.svg)](https://github.com/Algafix/OSNMA/actions/workflows/icd_test_vectors.yml)
 [![Python 3.8](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_38.yml/badge.svg)](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_38.yml)
 [![Python 3.9](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_39.yml/badge.svg)](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_39.yml)
 [![Python 3.10](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_310.yml/badge.svg)](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_310.yml)
