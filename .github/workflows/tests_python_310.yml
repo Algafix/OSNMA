@@ -5,6 +5,8 @@ name: Python 3.10
 on:
   push:
     branches: [ master ]
+    paths-ignore:
+      - '**.md'
 
   workflow_dispatch:
 

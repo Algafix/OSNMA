@@ -5,6 +5,8 @@ name: ICD Test Vectors
 on:
   push:
     branches: [ master ]
+    paths-ignore:
+      - '**.md'
 
   workflow_dispatch:
 
