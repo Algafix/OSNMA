@@ -128,7 +128,7 @@ class MACSeqObject:
         self.gst = gst
         self.svid = svid
         self.macseq_value = macseq_value
-        self.flex_list = flex_list
+        self.flex_list: List[TagAndInfo] = flex_list
         self.key_id = key_id
         self.tesla_key = None
 
@@ -170,7 +170,7 @@ class TagAndInfo:
     def get_log(self):
         wn = self.gst_subframe[:12].uint
         tow = self.gst_subframe[12:].uint
-        return f"{self.id} PRN_A: {self.prn_a.uint} GST_SF: {wn} {tow}"
+        return f"{self.id} PRN_A: {self.prn_a.uint} GST_SF: {wn} {tow} COP: {self.cop.uint}"
 
 
 class Tag0AndSeq(TagAndInfo):
@@ -199,7 +199,7 @@ class MACKMessage:
         self.chain_id = chain_id
         self.nr_tags = nr_tags
         self.tesla_key = tesla_key
-        self.tags = tags if tags else []
+        self.tags: List[TagAndInfo] = tags if tags else []
 
         self.tag0_and_seq = None
         self.macseq = None
@@ -222,7 +222,7 @@ class MACKMessage:
         else:
             raise ValueError(f"Tag0 of this MACKMessage already filled.")
 
-    def get_macseq(self, tag_list):
+    def get_macseq(self, tag_list) -> MACSeqObject:
         if self.macseq:
             self.macseq.flex_list = tag_list
         return self.macseq

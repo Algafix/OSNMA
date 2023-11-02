@@ -101,7 +101,7 @@ class TagStateStructure:
         tesla_key = macseq.tesla_key
         auth_data = macseq.svid + macseq.gst
         for tag in macseq.flex_list:
-            auth_data.append(tag.prn_d + tag.adkd + tag.iod_tag)
+            auth_data.append(tag.prn_d + tag.adkd + tag.cop)
 
         computed_macseq = self.tesla_chain.mac_function(tesla_key.key, auth_data)[:12]
         if computed_macseq == macseq.macseq_value:
@@ -125,7 +125,7 @@ class TagStateStructure:
     def set_macseq_key(self, macseq):
         macseq.key_id = self.tesla_chain.get_key_index(macseq.gst) + 1
 
-    def verify_maclt(self, mack_message: MACKMessage):
+    def verify_maclt(self, mack_message: MACKMessage) -> (List[TagAndInfo], MACSeqObject, bool):
 
         tag_list = []
         flex_list = []
@@ -171,7 +171,7 @@ class TagStateStructure:
                 old_tag_cop = old_tag.cop.uint
                 if new_tag.id == old_tag.id and new_tag_cop < old_tag_cop:
                     # If the tag has data allocated but is waiting for the key, we keep it.
-                    if self.nav_data_m.get_data(old_tag.id, old_tag.gst_subframe) is None:
+                    if self.nav_data_m.get_data(old_tag) is None:
                         self.tags_awaiting_key.remove(old_tag)
             self.tags_awaiting_key.append(new_tag)
 
@@ -187,7 +187,7 @@ class TagStateStructure:
         for tag in list(self.tags_awaiting_key):
             if self.tesla_chain.key_check(tag):
                 # Has a verified key
-                nav_data_block = self.nav_data_m.get_data(tag.id, tag.gst_subframe)
+                nav_data_block = self.nav_data_m.get_data(tag)
                 if nav_data_block is not None:
                     if isinstance(tag, Tag0AndSeq):
                         self.verify_tag0(tag, nav_data_block)

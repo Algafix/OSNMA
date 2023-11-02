@@ -250,7 +250,7 @@ class NavigationDataManager:
         self.adkd_masks = adkd_masks
         self.tags_accumulated = {}
         self.adkd0_data = {}
-        self.adkd4_data = ADKD4DataStructure()
+        self.adkd4_data = {}
 
         self.auth_sats_prn = []
 
@@ -259,16 +259,19 @@ class NavigationDataManager:
             if adkd in self.ACTIVE_ADKD:
                 self.active_words.update(words)
 
-    def get_data(self, id_data, gst_tag):
-        svid = id_data[0]
-        adkd = id_data[1]
+    def get_data(self, tag: TagAndInfo):
+
+        svid = tag.prn_d.uint
+        adkd = tag.adkd.uint
 
         if adkd == 0 or adkd == 12:
             if svid not in self.adkd0_data.keys():
                 return None
-            return self.adkd0_data[svid].get_nav_data(gst_tag)
+            return self.adkd0_data[svid].get_nav_data(tag.gst_subframe)
         elif adkd == 4:
-            return self.adkd4_data.get_nav_data(gst_tag)
+            if svid not in self.adkd0_data.keys():
+                return None
+            return self.adkd4_data[svid].get_nav_data(tag.gst_subframe)
         else:
             return None
 
@@ -299,10 +302,13 @@ class NavigationDataManager:
         word_data = self._get_word_data(page, word_type, ADKD0)
         self.adkd0_data[svid].add_word(word_type, word_data, gst_page)
 
-    def load_adkd4(self, page, word_type, gst_sf):
+    def load_adkd4(self, page, word_type, gst_page, svid):
+
+        if svid not in self.adkd4_data:
+            self.adkd4_data[svid] = ADKD4DataStructure()
 
         word_data = self._get_word_data(page, word_type, ADKD4)
-        self.adkd4_data.add_word(word_type, word_data, gst_sf)
+        self.adkd4_data[svid].add_word(word_type, word_data, gst_page)
 
     def load_page(self, page, gst_page, svid):
 
@@ -312,7 +318,7 @@ class NavigationDataManager:
             if word_type in self.words_per_adkd[ADKD0]:
                 self.load_adkd0(page, word_type, gst_page, svid)
             elif word_type in self.words_per_adkd[ADKD4]:
-                self.load_adkd4(page, word_type, gst_page)
+                self.load_adkd4(page, word_type, gst_page, svid)
             elif word_type in self.words_per_adkd[ADKD5]:
                 pass
 

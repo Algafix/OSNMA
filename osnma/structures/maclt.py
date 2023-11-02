@@ -244,4 +244,11 @@ mac_lookup_table = [
         'MACs': 6,
         'sequence': [['00S', '00E', '04S', '00E', '12S', '00E'], ['00S', '00E', '00E', '12S', '00E', '12E']]
     },
+    {
+        'ID': 34,
+        'sections': 2,
+        'NMACK': 1,
+        'MACs': 6,
+        'sequence': [['00S', 'FLX', '04S', 'FLX', '12S', '00E'], ['00S', 'FLX', '00E', '12S', '00E', '12E']]
+    },
 ]
