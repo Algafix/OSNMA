@@ -15,10 +15,12 @@
 #
 
 from osnma.structures.mack_structures import MACKMessage, Tag0AndSeq, TagAndInfo, MACSeqObject
+#from osnma.osnma_core.tesla_chain import TESLAChain
 from osnma.structures.maclt import mac_lookup_table
 from osnma.osnma_core.nav_data_manager import NavigationDataManager
 
 from bitstring import BitArray
+from typing import List
 
 import osnma.utils.logger_factory as logger_factory
 logger = logger_factory.get_logger(__name__)
@@ -48,8 +50,8 @@ class TagStateStructure:
         self.tesla_chain = tesla_chain
         self.nav_data_m = nav_data_m
         self.maclt_dict = mac_lookup_table[tesla_chain.maclt]
-        self.macseq_awaiting_key = []
-        self.tags_awaiting_key = []
+        self.macseq_awaiting_key: List[MACSeqObject] = []
+        self.tags_awaiting_key: List[TagAndInfo] = []
 
     def _check_deprecated_data(self, tag, nav_data_block):
         # In case a satellite leaves sight but we still have data and receive cross-tags
@@ -127,7 +129,7 @@ class TagStateStructure:
     def set_macseq_key(self, macseq):
         macseq.key_id = self.tesla_chain.get_key_index(macseq.gst) + 1
 
-    def verify_maclt(self, mack_message: MACKMessage):
+    def verify_maclt(self, mack_message: MACKMessage) -> (List[TagAndInfo], MACSeqObject, bool):
 
         tag_list = []
         flex_list = []
@@ -170,7 +172,7 @@ class TagStateStructure:
             for tag_wait in list(self.tags_awaiting_key):
                 if tag.id[:2] == tag_wait.id[:2] and (tag.id[2] != tag_wait.id[2] or tag.new_data):
                     # If the tag has data allocated but is waiting for the key, we keep it.
-                    if self.nav_data_m.get_data(tag_wait.id, tag_wait.gst_subframe) is None:
+                    if self.nav_data_m.get_data(tag_wait) is None:
                         self.tags_awaiting_key.remove(tag_wait)
 
             self.tags_awaiting_key.append(tag)
@@ -187,7 +189,7 @@ class TagStateStructure:
         for tag in list(self.tags_awaiting_key):
             if self.tesla_chain.key_check(tag):
                 # Has a verified key
-                nav_data_block = self.nav_data_m.get_data(tag.id, tag.gst_subframe)
+                nav_data_block = self.nav_data_m.get_data(tag)
                 if nav_data_block is not None:
                     if isinstance(tag, Tag0AndSeq):
                         self.verify_tag0(tag, nav_data_block)

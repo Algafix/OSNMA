@@ -15,6 +15,7 @@
 #
 
 from bitstring import BitArray
+from typing import List, Optional
 
 from osnma.structures.fields_information import NB_DK_lt,NB_DP_lt
 import osnma.utils.logger_factory as log_factory
@@ -71,9 +72,9 @@ class SubFrameRegenerator:
                 self.block_dict.pop(bid)
         return complete_blocks
 
-    def load_dsm_block(self, hkroot_subframe, gst_subframe, svid):
+    def load_dsm_block(self, hkroot_subframe: List[Optional[BitArray]], gst_subframe: BitArray, svid: int):
 
-        block_id = None
+        block_id: Optional[int] = None
         # Get block_id from DSM Header
         if hkroot_subframe[DSM_HEADER] is not None:
             block_id = hkroot_subframe[DSM_HEADER][DSM_BLOCK_ID].uint

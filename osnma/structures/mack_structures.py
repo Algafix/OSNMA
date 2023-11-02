@@ -201,7 +201,7 @@ class MACKMessage:
         self.chain_id = chain_id
         self.nr_tags = nr_tags
         self.tesla_key = tesla_key
-        self.tags = tags if tags else []
+        self.tags: List[TagAndInfo] = tags if tags else []
 
         self.tag0_and_seq = None
         self.macseq = None

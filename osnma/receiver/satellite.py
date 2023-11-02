@@ -15,6 +15,7 @@
 #
 
 from bitstring import BitArray
+from typing import List, Optional
 
 from osnma.input_formats.base_classes import DataFormat
 
@@ -22,24 +23,19 @@ from osnma.input_formats.base_classes import DataFormat
 class Satellite:
 
     def __init__(self, svid=0):
-        self.svid = svid
-        self.hkroot_subframe = [None for _ in range(15)]
-        self.mack_subframe = [None for _ in range(15)]
-        self.osnma_subframe = False
-        self.subframe_start_gst = 0
+        self.svid: int = svid
+        self.hkroot_subframe: List[Optional[BitArray]] = [None for _ in range(15)]
+        self.mack_subframe: List[Optional[BitArray]] = [None for _ in range(15)]
+        self.osnma_subframe: bool = False
+        self.subframe_start_gst: int = 0
 
-    def _load_osnma(self, page, page_number):
-        """
-        :param page:
-        :type page: DataFormat
-        :return:
-        """
+    def _load_osnma(self, page: DataFormat, page_number: int):
         if page.has_osnma:
             page_hkroot, page_mack = page.get_osnma()
             self.hkroot_subframe[page_number] = page_hkroot
             self.mack_subframe[page_number] = page_mack
 
-    def _new_subframe(self, page, page_number):
+    def _new_subframe(self, page: DataFormat, page_number: int):
 
         self.hkroot_subframe = [None for _ in range(15)]
         self.mack_subframe = [None for _ in range(15)]
@@ -50,24 +46,17 @@ class Satellite:
         else:
             self.osnma_subframe = False
 
-    def _check_sync(self, gst_page):
+    def _check_sync(self, gst_page: int):
         return True if self.subframe_start_gst + 30 > gst_page else False
 
-    def _update_sync(self, gst_uint, page_number):
+    def _update_sync(self, gst_uint: int, page_number: int):
         gst_page_start = gst_uint - (page_number * 2)
         self.subframe_start_gst = gst_page_start
 
-    def subframe_with_osnma(self):
+    def subframe_with_osnma(self) -> bool:
         return self.osnma_subframe
 
-    def new_page(self, page, gst_uint):
-        """
-        :param page:
-        :type page: DataFormat
-        :param gst_uint:
-        :type gst_uint: int
-        :return:
-        """
+    def new_page(self, page: DataFormat, gst_uint: int):
 
         page_number = (gst_uint % 30) // 2
 
@@ -79,8 +68,8 @@ class Satellite:
             # Current subframe, save
             self._load_osnma(page, page_number)
 
-    def get_mack_subframe(self):
+    def get_mack_subframe(self) -> List[Optional[BitArray]]:
         return self.mack_subframe
 
-    def get_hkroot_subframe(self):
+    def get_hkroot_subframe(self) -> List[Optional[BitArray]]:
         return self.hkroot_subframe
