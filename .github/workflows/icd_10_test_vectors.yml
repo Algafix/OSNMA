@@ -1,6 +1,6 @@
 # This workflow will install Python dependencies, run tests and lint.
 
-name: ICD Test Vectors
+name: ICD 1.0 Test Vectors
 
 on:
   push:
