@@ -14,22 +14,28 @@
 # See the Licence for the specific language governing permissions and limitations under the Licence.
 #
 
+######## type annotations ########
+from typing import Union, List
+from osnma.osnma_core.nav_data_manager import NavigationDataManager
+from osnma.structures.mack_structures import MACSeqObject, TagAndInfo
+
+######## imports ########
 from osnma.cryptographic.dsm_kroot import DSMKroot
 from osnma.cryptographic.mack_msg_parser import MACKMessageParser
 from osnma.osnma_core.tag_verification import TagStateStructure
 from osnma.structures.fields_information import HF, KS_lt, TS_lt, MF
-from osnma.structures.mack_structures import TESLAKey, MACSeqObject, TagAndInfo
+from osnma.structures.mack_structures import TESLAKey
 from osnma.utils.exceptions import FieldValueNotRecognized, TeslaKeyVerificationFailed, MackParsingError
 
 from Crypto.Hash import CMAC
 from Crypto.Cipher import AES
 from bitstring import BitArray
-from typing import Union, List
 
 import hashlib
 import hmac
 import traceback
 
+######## logger ########
 import osnma.utils.logger_factory as logger_factory
 logger = logger_factory.get_logger(__name__)
 
@@ -42,7 +48,7 @@ class TESLAChain:
 
     """
 
-    def __init__(self, nav_data_structure, dsm_kroot: DSMKroot):
+    def __init__(self, nav_data_structure: NavigationDataManager, dsm_kroot: DSMKroot):
         """Initialize a TESLAChain object. Set the :class:`TESLAChain` attributes to those in the :class:`DSMKroot` and
         stores a pointer to the object. At the end, a :class:`TESLAKey` object is created for the KROOT with the GST_sf
         30s less than GST0.
@@ -97,11 +103,11 @@ class TESLAChain:
         self.mac_msg_parser = MACKMessageParser(self)
         self.tags_structure = TagStateStructure(self, self.nav_data_structure)
 
-    def _hmac256(self, key, message):
+    def _hmac256(self, key: BitArray, message: BitArray):
         mac = hmac.new(key=key.tobytes(), msg=message.tobytes(), digestmod=hashlib.sha256)
         return BitArray(mac.digest())
 
-    def _cmac_aes(self, key, message):
+    def _cmac_aes(self, key: BitArray, message: BitArray):
         mac = CMAC.new(key.tobytes(), msg=message.tobytes(), ciphermod=AES)
         return BitArray(mac.digest())
 
@@ -171,7 +177,7 @@ class TESLAChain:
             if tesla_key := mack_object.get_key():
                 self.add_key(tesla_key)
 
-    def update_tag_lists(self, gst_subframe):
+    def update_tag_lists(self, gst_subframe: BitArray):
         self.tags_structure.update_tag_lists(gst_subframe)
 
     def get_key_index(self, gst_sf: BitArray) -> int:

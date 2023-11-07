@@ -14,16 +14,22 @@
 # See the Licence for the specific language governing permissions and limitations under the Licence.
 #
 
-from typing import List
-from bitstring import BitArray
+######## type annotations ########
+from typing import TYPE_CHECKING, List
+if TYPE_CHECKING:
+    from osnma.osnma_core.tesla_chain import TESLAChain
 
+######## imports ########
 from ..structures.mack_structures import MACKMessage, Tag0AndSeq, TagAndInfo, TESLAKey
 from ..structures.fields_information import field_info
 from ..utils.config import Config
 
-import osnma.utils.logger_factory as logger_factory
+from bitstring import BitArray
 
+######## logger ########
+import osnma.utils.logger_factory as logger_factory
 logger = logger_factory.get_logger(__name__)
+
 
 MACK_MSG_SIZE = field_info['MACK_MSG']['size']
 TAG_INFO_SIZE = field_info['TAG_INFO']['size']
@@ -39,7 +45,7 @@ class MACKMessageParser:
     Updated version. Now there is only 1 MACK block per MACK message.
     """
 
-    def __init__(self, tesla_chain):
+    def __init__(self, tesla_chain: 'TESLAChain'):
         self.tesla_chain = tesla_chain
         self.chain_id = self.tesla_chain.chain_id
         self.key_size = self.tesla_chain.key_size

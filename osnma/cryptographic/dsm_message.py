@@ -14,6 +14,8 @@
 # See the Licence for the specific language governing permissions and limitations under the Licence.
 #
 
+from typing import Dict
+
 from functools import wraps
 
 from bitstring import BitArray
@@ -55,7 +57,7 @@ class DSM:
         self.size_blocks = None
         self.size_bits = None
         self.verified = False
-        self.fields = {}
+        self.fields: Dict[str, Field] = {}
 
         for name, field in field_info.items(): # TODO: Search for alternative only load necessary fields
             self.fields[name] = Field(field['name'], None, field['size'])
@@ -65,7 +67,7 @@ class DSM:
         self.fields[name].value = value
         self._extra_actions(name)
 
-    def get_value(self, name):
+    def get_value(self, name) -> BitArray:
         return self.fields[name].value
 
     def set_size(self, name, size):
