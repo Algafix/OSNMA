@@ -125,7 +125,8 @@ class ADKD0DataBlock:
 
 class ADKD0DataStructure:
 
-    def __init__(self):
+    def __init__(self, svid: int):
+        self.svid = svid
         self.adkd0_data_blocks = []
 
     def __repr__(self):
@@ -318,7 +319,7 @@ class NavigationDataManager:
     def load_adkd0(self, page, word_type, gst_page, svid):
 
         if svid not in self.adkd0_data:
-            self.adkd0_data[svid] = ADKD0DataStructure()
+            self.adkd0_data[svid] = ADKD0DataStructure(svid)
 
         word_data = self._get_word_data(page, word_type, ADKD0)
         self.adkd0_data[svid].add_word(word_type, word_data, gst_page)
