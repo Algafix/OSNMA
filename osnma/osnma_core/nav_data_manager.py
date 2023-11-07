@@ -13,6 +13,7 @@
 #
 # See the Licence for the specific language governing permissions and limitations under the Licence.
 #
+import copy
 
 from osnma.structures.adkd import adkd_masks
 from osnma.structures.mack_structures import TagAndInfo
@@ -119,31 +120,53 @@ class ADKD0DataBlock:
         if len(self.words) != 5:
             return None
         else:
-            if self.nav_data_stream is None:
-                self._compute_data_stream()
-            return self
+            self._compute_data_stream()
+        return self
 
 
 class ADKD0DataStructure:
 
-    def __init__(self):
+    def __init__(self, svid: int):
+        self.svod = svid
         self.adkd0_data_blocks: List[ADKD0DataBlock] = []
 
     def __repr__(self):
         return f"\n\t{self.adkd0_data_blocks}\n"
 
-    def _missing_word5(self, gst_page: BitArray) -> bool:
-        adkd0_blocks = self.adkd0_data_blocks
-        if adkd0_blocks:
-            last_adkd0_block = adkd0_blocks[-1]
-            if not last_adkd0_block.get_word(5):
-                if last_adkd0_block.last_gst_updated.uint - gst_page.uint < 30:
-                    # Only if we can be sure that they belong to the same subframe
-                    return True
+    def _iod_unambiguous(self, gst_page: BitArray) -> bool:
+        """
+        Checks if we have received a Word Type with IOD during this subframe so the Word Type 5 can be linked.
+        self.adkd0_data_blocks must not be empty
+        """
+        last_adkd0_block = self.adkd0_data_blocks[-1]
+        if last_adkd0_block.last_gst_updated.uint - gst_page.uint < 30:
+            return True
         return False
 
     def _is_new_adkd0_data_block(self, iod: BitArray) -> bool:
         return len(self.adkd0_data_blocks) == 0 or self.adkd0_data_blocks[-1].iod != iod
+
+    def _handle_word_type_5(self, word_5_data: BitArray, gst_page: BitArray):
+        if len(self.adkd0_data_blocks) == 0:
+            # Not initialized, cant link WT5
+            return
+
+        if not self._iod_unambiguous(gst_page):
+            # Cant ensure WT5 belongs to this data IOD
+            return
+
+        last_adkd0_block = self.adkd0_data_blocks[-1]
+        last_word_type_5 = last_adkd0_block.get_word(5)
+
+        if last_word_type_5 is None:
+            self.adkd0_data_blocks[-1].add_word(5, word_5_data, gst_page)
+        elif last_word_type_5 != word_5_data:
+            # Create new ADKD0Data block with updated GST
+            # For some reason o this case its assumed the next subframe
+            new_adkd0data_block = copy.deepcopy(last_adkd0_block)
+            new_adkd0data_block.gst_start = BitArray(uint=gst_page.uint + 5, length=32)
+            new_adkd0data_block.add_word(5, word_5_data, gst_page)
+            self.adkd0_data_blocks.append(new_adkd0data_block)
 
     def add_word(self, word_type: int, data: BitArray, gst_page: BitArray):
         if word_type != 5:
@@ -155,8 +178,7 @@ class ADKD0DataStructure:
             else:
                 self.adkd0_data_blocks[-1].add_word(word_type, data, gst_page)
         else:
-            if self._missing_word5(gst_page):
-                self.adkd0_data_blocks[-1].add_word(word_type, data, gst_page)
+            self._handle_word_type_5(data, gst_page)
 
     def get_nav_data(self, gst_tag: BitArray) -> Optional[ADKD0DataBlock]:
         data = None
@@ -301,7 +323,7 @@ class NavigationDataManager:
     def load_adkd0(self, page: BitArray, word_type: int, gst_page: BitArray, svid: int):
 
         if svid not in self.adkd0_data:
-            self.adkd0_data[svid] = ADKD0DataStructure()
+            self.adkd0_data[svid] = ADKD0DataStructure(svid)
 
         word_data = self._get_word_data(page, word_type, ADKD0)
         self.adkd0_data[svid].add_word(word_type, word_data, gst_page)
