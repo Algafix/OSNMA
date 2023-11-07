@@ -14,18 +14,23 @@
 # See the Licence for the specific language governing permissions and limitations under the Licence.
 #
 
+######## type annotations ########
+from typing import TYPE_CHECKING, List, Union
+if TYPE_CHECKING:
+    from osnma.osnma_core.tesla_chain import TESLAChain
 from osnma.structures.mack_structures import MACKMessage, Tag0AndSeq, TagAndInfo, MACSeqObject
+from osnma.osnma_core.nav_data_manager import NavigationDataManager, ADKD0DataBlock, ADKD4DataBlock
+
+######## imports ########
 from osnma.structures.maclt import mac_lookup_table
-from osnma.osnma_core.nav_data_manager import NavigationDataManager
-
 from bitstring import BitArray
-from typing import List
 
+######## logger ########
 import osnma.utils.logger_factory as logger_factory
 logger = logger_factory.get_logger(__name__)
 
 
-def verify_maclt_slot(tag, slot):
+def verify_maclt_slot(tag: TagAndInfo, slot: str):
     slot_adkd = int(slot[:2])
     slot_type = slot[2]
 
@@ -45,14 +50,14 @@ def verify_maclt_slot(tag, slot):
 
 class TagStateStructure:
 
-    def __init__(self, tesla_chain, nav_data_m: NavigationDataManager):
+    def __init__(self, tesla_chain: 'TESLAChain', nav_data_m: NavigationDataManager):
         self.tesla_chain = tesla_chain
         self.nav_data_m = nav_data_m
         self.maclt_dict = mac_lookup_table[tesla_chain.maclt]
-        self.macseq_awaiting_key = []
+        self.macseq_awaiting_key: List[MACSeqObject] = []
         self.tags_awaiting_key: List[TagAndInfo] = []
 
-    def _check_deprecated_data(self, tag, nav_data_block):
+    def _check_deprecated_data(self, tag: TagAndInfo, nav_data_block: Union[ADKD0DataBlock, ADKD4DataBlock]):
         # In case a satellite leaves sight but we still have data and receive cross-tags
         # If a tag fails the cross-authentication and the data is more than one subframe old, probably the data
         # has changed since our last recording from that satellite and therefore should not be used for future tags
@@ -63,7 +68,7 @@ class TagStateStructure:
                 return True
         return False
 
-    def verify_tag0(self, tag0: Tag0AndSeq, nav_data_block):
+    def verify_tag0(self, tag0: Tag0AndSeq, nav_data_block: ADKD0DataBlock):
 
         nav_data = nav_data_block.nav_data_stream
         tesla_key = tag0.tesla_key
@@ -79,11 +84,14 @@ class TagStateStructure:
 
         self.tags_awaiting_key.remove(tag0)
 
-    def verify_tag(self, tag: TagAndInfo, nav_data_block):
+    def verify_tag(self, tag: TagAndInfo, nav_data_block: Union[ADKD0DataBlock, ADKD4DataBlock]):
+
+        # If PRN_D is 255, PRN_D is PRN_A for the formula.
+        prn_d = tag.prn_a if tag.prn_d.uint == 255 else tag.prn_d
 
         nav_data = nav_data_block.nav_data_stream
         tesla_key = tag.tesla_key
-        auth_data = tag.prn_d + tag.prn_a + tag.gst_subframe + BitArray(uint=tag.ctr, length=8) + tag.nma_status \
+        auth_data = prn_d + tag.prn_a + tag.gst_subframe + BitArray(uint=tag.ctr, length=8) + tag.nma_status \
             + nav_data
         mac = self.tesla_chain.mac_function(tesla_key.key, auth_data)
         computed_tag0 = mac[:self.tesla_chain.tag_size]
@@ -101,7 +109,7 @@ class TagStateStructure:
         tesla_key = macseq.tesla_key
         auth_data = macseq.svid + macseq.gst
         for tag in macseq.flex_list:
-            auth_data.append(tag.prn_d + tag.adkd + tag.cop)
+            auth_data.append(tag.prn_d + tag.adkd + tag.iod_tag)
 
         computed_macseq = self.tesla_chain.mac_function(tesla_key.key, auth_data)[:12]
         if computed_macseq == macseq.macseq_value:
@@ -113,7 +121,7 @@ class TagStateStructure:
 
         self.macseq_awaiting_key.remove(macseq)
 
-    def set_tag_keys(self, tag_list):
+    def set_tag_keys(self, tag_list: List[TagAndInfo]):
 
         for tag in tag_list:
             if tag.adkd.uint != 12:
@@ -122,7 +130,7 @@ class TagStateStructure:
                 subframe_id = self.tesla_chain.get_key_index(tag.gst_subframe)
                 tag.key_id = subframe_id + 10 * self.tesla_chain.nmack + 1
 
-    def set_macseq_key(self, macseq):
+    def set_macseq_key(self, macseq: MACSeqObject):
         macseq.key_id = self.tesla_chain.get_key_index(macseq.gst) + 1
 
     def verify_maclt(self, mack_message: MACKMessage) -> (List[TagAndInfo], MACSeqObject, bool):
@@ -164,18 +172,16 @@ class TagStateStructure:
 
     def add_tags_waiting_key(self, tag_list: List[TagAndInfo]):
 
-        for new_tag in tag_list:
-            # Clean tags for which data will never come
-            for old_tag in list(self.tags_awaiting_key):
-                new_tag_cop = new_tag.cop.uint
-                old_tag_cop = old_tag.cop.uint
-                if new_tag.id == old_tag.id and new_tag_cop < old_tag_cop:
+        for tag in tag_list:
+            for tag_wait in list(self.tags_awaiting_key):
+                if tag.id[:2] == tag_wait.id[:2] and (tag.id[2] != tag_wait.id[2] or tag.new_data):
                     # If the tag has data allocated but is waiting for the key, we keep it.
-                    if self.nav_data_m.get_data(old_tag) is None:
-                        self.tags_awaiting_key.remove(old_tag)
-            self.tags_awaiting_key.append(new_tag)
+                    if self.nav_data_m.get_data(tag_wait) is None:
+                        self.tags_awaiting_key.remove(tag_wait)
 
-    def update_tag_lists(self, gst_subframe):
+            self.tags_awaiting_key.append(tag)
+
+    def update_tag_lists(self, gst_subframe: BitArray):
 
         # Check for MACSEQ key to update tag list
         for macseq in list(self.macseq_awaiting_key):

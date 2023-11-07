@@ -14,7 +14,10 @@
 # See the Licence for the specific language governing permissions and limitations under the Licence.
 #
 
+######## type annotations ########
 from typing import Union, List
+
+######## imports ########
 from bitstring import BitArray
 
 
@@ -34,7 +37,7 @@ class TESLAKey:
         :param is_kroot: If this Tesla Key comes from an HKROOT message.
         :param index: Index of the key if it is known. Set to 0 for KROOT.
         """
-        self.verified = False
+        self.verified: bool = False
         self.key = BitArray(key)
         self.reconstructed = reconstructed
 
@@ -60,7 +63,7 @@ class TESLAKey:
         else:
             raise TypeError(f"Only supported int or BitArray, not {type(tow)} for {tow}")
 
-        self.gst_sf = self.wn + self.tow
+        self.gst_sf: BitArray = self.wn + self.tow
 
     def get_as_dict(self) -> dict:
         """Returns the key in a dictionary format for debug or log purposes.
@@ -124,53 +127,55 @@ class TESLAKey:
 
 class MACSeqObject:
 
-    def __init__(self, gst, svid, macseq_value, flex_list=None, key_id=None):
+    def __init__(self, gst: BitArray, svid: BitArray, macseq_value: BitArray, flex_list: List['TagAndInfo']=None, key_id: int=None):
         self.gst = gst
         self.svid = svid
         self.macseq_value = macseq_value
-        self.flex_list: List[TagAndInfo] = flex_list
+        self.flex_list = flex_list
         self.key_id = key_id
-        self.tesla_key = None
+        self.tesla_key: TESLAKey = None
 
     @property
     def has_key(self):
         return self.tesla_key is not None
 
-    def get_log(self):
+    def get_log(self) -> str:
         wn = self.gst[:12].uint
         tow = self.gst[12:].uint
-        return f"PRN_A: {self.svid.uint} GST_SF: {wn} {tow} TAGS ADDED: {len(self.flex_list)}"
+        return f"PRN_A: {self.svid.uint} GST_SF: {wn} {tow} FLX Tags: {len(self.flex_list)}"
 
 
 class TagAndInfo:
 
-    def __init__(self, tag_value: BitArray, prn_d: BitArray, adkd: BitArray, cop: BitArray, gst_subframe: BitArray,
+    def __init__(self, tag_value: BitArray, prn_d: BitArray, adkd: BitArray, iod_tag: BitArray, gst_subframe: BitArray,
                  prn_a: BitArray, ctr: int, nma_status: BitArray):
         self.tag_value = tag_value
         self.prn_d = prn_d
         self.prn_a = prn_a
         self.adkd = adkd
-        self.cop = cop
+        self.iod_tag = iod_tag
+        self.new_data = iod_tag[0]
         self.ctr = ctr
         self.gst_subframe = gst_subframe
         self.nma_status = nma_status
-        self.id = (self.prn_d.uint, self.adkd.uint)
-        self.verified = False
-        self.key_id = None
-        self.tesla_key = None
+
+        self.id = (self.prn_d.uint, self.adkd.uint, self.iod_tag[1:].uint)
+        self.verified: bool = False
+        self.key_id: int = None
+        self.tesla_key: TESLAKey = None
 
     def __repr__(self) -> str:
         return f"{{ID: {self.id} PRN_A: {self.prn_a.uint} KeyID: {self.key_id} GST TOW: " \
                f"{self.gst_subframe[12:].uint}}}"
 
     @property
-    def has_key(self):
+    def has_key(self) -> bool:
         return self.tesla_key is not None
 
-    def get_log(self):
+    def get_log(self) -> str:
         wn = self.gst_subframe[:12].uint
         tow = self.gst_subframe[12:].uint
-        return f"{self.id} PRN_A: {self.prn_a.uint} GST_SF: {wn} {tow} COP: {self.cop.uint}"
+        return f"{self.id} PRN_A: {self.prn_a.uint} GST_SF: {wn} {tow}"
 
 
 class Tag0AndSeq(TagAndInfo):
@@ -183,16 +188,16 @@ class Tag0AndSeq(TagAndInfo):
         self.mac_seq = mac_seq
         self.is_tag0 = True
 
-    def is_new_data(self):
+    def is_new_data(self) -> bool:
         return self.iod_tag[0] == 1
 
-    def get_log(self):
+    def get_log(self) -> str:
         return f"{super().get_log()} TAG0"
 
 
 class MACKMessage:
 
-    def __init__(self, gst_sf: BitArray, chain_id: int, svid: BitArray, nr_tags, tags=None, tesla_key=None):
+    def __init__(self, gst_sf: BitArray, chain_id: int, svid: BitArray, nr_tags: int, tags: List[TagAndInfo]=None, tesla_key: TESLAKey=None):
 
         self.svid = svid
         self.gst_sf = gst_sf
@@ -201,8 +206,8 @@ class MACKMessage:
         self.tesla_key = tesla_key
         self.tags: List[TagAndInfo] = tags if tags else []
 
-        self.tag0_and_seq = None
-        self.macseq = None
+        self.tag0_and_seq: Tag0AndSeq = None
+        self.macseq: MACSeqObject = None
 
     def add_key(self, key: TESLAKey):
         self.tesla_key = key
@@ -222,7 +227,7 @@ class MACKMessage:
         else:
             raise ValueError(f"Tag0 of this MACKMessage already filled.")
 
-    def get_macseq(self, tag_list) -> MACSeqObject:
+    def get_macseq(self, tag_list: List[TagAndInfo]) -> MACSeqObject:
         if self.macseq:
             self.macseq.flex_list = tag_list
         return self.macseq
