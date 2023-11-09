@@ -14,16 +14,16 @@
 # See the Licence for the specific language governing permissions and limitations under the Licence.
 #
 
-from bitstring import BitArray
+######## type annotations ########
 from typing import List, Optional
-
+from bitstring import BitArray
 from osnma.input_formats.base_classes import DataFormat
 
 
 class Satellite:
 
-    def __init__(self, svid=0):
-        self.svid: int = svid
+    def __init__(self, svid: int = 0):
+        self.svid = svid
         self.hkroot_subframe: List[Optional[BitArray]] = [None for _ in range(15)]
         self.mack_subframe: List[Optional[BitArray]] = [None for _ in range(15)]
         self.osnma_subframe: bool = False

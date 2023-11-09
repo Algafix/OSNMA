@@ -14,16 +14,19 @@
 # See the Licence for the specific language governing permissions and limitations under the Licence.
 #
 
-from bitstring import BitArray
+######## type annotations ########
+from typing import List, Dict, Optional
+from osnma.input_formats.base_classes import PageIterator, DataFormat
 
+######## imports ########
 from osnma.receiver.satellite import Satellite
 from osnma.receiver.subframe_regen import SubFrameRegenerator
 from osnma.osnma_core.receiver_state import ReceiverState
-from osnma.input_formats.base_classes import PageIterator
+from osnma.utils.config import Config
+from bitstring import BitArray
 
-from osnma.utils.config import Config, SYNC_SOURCE
+######## logger ########
 import osnma.utils.logger_factory as log_factory
-
 logger = log_factory.get_logger(__name__)
 
 
@@ -34,7 +37,7 @@ class OSNMAReceiver:
         Config.load_configuration_parameters(param_dict)
         log_factory.configure_loggers()
 
-        self.satellites = {}
+        self.satellites: Dict[int, Satellite] = {}
         for svid in range(Config.NS):
             self.satellites[svid + 1] = Satellite(svid + 1)
 
@@ -42,16 +45,16 @@ class OSNMAReceiver:
         self.receiver_state = ReceiverState()
         self.subframe_regenerator = SubFrameRegenerator()
 
-    def _is_dummy_page(self, data) -> bool:
+    def _is_dummy_page(self, data: DataFormat) -> bool:
         return data.nav_bits[2:8].uint == 63
 
-    def _is_alert_page(self, data) -> bool:
+    def _is_alert_page(self, data: DataFormat) -> bool:
         return data.nav_bits[1]
 
     def _sync_calculation(self, t_ref, t_sig):
         return (t_ref + Config.B - Config.TL < t_sig) and (Config.B < Config.TL // 2)
 
-    def filter_page(self, data):
+    def filter_page(self, data: DataFormat):
         """
         Filter page if it is not useful for teh current OSNMA implementation.
         Checks for CRC, alert pages, dummy pages, other signals aside from E1BC, etc.
@@ -83,7 +86,7 @@ class OSNMAReceiver:
 
         return False
 
-    def start(self, start_at_tow=None):
+    def start(self, start_at_tow: Optional[int] = None):
 
         # If not defined, it will select the first tow read
         Config.FIRST_TOW = start_at_tow

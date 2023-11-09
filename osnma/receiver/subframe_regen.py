@@ -14,12 +14,17 @@
 # See the Licence for the specific language governing permissions and limitations under the Licence.
 #
 
-from bitstring import BitArray
-from typing import List, Optional
+######## type annotations ########
+from typing import List, Optional, Union, Dict, Tuple
 
-from osnma.structures.fields_information import NB_DK_lt,NB_DP_lt
+######## imports ########
+from bitstring import BitArray
+from osnma.structures.fields_information import NB_DK_lt, NB_DP_lt
+
+######## logger ########
 import osnma.utils.logger_factory as log_factory
 logger = log_factory.get_logger(__name__)
+
 
 DSM_HEADER = 1
 DSM_NUMBER_OF_BLOCKS_PAGE = 2
@@ -31,22 +36,22 @@ DSM_ID = slice(0, 4)
 class SubFrameRegenerator:
 
     def __init__(self):
-        self.dsm_id = None
-        self.bid_ref = None
-        self.svid_ref = None
-        self.gst_ref = None
-        self.num_blocks = None
-        self.num_blocks_lookup_table = None
-        self.block_dict = {}
+        self.dsm_id: Optional[int] = None
+        self.bid_ref: Optional[int] = None
+        self.svid_ref: Optional[int] = None
+        self.gst_ref: Optional[BitArray] = None
+        self.num_blocks: Optional[int] = None
+        self.num_blocks_lookup_table: List[Union[str, int]] = []
+        self.block_dict: Dict[int, List[BitArray]] = {}
 
-    def _get_dsm_lookup_table(self, dsm_id):
+    def _get_dsm_lookup_table(self, dsm_id: int):
         return NB_DK_lt if dsm_id < 12 else NB_DP_lt
 
-    def _is_block_complete(self, block):
+    def _is_block_complete(self, block: List[BitArray]):
         full_block = BitArray().join(block)
         return full_block if len(full_block) == 120 else False
 
-    def _save_block(self, new_block, bid):
+    def _save_block(self, new_block: List[BitArray], bid: int):
         saved_block = self.block_dict.get(bid)
         if saved_block is None:
             self.block_dict[bid] = new_block
@@ -64,7 +69,7 @@ class SubFrameRegenerator:
         self.num_blocks = None
         self.block_dict = {}
 
-    def get_regenerated_blocks(self):
+    def get_regenerated_blocks(self) -> List[Tuple[BitArray, int]]:
         complete_blocks = []
         for bid, block in dict(self.block_dict).items():
             if full_block := self._is_block_complete(block):
@@ -72,7 +77,7 @@ class SubFrameRegenerator:
                 self.block_dict.pop(bid)
         return complete_blocks
 
-    def load_dsm_block(self, hkroot_subframe: List[Optional[BitArray]], gst_subframe: BitArray, svid: int):
+    def load_dsm_block(self, hkroot_subframe: List[Optional[BitArray]], gst_subframe: BitArray, svid: int) -> Union[BitArray, bool]:
 
         block_id: Optional[int] = None
         # Get block_id from DSM Header
