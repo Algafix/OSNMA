@@ -14,6 +14,10 @@
 # See the Licence for the specific language governing permissions and limitations under the Licence.
 #
 
+######## type annotations ########
+from typing import List, Optional, Tuple, Dict
+
+######## imports ########
 from enum import IntEnum
 
 from bitstring import BitArray
@@ -26,8 +30,9 @@ from osnma.osnma_core.nav_data_manager import NavigationDataManager
 from osnma.utils.iohandler import IOHandler
 from osnma.utils.exceptions import PublicKeyObjectError, TeslaKeyVerificationFailed, MackParsingError, \
     ReceiverStatusError
-
 from osnma.utils.config import Config
+
+######## logger ########
 import osnma.utils.logger_factory as log_factory
 logger = log_factory.get_logger(__name__)
 
@@ -52,13 +57,13 @@ class StartStates(IntEnum):
 
 class DigitalSignatureMessage:
 
-    def __init__(self, dsm_id):
-        self.blocks_received = {}
-        self.total_of_blocks = None
+    def __init__(self, dsm_id: int):
+        self.blocks_received: Dict[int, BitArray] = {}
+        self.total_of_blocks: Optional[int] = None
         self.dsm_id = dsm_id
         self.translate_blocks = NB_DK_lt if self.dsm_id < 12 else NB_DP_lt
 
-    def load_dsm_subframe(self, dsm_subframe):
+    def load_dsm_subframe(self, dsm_subframe: BitArray):
 
         bid = dsm_subframe[HKROOT.BID_START:HKROOT.BID_END].uint
         self.blocks_received[bid] = dsm_subframe[HKROOT.DATA_START:]
@@ -72,10 +77,10 @@ class DigitalSignatureMessage:
             if self.total_of_blocks == "Reserved":
                 logger.warning(f'The Number of Blocks field is {number_of_blocks_field} with value "Reserved"\n')
 
-    def is_complete(self):
+    def is_complete(self) -> bool:
         return len(self.blocks_received) == self.total_of_blocks
 
-    def get_data(self):
+    def get_data(self) -> BitArray:
         hkroot_data = BitArray()
         for i in range(self.total_of_blocks):
             hkroot_data += self.blocks_received[i]
@@ -92,11 +97,11 @@ class ReceiverState:
         self.chain_status = CPKS.NOMINAL
         self.nma_status = NMAS.TEST
 
-        self.nma_header = None
+        self.nma_header: Optional[BitArray] = None
 
-        self.pkr_dict = {}
-        self.current_pkid = None
-        self.merkle_root = None
+        self.pkr_dict: Dict[int, DSMPKR] = {}
+        self.current_pkid: Optional[int] = None
+        self.merkle_root: Optional[BitArray] = None
 
         self.tesla_chain_force = None
         self.next_tesla_chain = None
@@ -104,7 +109,7 @@ class ReceiverState:
         self.nav_data_structure = NavigationDataManager()
         self.io_handler = IOHandler(Config.EXEC_PATH)
 
-        self.dsm_messages = []
+        self.dsm_messages: List[DigitalSignatureMessage] = []
         for i in range(16):
             self.dsm_messages.append(DigitalSignatureMessage(i))
 
@@ -123,8 +128,8 @@ class ReceiverState:
         if pubkey_file:
             try:
                 pubk_id, dsm_pkr = self.io_handler.read_pubk(pubkey_file)
-            except IOError:
-                logger.warning("Error reading the saved Public Key. Not used.")
+            except Exception as e:
+                logger.warning(e)
             else:
                 self.pkr_dict[pubk_id] = dsm_pkr
                 self.start_status = StartStates.WARM_START
@@ -142,18 +147,18 @@ class ReceiverState:
                             logger.info(f"KROOT read. Start status {self.start_status.name}\n")
                         else:
                             logger.warning(f"KROOT read is not verified. Not used.")
-                    except IOError:
-                        logger.error(f"Error reading the saved Root Key. Not used.")
+                    except IOError as e:
+                        logger.warning(e)
                     except PublicKeyObjectError:
                         logger.warning('Saved Key Root PKID is not consistent with the stored Public Key. Not used.')
 
-    def _nma_header_parser(self, nma_header):
+    def _nma_header_parser(self, nma_header: BitArray) -> (NMAS, int, CPKS):
         nma_status = nmas_lt[nma_header[:2].uint]
         cid = nma_header[2:4].uint
         cpks = cpks_lt[nma_header[4:7].uint]
         return nma_status, cid, cpks
 
-    def _subframe_actions(self, nma_header):
+    def _subframe_actions(self, nma_header: BitArray):
         if self.chain_status == CPKS.EOC and self.next_tesla_chain is not None:
             current_chain_in_force = nma_header[2:4].uint
             if current_chain_in_force == self.next_tesla_chain.chain_id:
@@ -189,13 +194,13 @@ class ReceiverState:
         self.next_tesla_chain = None
         self.kroot_waiting_mack = []
 
-    def _store_next_tesla_chain(self, cid_kroot, dsm_kroot):
+    def _store_next_tesla_chain(self, cid_kroot: int, dsm_kroot: DSMKroot):
         if cid_kroot != self.tesla_chain_force.chain_id and self.next_tesla_chain is None:
             self.next_tesla_chain = TESLAChain(self.nav_data_structure, dsm_kroot)
             logger.info(f"Saved as next chain. In force at {self.next_tesla_chain.GST0[:12].uint}"
                         f" {self.next_tesla_chain.GST0[12:].uint}")
 
-    def _chain_status_handler(self, nma_header, dsm_kroot):
+    def _chain_status_handler(self, nma_header: BitArray, dsm_kroot: DSMKroot):
 
         nmas, cid, cpks = self._nma_header_parser(nma_header)
         self.nma_header = nma_header
@@ -317,13 +322,11 @@ class ReceiverState:
                     self.pkr_dict.pop(self.current_pkid)
                     self.current_pkid = pkid
 
-    def process_kroot_message(self, nma_header, kroot):
+    def process_kroot_message(self, nma_header: BitArray, kroot: BitArray):
         """
         Creates a DSMKroot object with the received information and tries to verify it. If the verification is correct,
         create a TESLAChain object with this key and a MACKMessageParser. Also stores the key by its CID in the
         receivers list.
-        :param nma_header:
-        :return:
         """
         try:
             dsm_kroot = DSMKroot(self.pkr_dict)
@@ -347,7 +350,7 @@ class ReceiverState:
                 if self.start_status == StartStates.WARM_START:
                     self._fallback_to_cold_start()
 
-    def process_pkr_message(self, pkr):
+    def process_pkr_message(self, pkr: BitArray):
         dsm_pkr = DSMPKR()
         dsm_pkr.process_data(pkr)
         dsm_pkr.set_merkle_root(self.merkle_root)

@@ -14,9 +14,15 @@
 # See the Licence for the specific language governing permissions and limitations under the Licence.
 #
 
+######## type annotations ########
+from typing import TextIO
+from pathlib import Path
+
+######## imports ########
 import re
 import hashlib
 
+import bitstring
 from ecdsa.keys import VerifyingKey
 from ecdsa.curves import NIST256p
 from ecdsa.curves import NIST521p
@@ -26,31 +32,46 @@ from osnma.cryptographic.dsm_pkr import DSMPKR
 from osnma.cryptographic.dsm_kroot import DSMKroot
 from osnma.structures.fields_information import NPKT
 
+######## logger ########
 import osnma.utils.logger_factory as logger_factory
 logger = logger_factory.get_logger(__name__)
 
 
 class IOHandler:
 
-    def __init__(self, path):
+    def __init__(self, path: Path):
         self.path = path
 
-    def read_merkle_root(self, file_name):
-        with open(self.path / file_name, 'r') as merkle_file:
-            try:
-                file_text = merkle_file.read()
+    def _handle_input_file_format(self, file_descriptor: TextIO) -> str:
+        file_text_lines = file_descriptor.readlines()
+        file_text_lines = [line.strip() for line in file_text_lines]
+        file_text_one_line = ''.join(file_text_lines)
+        return file_text_one_line
+
+    def read_merkle_root(self, file_name: str):
+        try:
+            with open(self.path / file_name, 'r') as merkle_file:
+                file_text = self._handle_input_file_format(merkle_file)
                 tree_nodes = file_text.split('<TreeNode>')[1:]
                 for node in tree_nodes:
                     if '<j>4</j><i>0</i>' in node:
                         merkle_root = re.findall(r'<x_ji>(.*?)</x_ji>', node)[0]
-            except IOError:
-                logger.critical(f"IOError while reading the Merkle root file {self.path+file_name}.")
-        return BitArray(hex=merkle_root)
+            merkle_root = BitArray(hex=merkle_root)
+        except IOError as e:
+            logger.critical(f"IOError while reading the Merkle root file {self.path / file_name}.\n\t{e}")
+            logger.critical(f"A valid Merkle root is mandatory for OSNMA to work. Stopping the program.")
+            exit(1)
+        except Exception as e:
+            logger.critical(f"Merkle root file {self.path / file_name} has no valid merkle root value or doesn't follow"
+                            f" the GSC format.\n\t{e}")
+            logger.critical(f"A valid Merkle root is mandatory for OSNMA to work. Stopping the program.")
+            exit(1)
+        return merkle_root
 
-    def read_pubk(self, file_name):
-        with open(self.path / file_name, 'r') as pubk_file:
-            try:
-                file_text = pubk_file.read()
+    def read_pubk(self, file_name: str):
+        try:
+            with open(self.path / file_name, 'r') as pubk_file:
+                file_text = self._handle_input_file_format(pubk_file)
                 pubk_id = int(re.findall(r'<PKID>(.*?)</PKID>', file_text)[0])
                 pubk_type = re.findall(r'<PKType>(.*?)</PKType>', file_text)[0]
                 pubk_point = bytes.fromhex(re.findall(r'<point>(.*?)</point>', file_text)[0])
@@ -69,10 +90,11 @@ class IOHandler:
                 dsm_pkr.public_key_obj = pubk_object
                 dsm_pkr.verified = True
 
-                return pubk_id, dsm_pkr
-
-            except IOError:
-                logger.error(f"IOError while reading the Public Key file {self.path + file_name}.")
+        except IOError as e:
+            raise IOError(f"IOError while reading the Public Key file {self.path / file_name}. Not used.\n\t{e}")
+        except Exception as e:
+            raise Exception(f"Error when parsing the public key according to the GSC format. Not used.\n\t Error: {e}")
+        return pubk_id, dsm_pkr
 
     def store_pubk(self, pkr: DSMPKR):
 
@@ -93,12 +115,14 @@ class IOHandler:
                 logger.error(f'Error saving Public Key {pubk_id} to file.')
 
     def read_kroot(self, file_name='OSNMA_last_KROOT.txt'):
-        with open(self.path/file_name, 'r') as kroot_file:
-            try:
+        try:
+            with open(self.path/file_name, 'r') as kroot_file:
                 kroot_bits = BitArray(hex=kroot_file.readline())
                 nmah_bits = BitArray(hex=kroot_file.readline())
-            except IOError:
-                logger.error(f"IOError while reading the Key Root file {self.path+file_name}.")
+                if kroot_bits == '' or nmah_bits == '':
+                    raise IOError("Missing lines on KROOT file.")
+        except IOError as e:
+            raise IOError(f"IOError while reading the Key Root file {self.path / file_name}. KROOT not used.\n\t{e}")
         return kroot_bits, nmah_bits
 
     def store_kroot(self, kroot: DSMKroot, nmah_bits: BitArray):

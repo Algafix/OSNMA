@@ -15,7 +15,7 @@
 #
 
 ######## type annotations ########
-from typing import Union, List
+from typing import Union, List, Optional
 
 ######## imports ########
 from bitstring import BitArray
@@ -127,13 +127,13 @@ class TESLAKey:
 
 class MACSeqObject:
 
-    def __init__(self, gst: BitArray, svid: BitArray, macseq_value: BitArray, flex_list: List['TagAndInfo']=None, key_id: int=None):
+    def __init__(self, gst: BitArray, svid: BitArray, macseq_value: BitArray, flex_list: List['TagAndInfo'] = None, key_id: int = None):
         self.gst = gst
         self.svid = svid
         self.macseq_value = macseq_value
         self.flex_list = flex_list
         self.key_id = key_id
-        self.tesla_key: TESLAKey = None
+        self.tesla_key: Optional[TESLAKey] = None
 
     @property
     def has_key(self):
@@ -161,8 +161,8 @@ class TagAndInfo:
 
         self.id = (self.prn_d.uint, self.adkd.uint, self.iod_tag[1:].uint)
         self.verified: bool = False
-        self.key_id: int = None
-        self.tesla_key: TESLAKey = None
+        self.key_id: Optional[int] = None
+        self.tesla_key: Optional[TESLAKey] = None
 
     def __repr__(self) -> str:
         return f"{{ID: {self.id} PRN_A: {self.prn_a.uint} KeyID: {self.key_id} GST TOW: " \
@@ -197,7 +197,7 @@ class Tag0AndSeq(TagAndInfo):
 
 class MACKMessage:
 
-    def __init__(self, gst_sf: BitArray, chain_id: int, svid: BitArray, nr_tags: int, tags: List[TagAndInfo]=None, tesla_key: TESLAKey=None):
+    def __init__(self, gst_sf: BitArray, chain_id: int, svid: BitArray, nr_tags: int, tags: List[TagAndInfo] = None, tesla_key: TESLAKey = None):
 
         self.svid = svid
         self.gst_sf = gst_sf
@@ -206,8 +206,8 @@ class MACKMessage:
         self.tesla_key = tesla_key
         self.tags: List[TagAndInfo] = tags if tags else []
 
-        self.tag0_and_seq: Tag0AndSeq = None
-        self.macseq: MACSeqObject = None
+        self.tag0_and_seq: Optional[Tag0AndSeq] = None
+        self.macseq: Optional[MACSeqObject] = None
 
     def add_key(self, key: TESLAKey):
         self.tesla_key = key
