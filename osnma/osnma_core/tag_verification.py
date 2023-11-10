@@ -86,12 +86,9 @@ class TagStateStructure:
 
     def verify_tag(self, tag: TagAndInfo, nav_data_block: Union[ADKD0DataBlock, ADKD4DataBlock]):
 
-        # If PRN_D is 255, PRN_D is PRN_A for the formula.
-        prn_d = tag.prn_a if tag.prn_d.uint == 255 else tag.prn_d
-
         nav_data = nav_data_block.nav_data_stream
         tesla_key = tag.tesla_key
-        auth_data = prn_d + tag.prn_a + tag.gst_subframe + BitArray(uint=tag.ctr, length=8) + tag.nma_status \
+        auth_data = tag.prn_d + tag.prn_a + tag.gst_subframe + BitArray(uint=tag.ctr, length=8) + tag.nma_status \
             + nav_data
         mac = self.tesla_chain.mac_function(tesla_key.key, auth_data)
         computed_tag0 = mac[:self.tesla_chain.tag_size]
@@ -109,7 +106,7 @@ class TagStateStructure:
         tesla_key = macseq.tesla_key
         auth_data = macseq.svid + macseq.gst
         for tag in macseq.flex_list:
-            auth_data.append(tag.prn_d + tag.adkd + tag.iod_tag)
+            auth_data.append(tag.prn_d + tag.adkd + tag.cop)
 
         computed_macseq = self.tesla_chain.mac_function(tesla_key.key, auth_data)[:12]
         if computed_macseq == macseq.macseq_value:
@@ -172,14 +169,16 @@ class TagStateStructure:
 
     def add_tags_waiting_key(self, tag_list: List[TagAndInfo]):
 
-        for tag in tag_list:
-            for tag_wait in list(self.tags_awaiting_key):
-                if tag.id[:2] == tag_wait.id[:2] and (tag.id[2] != tag_wait.id[2] or tag.new_data):
+        for new_tag in tag_list:
+            # Clean tags for which data will never come
+            for old_tag in list(self.tags_awaiting_key):
+                new_tag_cop = new_tag.cop.uint
+                old_tag_cop = old_tag.cop.uint
+                if new_tag.id == old_tag.id and new_tag_cop < old_tag_cop:
                     # If the tag has data allocated but is waiting for the key, we keep it.
-                    if self.nav_data_m.get_data(tag_wait) is None:
-                        self.tags_awaiting_key.remove(tag_wait)
-
-            self.tags_awaiting_key.append(tag)
+                    if self.nav_data_m.get_data(old_tag) is None:
+                        self.tags_awaiting_key.remove(old_tag)
+            self.tags_awaiting_key.append(new_tag)
 
     def update_tag_lists(self, gst_subframe: BitArray):
 

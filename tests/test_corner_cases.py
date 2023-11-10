@@ -40,7 +40,7 @@ def get_base_logger_and_file_handler():
     return base_logger, file_handler, log_filename
 
 
-def change_of_word_type_5(log_level=logging.INFO):
+def test_change_of_word_type_5(log_level=logging.INFO):
 
     config_dict = {
         'console_log_level': log_level,
@@ -51,24 +51,42 @@ def change_of_word_type_5(log_level=logging.INFO):
         'kroot_name': 'OSNMA_last_KROOT.txt'
     }
 
-    input_module = SBF(config_dict['scenario_path'], use_satellites_list=[25,3,5])
+    input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start(start_at_tow=133650)
+    osnma_r.start()
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
 
+    with open(log_filename, 'r') as log_file:
+        log_text = log_file.read()
+
+        tags_auth = len(re.findall(r'Tag AUTHENTICATED', log_text))
+        data_auth = len(re.findall(r'INFO .* AUTHENTICATED: ADKD', log_text))
+        kroot_auth = len(re.findall(r'INFO .*KROOT.*\n\tAUTHENTICATED\n', log_text))
+        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
+        crc_failed = len(re.findall('WARNING.*CRC', log_text))
+        warnings = len(re.findall('WARNING', log_text))
+        errors = len(re.findall('ERROR', log_text))
+
+    assert tags_auth == 1503
+    assert data_auth == 986
+    assert kroot_auth == 26
+    assert broken_kroot == 6
+    assert crc_failed == 0
+    assert warnings == 7
+    assert errors == 0
 
 
 if __name__ == "__main__":
 
-    general_log_level = logging.ERROR
+    general_log_level = logging.CRITICAL
     test_passed = 0
     test_done = 0
 
     print(f"\nChange of Word Type 5")
     try:
-        change_of_word_type_5(general_log_level)
+        test_change_of_word_type_5(general_log_level)
     except AssertionError:
         print(f"\tFAILED")
     else:

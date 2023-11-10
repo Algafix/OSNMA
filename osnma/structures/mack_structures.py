@@ -147,19 +147,17 @@ class MACSeqObject:
 
 class TagAndInfo:
 
-    def __init__(self, tag_value: BitArray, prn_d: BitArray, adkd: BitArray, iod_tag: BitArray, gst_subframe: BitArray,
+    def __init__(self, tag_value: BitArray, prn_d: BitArray, adkd: BitArray, cop: BitArray, gst_subframe: BitArray,
                  prn_a: BitArray, ctr: int, nma_status: BitArray):
         self.tag_value = tag_value
         self.prn_d = prn_d
         self.prn_a = prn_a
         self.adkd = adkd
-        self.iod_tag = iod_tag
-        self.new_data = iod_tag[0]
+        self.cop = cop
         self.ctr = ctr
         self.gst_subframe = gst_subframe
         self.nma_status = nma_status
-
-        self.id = (self.prn_d.uint, self.adkd.uint, self.iod_tag[1:].uint)
+        self.id = (self.prn_d.uint, self.adkd.uint)
         self.verified: bool = False
         self.key_id: Optional[int] = None
         self.tesla_key: Optional[TESLAKey] = None
@@ -175,7 +173,7 @@ class TagAndInfo:
     def get_log(self) -> str:
         wn = self.gst_subframe[:12].uint
         tow = self.gst_subframe[12:].uint
-        return f"{self.id} PRN_A: {self.prn_a.uint} GST_SF: {wn} {tow}"
+        return f"{self.id} PRN_A: {self.prn_a.uint} GST_SF: {wn} {tow} COP: {self.cop.uint}"
 
 
 class Tag0AndSeq(TagAndInfo):

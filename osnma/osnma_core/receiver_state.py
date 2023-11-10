@@ -103,8 +103,8 @@ class ReceiverState:
         self.current_pkid: Optional[int] = None
         self.merkle_root: Optional[BitArray] = None
 
-        self.tesla_chain_force = None
-        self.next_tesla_chain = None
+        self.tesla_chain_force: Optional[TESLAChain] = None
+        self.next_tesla_chain: Optional[TESLAChain] = None
 
         self.nav_data_structure = NavigationDataManager()
         self.io_handler = IOHandler(Config.EXEC_PATH)
@@ -113,7 +113,7 @@ class ReceiverState:
         for i in range(16):
             self.dsm_messages.append(DigitalSignatureMessage(i))
 
-        self.kroot_waiting_mack = []
+        self.kroot_waiting_mack: List[Tuple[List[Optional[BitArray]], BitArray, int, BitArray]] = []
 
         self._initialize_status()
 
@@ -377,7 +377,7 @@ class ReceiverState:
         else:
             logger.error(f"PKR with NPKID {npkid} failed.")
 
-    def process_hkroot_subframe(self, hkroot_sf, is_consecutive_hkroot=False):
+    def process_hkroot_subframe(self, hkroot_sf: BitArray, is_consecutive_hkroot=False) -> BitArray:
 
         sf_nma_header = hkroot_sf[:HKROOT.NMA_HEADER_END]
         if is_consecutive_hkroot:
@@ -397,7 +397,7 @@ class ReceiverState:
 
         return sf_nma_header[:2]
 
-    def process_mack_subframe(self, mack_subframe, gst_subframe, svid, sf_nma_status):
+    def process_mack_subframe(self, mack_subframe: List[Optional[BitArray]], gst_subframe: BitArray, svid: int, sf_nma_status: BitArray):
 
         if self.nma_status == NMAS.DONT_USE:
             logger.warning(f"NMA Status: Don't Use. Subframe tags not processed.")
@@ -436,7 +436,7 @@ class ReceiverState:
                     self.start_status = StartStates.STARTED
                     logger.info(f"One TESLA key verified. Start Status: {self.start_status.name}")
 
-    def load_page(self, nav_bits, gst_page, svid):
+    def load_page(self, nav_bits: BitArray, gst_page: BitArray, svid: int):
         self.nav_data_structure.load_page(nav_bits, gst_page, svid)
 
 
