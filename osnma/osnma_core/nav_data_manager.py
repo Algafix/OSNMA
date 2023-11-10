@@ -187,9 +187,13 @@ class ADKD0DataStructure:
 
     def get_nav_data(self, gst_tag: BitArray) -> Optional[ADKD0DataBlock]:
         data = None
+        logger.critical(gst_tag)
+        logger.critical(self.adkd0_data_blocks)
         for nav_data in self.adkd0_data_blocks:
             if nav_data.gst_start.uint < gst_tag.uint:
                 tmp_data = nav_data.get_nav_data()
+                logger.critical(nav_data.gst_limit.uint)
+                logger.critical(gst_tag.uint)
                 data = None if nav_data.gst_limit.uint < gst_tag.uint else tmp_data
                 # logger.critical(f"GST: {gst_tag[:12].uint} - {gst_tag[12:].uint}, data {data}")
             else:

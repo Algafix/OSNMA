@@ -80,7 +80,7 @@ def test_change_of_word_type_5(log_level=logging.INFO):
 
 if __name__ == "__main__":
 
-    general_log_level = logging.CRITICAL
+    general_log_level = logging.INFO
     test_passed = 0
     test_done = 0
 
