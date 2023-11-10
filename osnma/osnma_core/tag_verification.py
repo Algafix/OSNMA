@@ -202,7 +202,7 @@ class TagStateStructure:
                     pass
                     # The key has arrived but no data: discard tag
                     #logger.info(f"No data when key arrive: {tag}")
-                    self.tags_awaiting_key.remove(tag)
+                    #self.tags_awaiting_key.remove(tag)
 
         # Check if any data can be authenticated
         logger.info(f"Data authenticated:\n")
@@ -216,5 +216,3 @@ class TagStateStructure:
             self.set_macseq_key(macseq)
             self.macseq_awaiting_key.append(macseq)
         self.add_tags_waiting_key(tag_list)
-
-
