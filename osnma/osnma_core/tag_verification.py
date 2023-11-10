@@ -199,10 +199,9 @@ class TagStateStructure:
                     else:
                         self.verify_tag(tag, nav_data_block)
                 else:
-                    pass
                     # The key has arrived but no data: discard tag
                     #logger.info(f"No data when key arrive: {tag}")
-                    #self.tags_awaiting_key.remove(tag)
+                    self.tags_awaiting_key.remove(tag)
 
         # Check if any data can be authenticated
         logger.info(f"Data authenticated:\n")

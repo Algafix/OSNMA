@@ -172,10 +172,14 @@ class ADKD0DataStructure:
             new_adkd0data_block.gst_start = BitArray(uint=gst_page.uint + 5, length=32)
             new_adkd0data_block.add_word(5, word_5_data, gst_page)
             self.adkd0_data_blocks.append(new_adkd0data_block)
+            if self.svid == 25:
+                logger.critical(f"New WT5: {self.adkd0_data_blocks}")
 
     def add_word(self, word_type: int, data: BitArray, gst_page: BitArray):
         if word_type != 5:
             iod = data[:10]
+            if self.svid == 25:
+                logger.critical(self.adkd0_data_blocks)
             if self._is_new_adkd0_data_block(iod):
                 new_adkd0 = ADKD0DataBlock(gst_page)
                 new_adkd0.add_word(word_type, data, gst_page)
