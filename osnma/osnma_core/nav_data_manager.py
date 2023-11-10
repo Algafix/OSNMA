@@ -18,8 +18,6 @@
 from typing import List, Dict, Tuple, Optional
 
 ######## imports ########
-import copy
-
 from bitstring import BitArray
 
 from osnma.structures.adkd import adkd_masks
@@ -168,8 +166,9 @@ class ADKD0DataStructure:
         elif last_word_type_5 != word_5_data:
             # Create new ADKD0Data block with updated GST
             # For some reason o this case its assumed the next subframe
-            new_adkd0data_block = copy.deepcopy(last_adkd0_block)
-            new_adkd0data_block.gst_start = BitArray(uint=gst_page.uint + 5, length=32)
+            new_adkd0data_block = ADKD0DataBlock(BitArray(uint=gst_page.uint + 5, length=32))
+            new_adkd0data_block.words = last_adkd0_block.words.copy()
+            new_adkd0data_block.iod = last_adkd0_block.iod
             new_adkd0data_block.add_word(5, word_5_data, gst_page)
             self.adkd0_data_blocks.append(new_adkd0data_block)
             if self.svid == 25:
