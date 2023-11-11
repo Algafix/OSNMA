@@ -89,6 +89,29 @@ class TagAccumulation:
                f"last_gst: [{self.last_gst[0]}, {self.last_gst[1]}], iod: {self.iod}, new_tags: {self.new_tags}}}"
 
 
+class ADKDDataManager:
+    ADKD_MASKS = adkd_masks
+
+    def __init__(self, adkd: int, svid: int):
+        self.adkd = adkd
+        self.svid = svid
+
+    def _get_adkd_data_from_word(self, full_page: BitArray, word_type: int):
+        data_mask = self.ADKD_MASKS[self.adkd]['adkd'][word_type]['bits']
+
+        adkd_word_data = BitArray()
+        for bit_block in data_mask:
+            adkd_word_data.append(full_page[bit_block[0]: bit_block[1]])
+
+        return adkd_word_data
+
+    def add_word(self, word_type: int, data: BitArray, gst_page: BitArray):
+        pass
+
+    def get_nav_data(self, gst_tag: BitArray):
+        pass
+
+
 class ADKD0DataBlock:
 
     def __init__(self, gst_start: BitArray):
@@ -127,10 +150,10 @@ class ADKD0DataBlock:
         return self
 
 
-class ADKD0DataStructure:
+class ADKD0DataManager(ADKDDataManager):
 
     def __init__(self, svid: int):
-        self.svid = svid
+        super().__init__(ADKD0, svid)
         self.adkd0_data_blocks: List[ADKD0DataBlock] = []
 
     def __repr__(self):
@@ -168,21 +191,24 @@ class ADKD0DataStructure:
             # For some reason o this case its assumed the next subframe
             new_adkd0data_block = ADKD0DataBlock(BitArray(uint=gst_page.uint + 5, length=32))
             new_adkd0data_block.words = last_adkd0_block.words.copy()
-            new_adkd0data_block.iod = last_adkd0_block.iod
+            new_adkd0data_block.iod = last_adkd0_block.iod.copy()
             new_adkd0data_block.add_word(5, word_5_data, gst_page)
             self.adkd0_data_blocks.append(new_adkd0data_block)
 
-    def add_word(self, word_type: int, data: BitArray, gst_page: BitArray):
+    def add_word(self, word_type: int, full_page: BitArray, gst_page: BitArray):
+
+        adkd_data = self._get_adkd_data_from_word(full_page, word_type)
+
         if word_type != 5:
-            iod = data[:10]
+            iod = adkd_data[:10]
             if self._is_new_adkd0_data_block(iod):
                 new_adkd0 = ADKD0DataBlock(gst_page)
-                new_adkd0.add_word(word_type, data, gst_page)
+                new_adkd0.add_word(word_type, adkd_data, gst_page)
                 self.adkd0_data_blocks.append(new_adkd0)
             else:
-                self.adkd0_data_blocks[-1].add_word(word_type, data, gst_page)
+                self.adkd0_data_blocks[-1].add_word(word_type, adkd_data, gst_page)
         else:
-            self._handle_word_type_5(data, gst_page)
+            self._handle_word_type_5(adkd_data, gst_page)
 
     def get_nav_data(self, gst_tag: BitArray) -> Optional[ADKD0DataBlock]:
         data = None
@@ -226,10 +252,10 @@ class ADKD4DataBlock:
         self.nav_data_stream = nav_data_stream
 
 
-class ADKD4DataStructure:
+class ADKD4DataManager(ADKDDataManager):
 
     def __init__(self, svid: int):
-        self.svid = svid
+        super().__init__(ADKD4, svid)
         self.word_lists: Dict[int, List[ADKD4WordData]] = {6: [], 10: []}
 
     def __repr__(self):
@@ -241,12 +267,13 @@ class ADKD4DataStructure:
                 return False
         return True
 
-    def add_word(self, word_type: int, data: BitArray, gst_page: BitArray):
+    def add_word(self, word_type: int, full_page: BitArray, gst_page: BitArray):
 
+        adkd_data = self._get_adkd_data_from_word(full_page, word_type)
         word_list = self.word_lists[word_type]
 
-        if not word_list or self._is_new_data(word_list, data):
-            word_data = ADKD4WordData(gst_page, data)
+        if not word_list or self._is_new_data(word_list, adkd_data):
+            word_data = ADKD4WordData(gst_page, adkd_data)
             word_list.append(word_data)
 
     def get_nav_data(self, gst_tag: BitArray):
@@ -271,16 +298,18 @@ class NavigationDataManager:
 
     words_per_adkd = {0: [1, 2, 3, 4, 5],
                       12: [1, 2, 3, 4, 5],
-                      4: [6, 10],
-                      5: []}
+                      4: [6, 10]}
 
     def __init__(self):
         self.adkd_masks = adkd_masks
-        self.tags_accumulated: Dict[Tuple[int, int, int], TagAccumulation] = {}
-        self.adkd0_data: Dict[int, ADKD0DataStructure] = {}
-        self.adkd4_data: Dict[int, ADKD4DataStructure] = {}
-
         self.auth_sats_svid: List[int] = []
+        self.tags_accumulated: Dict[Tuple[int, int, int], TagAccumulation] = {}
+
+        self.adkd0_data_managers: Dict[int, ADKD0DataManager] = {}
+        self.adkd4_data_managers: Dict[int, ADKD4DataManager] = {}
+        for i in range(1, Config.NS+1):
+            self.adkd0_data_managers[i] = ADKD0DataManager(i)
+            self.adkd4_data_managers[i] = ADKD4DataManager(i)
 
         self.active_words = set()
         for adkd, words in self.words_per_adkd.items():
@@ -293,13 +322,9 @@ class NavigationDataManager:
         adkd = tag.adkd.uint
 
         if adkd == 0 or adkd == 12:
-            if svid not in self.adkd0_data.keys():
-                return None
-            return self.adkd0_data[svid].get_nav_data(tag.gst_subframe)
+            return self.adkd0_data_managers[svid].get_nav_data(tag.gst_subframe)
         elif adkd == 4:
-            if svid not in self.adkd0_data.keys():
-                return None
-            return self.adkd4_data[svid].get_nav_data(tag.gst_subframe)
+            return self.adkd4_data_managers[svid].get_nav_data(tag.gst_subframe)
         else:
             return None
 
@@ -310,45 +335,17 @@ class NavigationDataManager:
         else:
             complete_iod = None
             if tag.adkd.uint == ADKD0 or tag.adkd.uint == ADKD12:
-                complete_iod = self.adkd0_data[tag.prn_d.uint].get_complete_iod(tag)
+                complete_iod = self.adkd0_data_managers[tag.prn_d.uint].get_complete_iod(tag)
             self.tags_accumulated[tag.id] = TagAccumulation(tag, iod=complete_iod)
 
-    def _get_word_data(self, page: BitArray, word_type: int, adkd: int):
-        data_mask = self.adkd_masks[adkd]['adkd'][word_type]['bits']
-
-        word_data = BitArray()
-        for bit_block in data_mask:
-            word_data.append(page[bit_block[0]: bit_block[1]])
-
-        return word_data
-
-    def load_adkd0(self, page: BitArray, word_type: int, gst_page: BitArray, svid: int):
-
-        if svid not in self.adkd0_data:
-            self.adkd0_data[svid] = ADKD0DataStructure(svid)
-
-        word_data = self._get_word_data(page, word_type, ADKD0)
-        self.adkd0_data[svid].add_word(word_type, word_data, gst_page)
-
-    def load_adkd4(self, page: BitArray, word_type: int, gst_page: BitArray, svid: int):
-
-        if svid not in self.adkd4_data:
-            self.adkd4_data[svid] = ADKD4DataStructure(svid)
-
-        word_data = self._get_word_data(page, word_type, ADKD4)
-        self.adkd4_data[svid].add_word(word_type, word_data, gst_page)
-
     def load_page(self, page: BitArray, gst_page: BitArray, svid: int):
-
         word_type = page[2:8].uint
-
-        if word_type in self.active_words:
-            if word_type in self.words_per_adkd[ADKD0]:
-                self.load_adkd0(page, word_type, gst_page, svid)
-            elif word_type in self.words_per_adkd[ADKD4]:
-                self.load_adkd4(page, word_type, gst_page, svid)
-            elif word_type in self.words_per_adkd[ADKD5]:
-                pass
+        if word_type not in self.active_words:
+            return
+        if word_type in self.words_per_adkd[ADKD0]:
+            self.adkd0_data_managers[svid].add_word(word_type, page, gst_page)
+        else:
+            self.adkd4_data_managers[svid].add_word(word_type, page, gst_page)
 
     def authenticated_data(self, gst_subframe: BitArray):
 
