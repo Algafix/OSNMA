@@ -320,13 +320,16 @@ class NavigationDataManager:
 
         svid = tag.prn_d.uint
         adkd = tag.adkd.uint
+        nav_data = None
+        try:
+            if adkd == 0 or adkd == 12:
+                nav_data = self.adkd0_data_managers[svid].get_nav_data(tag.gst_subframe)
+            elif adkd == 4:
+                nav_data = self.adkd4_data_managers[svid].get_nav_data(tag.gst_subframe)
+        except KeyError as e:
+            logger.warning(f"Tag {tag.id} authenticating a satellite with PRN_D {e} is not implemented.")
 
-        if adkd == 0 or adkd == 12:
-            return self.adkd0_data_managers[svid].get_nav_data(tag.gst_subframe)
-        elif adkd == 4:
-            return self.adkd4_data_managers[svid].get_nav_data(tag.gst_subframe)
-        else:
-            return None
+        return nav_data
 
     def add_authenticated_tag(self, tag: TagAndInfo):
 
