@@ -205,6 +205,7 @@ def test_sbf_eoc_1(log_level=logging.INFO):
         kroot_cid_2_auth = len(re.findall(r'INFO .*KROOT.*CID: 2.*\n\tAUTHENTICATED\n', log_text))
         kroot_cid_3_auth = len(re.findall(r'INFO .*KROOT.*CID: 3.*\n\tAUTHENTICATED\n', log_text))
         warnings = len(re.findall('WARNING', log_text))
+        gps_prn_d = len(re.findall('WARNING.*PRN_D 64 - 95', log_text))
         crc_failed = len(re.findall('WARNING.*CRC', log_text))
         broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
         errors = len(re.findall('ERROR', log_text))
@@ -215,8 +216,9 @@ def test_sbf_eoc_1(log_level=logging.INFO):
     assert kroot_cid_2_auth == 16
     assert kroot_cid_3_auth == 17
     assert broken_kroot == 6
+    assert gps_prn_d == 1376
     assert crc_failed == 4
-    assert warnings == 11
+    assert warnings == 1387
     assert errors == 0
 
 

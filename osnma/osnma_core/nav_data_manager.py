@@ -323,12 +323,20 @@ class NavigationDataManager:
         svid = tag.prn_d.uint
         adkd = tag.adkd.uint
 
-        if adkd == 0 or adkd == 12:
-            return self.adkd0_data_managers[svid].get_nav_data(tag.gst_subframe)
-        elif adkd == 4:
-            return self.adkd4_data_manager.get_nav_data(tag.gst_subframe)
-        else:
-            return None
+        nav_data = None
+
+        try:
+            if adkd == 0 or adkd == 12:
+                nav_data = self.adkd0_data_managers[svid].get_nav_data(tag.gst_subframe)
+            elif adkd == 4:
+                nav_data = self.adkd4_data_manager.get_nav_data(tag.gst_subframe)
+        except KeyError as e:
+            msg = f"Tag {tag.id} authenticating a satellite with PRN_D {e} is not implemented."
+            if svid in range(64, 96):
+                msg += " PRN_D 64 - 95 was used for GPS in previous OSNMA versions."
+            logger.warning(msg)
+        finally:
+            return nav_data
 
     def add_authenticated_tag(self, tag: TagAndInfo):
 
