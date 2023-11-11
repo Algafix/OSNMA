@@ -1,4 +1,5 @@
 [![ICD 1.0 Test Vectors](https://github.com/Algafix/OSNMA/actions/workflows/icd_10_test_vectors.yml/badge.svg?branch=OSNMA_ICD_1.0)](https://github.com/Algafix/OSNMA/actions/workflows/icd_10_test_vectors.yml)
+[![ICD 1.0 Corner Cases](https://github.com/Algafix/OSNMA/actions/workflows/icd_10_corner_cases.yml/badge.svg)](https://github.com/Algafix/OSNMA/actions/workflows/icd_10_corner_cases.yml)
 
 OSNMAlib
 ========
