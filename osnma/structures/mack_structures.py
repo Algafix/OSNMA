@@ -163,6 +163,7 @@ class TagAndInfo:
         self.verified: bool = False
         self.key_id: Optional[int] = None
         self.tesla_key: Optional[TESLAKey] = None
+        self.is_tag0 = False
 
     def __repr__(self) -> str:
         return f"{{ID: {self.id} PRN_A: {self.prn_a.uint} KeyID: {self.key_id} GST TOW: " \

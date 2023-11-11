@@ -18,7 +18,7 @@
 from typing import TYPE_CHECKING, List, Union
 if TYPE_CHECKING:
     from osnma.osnma_core.tesla_chain import TESLAChain
-from osnma.structures.mack_structures import MACKMessage, Tag0AndSeq, TagAndInfo, MACSeqObject
+from osnma.structures.mack_structures import MACKMessage, TagAndInfo, MACSeqObject
 from osnma.osnma_core.nav_data_manager import NavigationDataManager, ADKD0DataBlock, ADKD4DataBlock
 
 ######## imports ########
@@ -62,38 +62,21 @@ class TagStateStructure:
         # If a tag fails the cross-authentication and the data is more than one subframe old, probably the data
         # has changed since our last recording from that satellite and therefore should not be used for future tags
         if tag.adkd.uint == 0 or tag.adkd.uint == 12:
-            data_gst_sf = nav_data_block.last_gst_updated.uint//30 * 30
+            data_gst_sf = nav_data_block.last_gst_updated.uint // 30 * 30
             if tag.gst_subframe.uint > data_gst_sf + 30:
-                nav_data_block.gst_limit = BitArray(uint=tag.gst_subframe.uint-30, length=32)
+                nav_data_block.gst_limit = BitArray(uint=tag.gst_subframe.uint - 30, length=32)
                 return True
         return False
 
-    def verify_tag0(self, tag0: Tag0AndSeq, nav_data_block: ADKD0DataBlock):
-
-        nav_data = nav_data_block.nav_data_stream
-        tesla_key = tag0.tesla_key
-        auth_data = tag0.prn_a + tag0.gst_subframe + BitArray(uint=tag0.ctr, length=8) + tag0.nma_status + nav_data
-        mac0 = self.tesla_chain.mac_function(tesla_key.key, auth_data)
-        computed_tag0 = mac0[:self.tesla_chain.tag_size]
-
-        if computed_tag0 == tag0.tag_value:
-            logger.info(f"Tag AUTHENTICATED\n\t{tag0.get_log()}")
-            self.nav_data_m.add_authenticated_tag(tag0)
-        else:
-            logger.error(f"Tag FAILED\n\t{tag0.get_log()}")
-
-        self.tags_awaiting_key.remove(tag0)
-
     def verify_tag(self, tag: TagAndInfo, nav_data_block: Union[ADKD0DataBlock, ADKD4DataBlock]):
-
-        # If PRN_D is 255, PRN_D is PRN_A for the formula.
-        prn_d = tag.prn_a if tag.prn_d.uint == 255 else tag.prn_d
-
         nav_data = nav_data_block.nav_data_stream
-        tesla_key = tag.tesla_key
-        auth_data = prn_d + tag.prn_a + tag.gst_subframe + BitArray(uint=tag.ctr, length=8) + tag.nma_status \
-            + nav_data
-        mac = self.tesla_chain.mac_function(tesla_key.key, auth_data)
+        if tag.is_tag0:
+            auth_data = tag.prn_a + tag.gst_subframe + BitArray(uint=tag.ctr, length=8) + tag.nma_status + nav_data
+        else:
+            prn_d = tag.prn_a if tag.prn_d.uint == 255 else tag.prn_d
+            auth_data = prn_d + tag.prn_a + tag.gst_subframe + BitArray(uint=tag.ctr, length=8) + tag.nma_status + nav_data
+
+        mac = self.tesla_chain.mac_function(tag.tesla_key.key, auth_data)
         computed_tag0 = mac[:self.tesla_chain.tag_size]
 
         if computed_tag0 == tag.tag_value:
@@ -195,14 +178,11 @@ class TagStateStructure:
                 # Has a verified key
                 nav_data_block = self.nav_data_m.get_data(tag)
                 if nav_data_block is not None:
-                    if isinstance(tag, Tag0AndSeq):
-                        self.verify_tag0(tag, nav_data_block)
-                    else:
-                        self.verify_tag(tag, nav_data_block)
+                    self.verify_tag(tag, nav_data_block)
                 else:
                     pass
                     # The key has arrived but no data: discard tag
-                    #logger.info(f"No data when key arrive: {tag}")
+                    # logger.info(f"No data when key arrive: {tag}")
                     self.tags_awaiting_key.remove(tag)
 
         # Check if any data can be authenticated
@@ -217,5 +197,3 @@ class TagStateStructure:
             self.set_macseq_key(macseq)
             self.macseq_awaiting_key.append(macseq)
         self.add_tags_waiting_key(tag_list)
-
-
