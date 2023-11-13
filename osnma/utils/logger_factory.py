@@ -65,7 +65,8 @@ def configure_loggers():
     # File Handler
     f_handler = logging.FileHandler(file_name, mode='w')
     f_handler.setLevel(Config.FILE_LOG_LEVEL)
-    f_format = logging.Formatter('%(asctime)s | %(name)-35s | %(levelname)-8s | %(message)s')
+    # f_format = logging.Formatter('%(asctime)s | %(name)-35s | %(levelname)-8s | %(message)s')
+    f_format = logging.Formatter('%(name)-35s | %(levelname)-8s | %(message)s')
 
     f_handler.setFormatter(f_format)
     logger.addHandler(f_handler)
