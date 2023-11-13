@@ -40,7 +40,7 @@ class TagAccumulation:
                       5: []}
 
     auth_message = 'AUTHENTICATED: ADKD {adkd} - Satellite {satellite} {iod} ' \
-                   '\n\t\t GST {gst_start}  to  GST {gst_last} ' \
+                   '\n\t\t GST SF {gst_start}  to  GST SF {gst_last} ' \
                    '\n\t\t {words} \n'
 
     def __init__(self, tag: TagAndInfo, iod: Optional[BitArray] = None):
@@ -104,7 +104,10 @@ class ADKDDataManager:
     def add_word(self, word_type: int, data: BitArray, gst_page: BitArray):
         pass
 
-    def get_nav_data(self, gst_tag: BitArray):
+    def tag_has_data(self, tag: TagAndInfo) -> bool:
+        pass
+
+    def get_nav_data(self, tag: TagAndInfo):
         pass
 
 
@@ -117,17 +120,27 @@ class ADKD0DataBlock:
         self.nav_data_stream: Optional[BitArray] = None
         self.gst_limit = BitArray('0xffffffff')
         self.last_gst_updated = gst_start
+        self.gst_completed = BitArray()
 
     def __repr__(self):
-        return f"gst_start: {self.gst_start[:12].uint} - {self.gst_start[12:].uint}, iod: {self.iod}," \
+
+        gst_completed_msg = ''
+        if self.gst_completed:
+            gst_completed_msg = f" gst_completed: {self.gst_completed[:12].uint} - {self.gst_completed[12:].uint},"
+
+        msg = f"gst_start: {self.gst_start[:12].uint} - {self.gst_start[12:].uint}, iod: {self.iod}," \
                f" words: {self.words}\n\t last_gst_updated: {self.last_gst_updated[:12].uint} - " \
-               f"{self.last_gst_updated[12:].uint}, gst_limit: {self.gst_limit}\n\t"
+               f"{self.last_gst_updated[12:].uint},{gst_completed_msg} gst_limit: {self.gst_limit}\n\t"
+
+        return msg
 
     def add_word(self, word_type: int, data: BitArray, gst_page: BitArray):
         self.last_gst_updated = gst_page
         if word_type != 5:
             self.iod = data[:10]
         self.words[word_type] = data
+        if not self.gst_completed and len(self.words) == 5:
+            self.gst_completed = gst_page
 
     def get_word(self, word_type: int) -> Optional[BitArray]:
         return self.words.get(word_type)
@@ -169,6 +182,19 @@ class ADKD0DataManager(ADKDDataManager):
     def _is_new_adkd0_data_block(self, iod: BitArray) -> bool:
         return len(self.adkd0_data_blocks) == 0 or self.adkd0_data_blocks[-1].iod != iod
 
+    def _clean_old_data(self):
+        """
+        If a data block has no gst_completed value and there is new data in the list, we can delete the old data because
+        it will never complete.
+        """
+        previous_block_not_complete = False
+        for idx, data_block in enumerate(list(self.adkd0_data_blocks)):
+            if previous_block_not_complete:
+                self.adkd0_data_blocks.pop(idx-1)
+            if not data_block.gst_completed:
+                previous_block_not_complete = True
+
+
     def _handle_word_type_5(self, word_5_data: BitArray, gst_page: BitArray):
         if len(self.adkd0_data_blocks) == 0:
             # Not initialized, cant link WT5
@@ -206,13 +232,30 @@ class ADKD0DataManager(ADKDDataManager):
         else:
             self._handle_word_type_5(adkd_data, gst_page)
 
-    def get_nav_data(self, gst_tag: BitArray) -> Optional[ADKD0DataBlock]:
-        data = None
+        self._clean_old_data()
+
+    def tag_has_data(self, tag: TagAndInfo) -> bool:
+        tag_has_data = False
+        gst_tag = tag.gst_subframe
+
         for nav_data in self.adkd0_data_blocks:
             if nav_data.gst_start.uint < gst_tag.uint:
-                tmp_data = nav_data.get_nav_data()
+                tag_has_data = True
+                break
+        return tag_has_data
+
+    def get_nav_data(self, tag: TagAndInfo) -> Optional[ADKD0DataBlock]:
+        data = None
+        gst_tag = tag.gst_subframe
+        gst_start_tesla_key = tag.tesla_key.gst_start
+
+        for nav_data in self.adkd0_data_blocks:
+            if nav_data.gst_completed and nav_data.gst_start.uint < gst_tag.uint:
+                if nav_data.gst_completed.uint < gst_start_tesla_key.uint - Config.TL:
+                    tmp_data = nav_data.get_nav_data()
+                else:
+                    tmp_data = None
                 data = None if nav_data.gst_limit.uint < gst_tag.uint else tmp_data
-                # logger.critical(f"GST: {gst_tag[:12].uint} - {gst_tag[12:].uint}, data {data}")
             else:
                 break
         return data
@@ -275,9 +318,26 @@ class ADKD4DataManager(ADKDDataManager):
             word_data = ADKD4WordData(gst_page, adkd_data)
             word_list.append(word_data)
 
-    def get_nav_data(self, gst_tag: BitArray):
+    def tag_has_data(self, tag: TagAndInfo) -> bool:
+        """
+        TODO
+        Think of the case where only W6 or W10 are received and then the data changes, should not keep tags for
+        the old words.
+        """
+        tag_has_data = False
+        gst_tag = tag.gst_subframe
+
+        for word in [word for word_list in self.word_lists.values() for word in word_list]:
+            if word.gst_start.uint < gst_tag.uint:
+                tag_has_data = True
+                break
+
+        return tag_has_data
+
+    def get_nav_data(self, tag: TagAndInfo):
 
         nav_data = {6: False, 10: False}
+        gst_tag = tag.gst_subframe
 
         # Search for the newest word6 and word10 when the tag was received
         for word_type, word_list in self.word_lists.items():
@@ -319,24 +379,40 @@ class NavigationDataManager:
             if adkd in self.ACTIVE_ADKD:
                 self.active_words.update(words)
 
-    def get_data(self, tag: TagAndInfo):
+    def tag_has_data(self, tag: TagAndInfo):
         svid = tag.prn_d.uint
         adkd = tag.adkd.uint
-
-        nav_data = None
+        tag_has_data = False
 
         try:
             if adkd == 0 or adkd == 12:
-                nav_data = self.adkd0_data_managers[svid].get_nav_data(tag.gst_subframe)
+                tag_has_data = self.adkd0_data_managers[svid].tag_has_data(tag)
             elif adkd == 4:
-                nav_data = self.adkd4_data_manager.get_nav_data(tag.gst_subframe)
+                tag_has_data = self.adkd4_data_manager.tag_has_data(tag)
         except KeyError as e:
             msg = f"Tag {tag.id} authenticating a satellite with PRN_D {e} is not implemented."
             if svid in range(64, 96):
                 msg += " PRN_D 64 - 95 was used for GPS in previous OSNMA versions."
             logger.warning(msg)
-        finally:
-            return nav_data
+        return tag_has_data
+
+
+    def get_data(self, tag: TagAndInfo):
+        svid = tag.prn_d.uint
+        adkd = tag.adkd.uint
+        nav_data = None
+
+        try:
+            if adkd == 0 or adkd == 12:
+                nav_data = self.adkd0_data_managers[svid].get_nav_data(tag)
+            elif adkd == 4:
+                nav_data = self.adkd4_data_manager.get_nav_data(tag)
+        except KeyError as e:
+            msg = f"Tag {tag.id} authenticating a satellite with PRN_D {e} is not implemented."
+            if svid in range(64, 96):
+                msg += " PRN_D 64 - 95 was used for GPS in previous OSNMA versions."
+            logger.warning(msg)
+        return nav_data
 
     def add_authenticated_tag(self, tag: TagAndInfo):
 
@@ -347,15 +423,6 @@ class NavigationDataManager:
             if tag.adkd.uint == ADKD0 or tag.adkd.uint == ADKD12:
                 complete_iod = self.adkd0_data_managers[tag.prn_d.uint].get_complete_iod(tag)
             self.tags_accumulated[tag.id] = TagAccumulation(tag, iod=complete_iod)
-
-    def _get_word_data(self, page: BitArray, word_type: int, adkd: int):
-        data_mask = self.adkd_masks[adkd]['adkd'][word_type]['bits']
-
-        word_data = BitArray()
-        for bit_block in data_mask:
-            word_data.append(page[bit_block[0]: bit_block[1]])
-
-        return word_data
 
     def load_page(self, page: BitArray, gst_page: BitArray, svid: int):
         word_type = page[2:8].uint
@@ -376,13 +443,16 @@ class NavigationDataManager:
                 #       Tinc noves dades al complert I no hi ha cap tag esperant key apuntant a elles
                 #       O han passat 4h(?)
 
+                # TTFAF Calculation
                 if tag.adkd != 4 and tag.prn_d not in self.auth_sats_svid:
                     self.auth_sats_svid.append(tag.prn_d)
                     if len(self.auth_sats_svid) == 4:
                         # Everything is checked at the end of the SF, so add 30 seconds to the gst of the subframe
-                        gst_subframe_end = BitArray(uint=gst_subframe.uint+30, length=32)
-                        logger.info(f"FIRST AUTHENTICATED FIX {gst_subframe_end[:12].uint} {gst_subframe_end[12:].uint}")
+                        # Also, OSNMAlib works with pages timestamped with the GST of leading edge of the first page,
+                        # but to receive the data of a page we have to wait until the page ends, hence +1 second.
+                        gst_subframe_data_end = BitArray(uint=gst_subframe.uint+30+1, length=32)
+                        logger.info(f"FIRST AUTHENTICATED FIX {gst_subframe_data_end[:12].uint} {gst_subframe_data_end[12:].uint}")
                         logger.info(f"FIRST TOW {Config.FIRST_TOW}")
-                        logger.info(f"TTFAF {gst_subframe_end[12:].uint - Config.FIRST_TOW}")
+                        logger.info(f"TTFAF {gst_subframe_data_end[12:].uint - Config.FIRST_TOW}")
                         if Config.STOP_AT_FAF:
                             raise Exception("Stopped by FAF")

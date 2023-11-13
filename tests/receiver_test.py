@@ -172,8 +172,8 @@ def test_sbf_config7(log_level=logging.INFO):
         warnings = len(re.findall('WARNING', log_text))
         errors = len(re.findall('ERROR', log_text))
 
-    assert tags_auth == 4252
-    assert data_auth == 2914
+    assert tags_auth == 4251
+    assert data_auth == 2913
     assert kroot_auth == 53
     assert broken_kroot == 8
     assert warnings == 19

@@ -157,11 +157,11 @@ class TagStateStructure:
 
         for tag in tag_list:
             for tag_wait in list(self.tags_awaiting_key):
+                # If we get a tag authenticating the same satellite and adkd but different data
+                # delete the old tag if it has no possibility of getting data
                 if tag.id[:2] == tag_wait.id[:2] and (tag.id[2] != tag_wait.id[2] or tag.new_data):
-                    # If the tag has data allocated but is waiting for the key, we keep it.
-                    if self.nav_data_m.get_data(tag_wait) is None:
+                    if not self.nav_data_m.tag_has_data(tag_wait):
                         self.tags_awaiting_key.remove(tag_wait)
-
             self.tags_awaiting_key.append(tag)
 
     def update_tag_lists(self, gst_subframe: BitArray):
@@ -180,9 +180,8 @@ class TagStateStructure:
                 if nav_data_block is not None:
                     self.verify_tag(tag, nav_data_block)
                 else:
-                    pass
                     # The key has arrived but no data: discard tag
-                    # logger.info(f"No data when key arrive: {tag}")
+                    # logger.critical(f"No data when key arrive: {tag}")
                     self.tags_awaiting_key.remove(tag)
 
         # Check if any data can be authenticated
