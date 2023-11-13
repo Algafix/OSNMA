@@ -52,6 +52,7 @@ class MACKMessageParser:
         self.tag_size = self.tesla_chain.tag_size
         self.num_tags = (MACK_MSG_SIZE - self.key_size) // (self.tag_size + TAG_INFO_SIZE)
         self.full_tag_size = self.tag_size + TAG_INFO_SIZE
+        self.tesla_key_gst_start_offset = ((self.full_tag_size * self.num_tags) // MACK_PAGE_SIZE)*2+1
         self.nma_status = None
 
         self.gst_sf_reconstructed_tesla = None
@@ -150,7 +151,8 @@ class MACKMessageParser:
 
         if not missing_key_pages:
             tesla_key_bits = key_pages_bits[key_bit_slice]
-            tesla_key = TESLAKey(gst_sf[:12], gst_sf[12:], tesla_key_bits, prn_a.uint, reconstructed=reconstructed)
+            tesla_key_gst_page_start = BitArray(uint=gst_sf.uint + self.tesla_key_gst_start_offset, length=32)
+            tesla_key = TESLAKey(gst_sf[:12], gst_sf[12:], tesla_key_bits, prn_a.uint, gst_start=tesla_key_gst_page_start, reconstructed=reconstructed)
             mack_msg_parsed.add_key(tesla_key)
 
         return mack_msg_parsed

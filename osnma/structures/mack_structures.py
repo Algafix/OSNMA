@@ -27,7 +27,7 @@ class TESLAKey:
     """
 
     def __init__(self, wn: Union[BitArray, int, str], tow: Union[BitArray, int, str], key: Union[BitArray, str, bytes],
-                 svid: int = None, index: int = None, reconstructed: bool = False, is_kroot: bool = False):
+                 svid: int = None, index: int = None, gst_start: BitArray = BitArray(), reconstructed: bool = False, is_kroot: bool = False):
         """Instantiates the TESLAKey object. If the Telsa Key is_kroot, index and svid are set to 0.
 
         :param wn: GST Week Number at the start of the Galileo subframe where the TESLA key is received.
@@ -64,6 +64,7 @@ class TESLAKey:
             raise TypeError(f"Only supported int or BitArray, not {type(tow)} for {tow}")
 
         self.gst_sf: BitArray = self.wn + self.tow
+        self.gst_start: BitArray = gst_start
 
     def get_as_dict(self) -> dict:
         """Returns the key in a dictionary format for debug or log purposes.

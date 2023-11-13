@@ -15,7 +15,7 @@
 #
 
 ######## type annotations ########
-from typing import Union, List
+from typing import Union, List, Optional
 from osnma.osnma_core.nav_data_manager import NavigationDataManager
 from osnma.structures.mack_structures import MACSeqObject, TagAndInfo
 
@@ -101,6 +101,7 @@ class TESLAChain:
         # Instantiate the auxiliary object for the tag management and parsing of messages
         self.nav_data_structure = nav_data_structure
         self.mac_msg_parser = MACKMessageParser(self)
+        self.tesla_key_gst_start_offset = self.mac_msg_parser.tesla_key_gst_start_offset
         self.tags_structure = TagStateStructure(self, self.nav_data_structure)
 
     def _hmac256(self, key: BitArray, message: BitArray):
@@ -146,10 +147,11 @@ class TESLAChain:
         :rtype: TESLAKey
         """
         next_index = tesla_key.index - 1
-        gst = self._compute_gst_subframe(next_index)
-        key_digest = self.hash_function((tesla_key.key + gst + self.alpha).tobytes()).digest()
+        gst_sf = self._compute_gst_subframe(next_index)
+        key_digest = self.hash_function((tesla_key.key + gst_sf + self.alpha).tobytes()).digest()
         key_value = key_digest[:(self.key_size // 8)]  # digest is a bytes object, key_size are bits
-        computed_tesla_key = TESLAKey(gst[:12], gst[12:], key_value, index=next_index)
+        key_gst_start = BitArray(uint=gst_sf.uint + self.tesla_key_gst_start_offset, length=32)
+        computed_tesla_key = TESLAKey(gst_sf[:12], gst_sf[12:], key_value, index=next_index, gst_start=key_gst_start)
 
         return computed_tesla_key
 
