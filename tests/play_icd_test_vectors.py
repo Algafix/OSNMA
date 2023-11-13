@@ -29,13 +29,10 @@ def icd_test_vectors_configuration_A():
         'pubk_name': 'OSNMA_PublicKey_2.xml'
     }
 
-    #max_iter = 2000
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def icd_test_vectors_configuration_B():
@@ -46,13 +43,10 @@ def icd_test_vectors_configuration_B():
         'pubk_name': 'OSNMA_PublicKey_3.xml'
     }
 
-    #max_iter = 2000
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def icd_test_vectors_configuration_C():
@@ -63,13 +57,10 @@ def icd_test_vectors_configuration_C():
         'pubk_name': 'OSNMA_PublicKey_8.xml'
     }
 
-    #max_iter = 2000
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def icd_test_vectors_configuration_D():
@@ -80,13 +71,10 @@ def icd_test_vectors_configuration_D():
         'pubk_name': 'OSNMA_PublicKey_2.xml'
     }
 
-    #max_iter = 2000
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def icd_test_vectors_EOC_step_1():
@@ -97,13 +85,10 @@ def icd_test_vectors_EOC_step_1():
         'pubk_name': 'OSNMA_PublicKey_3.xml'
     }
 
-    #max_iter = 2000
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def icd_test_vectors_EOC_step_2():
@@ -114,13 +99,10 @@ def icd_test_vectors_EOC_step_2():
         'pubk_name': 'OSNMA_PublicKey_3.xml'
     }
 
-    #max_iter = 2000
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def icd_test_vectors_NPK_step_1():
@@ -131,13 +113,10 @@ def icd_test_vectors_NPK_step_1():
         'pubk_name': 'OSNMA_PublicKey_3.xml'
     }
 
-    #max_iter = 2000
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def icd_test_vectors_NPK_step_2():
@@ -148,13 +127,10 @@ def icd_test_vectors_NPK_step_2():
         'pubk_name': 'OSNMA_PublicKey_1.xml'
     }
 
-    #max_iter = 2000
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def icd_test_vectors_NPK_step_3():
@@ -165,13 +141,10 @@ def icd_test_vectors_NPK_step_3():
         'pubk_name': 'OSNMA_PublicKey_2.xml'
     }
 
-    #max_iter = 2000
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def icd_test_vectors_PKREV_step_1():
@@ -181,13 +154,10 @@ def icd_test_vectors_PKREV_step_1():
         'pubk_name': 'OSNMA_PublicKey_2.xml'
     }
 
-    # max_iter = 2000
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def icd_test_vectors_PKREV_step_2():
@@ -197,13 +167,10 @@ def icd_test_vectors_PKREV_step_2():
         'pubk_name': 'OSNMA_PublicKey_3.xml'
     }
 
-    # max_iter = 2000
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def icd_test_vectors_PKREV_step_3():
@@ -213,13 +180,10 @@ def icd_test_vectors_PKREV_step_3():
         'pubk_name': 'OSNMA_PublicKey_3.xml'
     }
 
-    # max_iter = 2000
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def icd_test_vectors_OAM():
@@ -228,13 +192,10 @@ def icd_test_vectors_OAM():
         'exec_path': 'icd_test_vectors/OAM/'
     }
 
-    # max_iter = 2000
-    max_iter = 0
-
     input_module = ICDTestVectors(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 if __name__ == "__main__":

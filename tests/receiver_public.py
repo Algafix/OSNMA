@@ -30,15 +30,10 @@ def sbf_config1():
         'pubk_name': 'OSNMA_PublicKey_1.xml'
     }
 
-    #max_iter = 600
-    # ADKD12
-    # max_iter = 1400
-    max_iter = 40000  # 3349 Authenticated
-
     input_module = SBFAscii(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def sbf_config2():
@@ -48,13 +43,10 @@ def sbf_config2():
         'exec_path': 'scenarios/config2/'
     }
 
-    # max_iter = 10000
-    max_iter = 40000  # 5507 authenticated # 40 failed (CRC)
-
     input_module = SBFAscii(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def sbf_config4():
@@ -65,13 +57,10 @@ def sbf_config4():
         'exec_path': 'scenarios/config4/'
     }
 
-    # max_iter = 10000
-    max_iter = 40000  # XXXX authenticated # XX failed (CRC)
-
     input_module = SBFAscii(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def sbf_config5():
@@ -80,14 +69,11 @@ def sbf_config5():
         'pubk_name': 'OSNMA_PublicKey_8.xml',
         'exec_path': 'scenarios/config5/'
     }
-    
-    # max_iter = 2500
-    max_iter = 60000  # 5039 authenticated # 21 failed (CRC)
 
     input_module = SBFAscii(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def sbf_config7():
@@ -98,15 +84,10 @@ def sbf_config7():
         'pubk_name': 'OSNMA_PublicKey_test.xml'
     }
 
-    # max_iter = 20000
-    # ADKD12
-    # max_iter = 1400
-    max_iter = 80000  # 3349 Authenticated
-
     input_module = SBFAscii(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def sbf_eoc_1():
@@ -116,13 +97,10 @@ def sbf_eoc_1():
         'exec_path': 'scenarios/eoc/'
     }
 
-    max_iter = 14000  # 5945 # 4 failed (crc)
-    #max_iter = 4000
-
     input_module = SBFAscii(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def sbf_npk_1():
@@ -131,14 +109,11 @@ def sbf_npk_1():
         'pubk_name': 'OSNMA_PublicKey_3.xml',
         'exec_path': 'scenarios/npk_1/'
     }
-    
-    max_iter = 40000  # 6184 authenticated
-    # max_iter = 2000
 
     input_module = SBFAscii(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def sbf_npk_2():
@@ -148,12 +123,10 @@ def sbf_npk_2():
         'exec_path': 'scenarios/npk_2/'
     }
 
-    max_iter = 40000  # 7526 Authenticated # 8 failed (CRC)
-
     input_module = SBFAscii(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def sbf_npk_12():
@@ -162,13 +135,11 @@ def sbf_npk_12():
         'pubk_name': 'OSNMA_PublicKey_3.xml',
         'exec_path': 'scenarios/npk_12/'
     }
-    
-    max_iter = 40000  # 4861 authenticated # 6 adkd4 failed al canvi de TOW
 
     input_module = SBFAscii(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def sbf_pkrev_1():
@@ -178,14 +149,11 @@ def sbf_pkrev_1():
         'pubk_name': 'OSNMA_PublicKey_4.xml',
         'exec_path': 'scenarios/pkrev_1/'
     }
-    
-    max_iter = 40000  # 5357 # 11 crc failed
-    #max_iter = 2000
 
     input_module = SBFAscii(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def sbf_pkrev_2():
@@ -194,12 +162,10 @@ def sbf_pkrev_2():
         'exec_path': 'scenarios/pkrev_2/'
     }
 
-    max_iter = 40000  # 1720 # 17 crc failed
-
     input_module = SBFAscii(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def sbf_pkrev_2_with_pk():
@@ -208,14 +174,11 @@ def sbf_pkrev_2_with_pk():
         'pubk_name': 'OSNMA_PublicKey_5.xml',
         'exec_path': 'scenarios/pkrev_2_with_pk/'
     }
-    
-    max_iter = 40000  # 1721 # 17 crc failed
-    #max_iter = 2000
 
     input_module = SBFAscii(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def sbf_pkrev_12():
@@ -242,15 +205,10 @@ def sbf_config1_hot_start():
         'kroot_name': 'OSNMA_last_KROOT.txt'
     }
 
-    max_iter = 600
-    # ADKD12
-    # max_iter = 1400
-    #max_iter = 40000  # 3349 Authenticated
-
     input_module = SBFAscii(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def sbf_config1_wrong_pubk():
@@ -260,15 +218,10 @@ def sbf_config1_wrong_pubk():
         'exec_path': 'scenarios/start_scenarios/config1_wrong_PubK/'
     }
 
-    max_iter = 600
-    # ADKD12
-    # max_iter = 1400
-    #max_iter = 40000  # 3349 Authenticated
-
     input_module = SBFAscii(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def sbf_config1_wrong_kroot():
@@ -279,15 +232,10 @@ def sbf_config1_wrong_kroot():
         'kroot_name': 'OSNMA_last_KROOT.txt'
     }
 
-    max_iter = 400
-    # ADKD12
-    # max_iter = 1400
-    #max_iter = 40000  # 3349 Authenticated
-
     input_module = SBFAscii(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def sbf_config1_wrong_kroot_id():
@@ -299,15 +247,10 @@ def sbf_config1_wrong_kroot_id():
         'kroot_name': 'OSNMA_last_KROOT.txt'
     }
 
-    max_iter = 400
-    # ADKD12
-    # max_iter = 1400
-    #max_iter = 40000  # 3349 Authenticated
-
     input_module = SBFAscii(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def sbf_current_config():
@@ -317,15 +260,10 @@ def sbf_current_config():
         'pubk_name': 'OSNMA_PublicKey.xml'
     }
 
-    # max_iter = 600
-    # ADKD12
-    # max_iter = 1400
-    max_iter = 40000  #
-
     input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def sbf_current_config_14h():
@@ -335,15 +273,10 @@ def sbf_current_config_14h():
         'pubk_name': 'OSNMA_PublicKey.xml'
     }
 
-    # max_iter = 600
-    # ADKD12
-    # max_iter = 1400
-    max_iter = 400000  #
-
     input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def sbf_live():
@@ -366,12 +299,10 @@ def galmon_live():
         'pubk_name': 'OSNMA_PublicKey.xml'
     }
 
-    max_iter = 40000  #
-
     input_module = GALMON()
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    osnma_r.start(max_iter)
+    osnma_r.start()
 
 
 def sbf_live_parc_leopold():
@@ -384,7 +315,6 @@ def sbf_live_parc_leopold():
     input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    #osnma_r.start(1200)
     osnma_r.start()
 
 
@@ -398,7 +328,6 @@ def sbf_live_palace_to_parlament():
     input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    #osnma_r.start(1200)
     osnma_r.start()
 
 
@@ -412,14 +341,13 @@ def sbf_live_manneken():
     input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
-    #osnma_r.start(1200)
     osnma_r.start()
 
 
 if __name__ == "__main__":
 
     #sbf_live_parc_leopold()
-    sbf_live_palace_to_parlament()
+    #sbf_live_palace_to_parlament()
     # 1 tag failed:
     # (13, 0, 6) PRN_A: 13 GST_SF: 1210 52530 TAG0
     #sbf_live_manneken()
@@ -441,7 +369,7 @@ if __name__ == "__main__":
     #sbf_config2()
     #sbf_config4()
     #sbf_config5()
-    #sbf_config7()
+    sbf_config7()
 
     #sbf_eoc_1()
 
