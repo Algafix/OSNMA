@@ -167,8 +167,7 @@ class TagAndInfo:
         self.is_tag0 = False
 
     def __repr__(self) -> str:
-        return f"{{ID: {self.id} PRN_A: {self.prn_a.uint} KeyID: {self.key_id} GST TOW: " \
-               f"{self.gst_subframe[12:].uint}}}"
+        return f"{{ID: {self.id} PRN_A: {self.prn_a.uint}}}"
 
     @property
     def has_key(self) -> bool:

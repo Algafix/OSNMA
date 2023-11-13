@@ -160,6 +160,7 @@ class TagStateStructure:
         Adds the tags to the waiting for key list if the tag has an active ADKD and authenticates data of one of the
         valid satellites. The list of valid PRN_D is currently 1-36 and 255 for ADKD4 (this changes in ICD-1.0).
         """
+        logger.info(f"Non-FLX tags in MACK:\t{tag_list}\n")
         for tag in tag_list:
             if tag.adkd.uint not in Config.ACTIVE_ADKD:
                 continue
