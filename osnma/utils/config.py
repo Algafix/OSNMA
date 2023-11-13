@@ -43,6 +43,7 @@ class Config:
 
     NS = 36
     TAG_LENGTH = 40
+    ACTIVE_ADKD = {0, 4, 12}
 
     DO_HKROOT_REGEN = True
     DO_CRC_FAILED_EXTRACTION = True

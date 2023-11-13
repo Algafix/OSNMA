@@ -31,13 +31,13 @@ ADKD4 = 4
 ADKD12 = 12
 ADKD5 = 5
 
+WORDS_PER_ADKD = {0: [1, 2, 3, 4, 5],
+                  12: [1, 2, 3, 4, 5],
+                  4: [6, 10],
+                  5: []}
+
 
 class TagAccumulation:
-
-    words_per_adkd = {0: [1, 2, 3, 4, 5],
-                      12: [1, 2, 3, 4, 5],
-                      4: [6, 10],
-                      5: []}
 
     auth_message = 'AUTHENTICATED: ADKD {adkd} - Satellite {satellite} {iod} ' \
                    '\n\t\t GST SF {gst_start}  to  GST SF {gst_last} ' \
@@ -62,7 +62,7 @@ class TagAccumulation:
         satellite_message = prn_d if prn_d != 255 else "Any"
 
         words_message = "Words "
-        for word in self.words_per_adkd[adkd]:
+        for word in WORDS_PER_ADKD[adkd]:
             words_message += f"{word}, "
         words_message = words_message[:-2]
 
@@ -193,7 +193,6 @@ class ADKD0DataManager(ADKDDataManager):
                 self.adkd0_data_blocks.pop(idx-1)
             if not data_block.gst_completed:
                 previous_block_not_complete = True
-
 
     def _handle_word_type_5(self, word_5_data: BitArray, gst_page: BitArray):
         if len(self.adkd0_data_blocks) == 0:
@@ -356,13 +355,6 @@ class ADKD4DataManager(ADKDDataManager):
 
 class NavigationDataManager:
 
-    ACTIVE_ADKD = {0, 4, 12}
-
-    words_per_adkd = {0: [1, 2, 3, 4, 5],
-                      12: [1, 2, 3, 4, 5],
-                      4: [6, 10],
-                      5: []}
-
     def __init__(self):
         self.adkd_masks = adkd_masks
         self.tags_accumulated: Dict[Tuple[int, int, int], TagAccumulation] = {}
@@ -375,8 +367,8 @@ class NavigationDataManager:
         self.auth_sats_svid: List[int] = []
 
         self.active_words = set()
-        for adkd, words in self.words_per_adkd.items():
-            if adkd in self.ACTIVE_ADKD:
+        for adkd, words in WORDS_PER_ADKD.items():
+            if adkd in Config.ACTIVE_ADKD:
                 self.active_words.update(words)
 
     def tag_has_data(self, tag: TagAndInfo):
@@ -428,7 +420,7 @@ class NavigationDataManager:
         word_type = page[2:8].uint
         if word_type not in self.active_words:
             return
-        if word_type in self.words_per_adkd[ADKD0]:
+        if word_type in WORDS_PER_ADKD[ADKD0]:
             self.adkd0_data_managers[svid].add_word(word_type, page, gst_page)
         else:
             self.adkd4_data_manager.add_word(word_type, page, gst_page)

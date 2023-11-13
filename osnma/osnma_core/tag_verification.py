@@ -23,6 +23,8 @@ from osnma.osnma_core.nav_data_manager import NavigationDataManager, ADKD0DataBl
 
 ######## imports ########
 from osnma.structures.maclt import mac_lookup_table
+from osnma.utils.config import Config
+
 from bitstring import BitArray
 
 ######## logger ########
@@ -154,14 +156,17 @@ class TagStateStructure:
         return tag_list, macseq_object, is_flx_tag_missing
 
     def add_tags_waiting_key(self, tag_list: List[TagAndInfo]):
-
+        """
+        Adds the tags to the waiting for key list if the tag has an active ADKD and authenticates data of one of the
+        valid satellites. The list of valid PRN_D is currently 1-36 and 255 for ADKD4 (this changes in ICD-1.0).
+        """
         for tag in tag_list:
-            for tag_wait in list(self.tags_awaiting_key):
-                # If we get a tag authenticating the same satellite and adkd but different data
-                # delete the old tag if it has no possibility of getting data
-                if tag.id[:2] == tag_wait.id[:2] and (tag.id[2] != tag_wait.id[2] or tag.new_data):
-                    if not self.nav_data_m.tag_has_data(tag_wait):
-                        self.tags_awaiting_key.remove(tag_wait)
+            if tag.adkd.uint not in Config.ACTIVE_ADKD:
+                continue
+            prn_d = tag.prn_d.uint
+            if prn_d != 255 and prn_d not in range(1, Config.NS+1):
+                logger.warning(f"Tag {tag} authenticating a PRN_D not implemented.")
+                continue
             self.tags_awaiting_key.append(tag)
 
     def update_tag_lists(self, gst_subframe: BitArray):
