@@ -4,6 +4,7 @@ import re
 import logging
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy.typing as npt
 
 from pathlib import Path
 
@@ -151,42 +152,17 @@ def sbf_live_manneken(extra_config_dict=None, log_level=logging.INFO):
     print_stats()
 
 
-if __name__ == "__main__":
 
-    ttfaf = sbf_live_parc_leopold(
-        {'log_console': True, 'do_hkroot_regen': True, 'do_crc_failed_extraction': True, 'do_tesla_key_regen': True},
-        start_at_tow=52412)
 
-    exit()
+def plot_ttfaf(plot_ttfaf_vectors: npt.NDArray, tow_range: range):
 
-    ttfaf_list = \
-        [83, 82, 81, 80, 79, 78, 77, 76, 75, 74, 73, 72, 71, 70, 99, 98, 97, 96, 95, 94, 93, 92, 91, 90, 89, 88, 87, 86,
-         85, 84, 83, 82, 81, 80, 79, 78, 77, 76, 75, 74, 73, 72, 71, 70, 99, 98, 97, 96, 95, 94, 93, 92, 91, 90, 89, 88,
-         87, 86, 85, 84, 83, 82, 81, 80, 79, 78, 77, 76, 75, 74, 73, 72, 71, 70, 99, 98, 97, 96, 95, 94, 93, 92, 91, 90,
-         89, 88, 87, 86, 85, 84, 83, 82, 81, 80, 79, 78, 77, 76, 75, 74, 73, 72, 71, 70, 99, 98, 97, 96, 95, 94, 93, 92,
-         91, 90, 89, 88, 87, 86, 85, 84, 83, 82, 81, 80, 79, 78, 77, 76, 75, 74, 73, 72, 71, 70, 99, 98, 97, 96, 95, 94,
-         93, 92, 91, 90, 149, 148, 147, 146, 145, 144, 143, 142, 141, 140, 139, 138, 137, 136, 135, 134, 133, 132, 131,
-         130, 159, 158, 157, 156, 155, 154, 153, 152, 151, 150, 149, 148, 147, 146, 145, 144, 143, 142, 141, 140, 139,
-         138, 137, 136, 135, 134, 133, 132, 131, 130, 129, 128, 127, 126, 125, 124, 123, 122, 121, 120, 119, 118, 117,
-         116, 115, 114, 113, 112, 111, 110, 109, 108, 107, 106, 105, 104, 103, 102, 101, 100, 99, 98, 127, 126, 125,
-         124, 123, 122, 121, 120, 119, 118, 117, 116, 115, 114, 113, 112, 111, 110, 109, 108, 107, 106, 105, 104, 103,
-         102, 101, 100, 99, 98, 97, 96, 95, 94, 93, 92, 91, 90, 89, 88, 87, 86, 85, 84, 83, 82, 81, 80, 79, 78, 77, 76,
-         75, 74, 73, 72, 71, 70, 129, 128, 127, 126, 125, 124, 123, 122, 121, 120, 119, 118, 117, 116, 115, 114]
-
-    tow_range = range(52268, 52568)
-
-    # ttfaf_list = []
-    # for tow in tow_range:
-    #     ttfaf = sbf_live_parc_leopold(
-    #         {'log_console': False, 'do_hkroot_regen': True, 'do_crc_failed_extraction': True, 'do_tesla_key_regen': True},
-    #         start_at_tow=tow)
-    #     ttfaf_list.append(ttfaf)
-    # print(ttfaf_list)
+    names = ["Base", "Tag extraction", "Tag and Tesla extraction"]
 
     fig, ax1 = plt.subplots(1, 1, figsize=(16, 9))
-    plt.plot(tow_range, ttfaf_list, '*')
+    for idx, (ttfaf_vector, config_name) in enumerate(zip(plot_ttfaf_vectors, names)):
+        plt.plot(tow_range, ttfaf_vector+(0.15*idx), '*', label=config_name)
+
     plt.ylabel('Time [s]')
-    #ax1.set_yticks(range(65, 100))
     plt.xticks(tow_range[::2], [t % 30 for t in tow_range[::2]])
 
     for t in tow_range:
@@ -194,10 +170,47 @@ if __name__ == "__main__":
             plt.axvline(x=t, ymin=0.01, ymax=0.99, color='r', ls='-', alpha=0.5)
 
     plt.grid()
+    plt.legend(loc='upper right')
     plt.show()
 
 
-    #sbf_live_palace_to_parlament({'do_hkroot_regen': True, 'do_crc_failed_extraction': True, 'do_tesla_key_regen': True})
+def get_ttfaf_data_for_parc_leopold(tow_range, save):
 
-    #sbf_live_manneken({'do_hkroot_regen': True, 'do_crc_failed_extraction': True, 'do_tesla_key_regen': True})
+    base = {'log_console': False, 'do_hkroot_regen': True, 'do_crc_failed_extraction': False, 'do_tesla_key_regen': False}
+    crc_extraction = {'log_console': False, 'do_hkroot_regen': True, 'do_crc_failed_extraction': True, 'do_tesla_key_regen': False}
+    crc_and_tesla_extraction = {'log_console': False, 'do_hkroot_regen': True, 'do_crc_failed_extraction': True, 'do_tesla_key_regen': True}
 
+    config_list = [base, crc_extraction, crc_and_tesla_extraction]
+
+    ttfaf_matrix = np.zeros([len(config_list), tow_range.stop-tow_range.start])
+    for i, config in enumerate(config_list):
+        for j, tow in enumerate(tow_range):
+            ttfaf = sbf_live_parc_leopold(
+                config,
+                start_at_tow=tow)
+            ttfaf_matrix[i][j] = ttfaf
+        print(ttfaf_matrix[i])
+
+    if save:
+        np.save("ttfaf_vectors_leopold_all", ttfaf_matrix)
+
+    return ttfaf_matrix
+
+
+if __name__ == "__main__":
+
+    # ttfaf = sbf_live_parc_leopold(
+    #     {'log_console': True, 'do_hkroot_regen': True, 'do_crc_failed_extraction': True, 'do_tesla_key_regen': True},
+    #     start_at_tow=52412)
+    #
+    # exit()
+
+    TOW_START = 52268
+    TOW_STOP = TOW_START + 300
+    tow_range = range(TOW_START, TOW_STOP)
+
+    ttfaf_matrix = np.load("ttfaf_vectors_leopold_all.npy")
+
+    # ttfaf_matrix = get_ttfaf_data_for_parc_leopold(tow_range, True)
+
+    plot_ttfaf(ttfaf_matrix, tow_range)

@@ -223,6 +223,22 @@ The most important parameters are:
 For a full description see the wiki page [Receiver Options [TBC]](https://github.com/Algafix/OSNMA/wiki/Receiver-Options-%5BTBC%5D).
 
 
+Research Notice
+===
+
+This repository partially contains data, information and ideas regarding an ongoing PhD research.
+
+Please don't publish your own results based on OSNMA ideas and optimizations read on this repository until they have been scientifically disclosed. I will update this note once that happens.
+
+I strongly believe in open-source software and free access to knowledge, and this whole project remains open to honour these ideals.
+
+However, this approach by my side requires the uttermost respect to the research integrity and ethics by anyone accessing this repository. 
+
+In case of doubt, contact me at algafix[@]protonmail.com
+
+Thank you.
+
+
 Support
 ===
 
