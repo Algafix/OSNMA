@@ -20,6 +20,7 @@ from typing import List, Optional, Union, Dict, Tuple
 ######## imports ########
 from bitstring import BitArray
 from osnma.structures.fields_information import NB_DK_lt, NB_DP_lt
+from osnma.cryptographic.gst_class import GST
 
 ######## logger ########
 import osnma.utils.logger_factory as log_factory
@@ -39,7 +40,7 @@ class SubFrameRegenerator:
         self.dsm_id: Optional[int] = None
         self.bid_ref: Optional[int] = None
         self.svid_ref: Optional[int] = None
-        self.gst_ref: Optional[BitArray] = None
+        self.gst_ref: Optional[GST] = None
         self.num_blocks: Optional[int] = None
         self.num_blocks_lookup_table: List[Union[str, int]] = []
         self.block_dict: Dict[int, List[BitArray]] = {}
@@ -60,7 +61,7 @@ class SubFrameRegenerator:
                 if saved_page is None and new_page is not None:
                     saved_block[index] = new_page
 
-    def _update_references(self, dsm_id, block_id, gst_subframe, svid):
+    def _update_references(self, dsm_id, block_id, gst_subframe: GST, svid):
         self.dsm_id = dsm_id
         self.bid_ref = block_id
         self.svid_ref = svid
@@ -77,7 +78,7 @@ class SubFrameRegenerator:
                 self.block_dict.pop(bid)
         return complete_blocks
 
-    def load_dsm_block(self, hkroot_subframe: List[Optional[BitArray]], gst_subframe: BitArray, svid: int) -> Union[BitArray, bool]:
+    def load_dsm_block(self, hkroot_subframe: List[Optional[BitArray]], gst_subframe: GST, svid: int) -> Union[BitArray, bool]:
 
         block_id: Optional[int] = None
         # Get block_id from DSM Header

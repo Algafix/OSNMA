@@ -23,6 +23,8 @@ from osnma.receiver.satellite import Satellite
 from osnma.receiver.subframe_regen import SubFrameRegenerator
 from osnma.osnma_core.receiver_state import ReceiverState
 from osnma.utils.config import Config
+from osnma.cryptographic.gst_class import GST
+
 from bitstring import BitArray
 
 ######## logger ########
@@ -99,16 +101,14 @@ class OSNMAReceiver:
             satellite = self.satellites[page.svid]
 
             # Handle page
-            gst_page = BitArray(uint=page.wn, length=12) + BitArray(uint=page.tow, length=20)
+            gst_page = GST(wn=page.wn, tow=page.tow)
             self.receiver_state.load_page(page.nav_bits, gst_page, satellite.svid)
             satellite.new_page(page, page.tow)
 
             # End of the subframe
             if page.tow % 30 == 29:
-                wn = page.wn
-                tow = page.tow // 30 * 30
-                gst_sf = BitArray(uint=wn, length=12) + BitArray(uint=tow, length=20)
-                logger.info(f"--- SUBFRAME --- WN {wn} TOW {tow} SVID {satellite.svid} ---")
+                gst_sf = GST(wn=page.wn, tow=page.tow // 30 * 30)
+                logger.info(f"--- SUBFRAME --- WN {gst_sf.wn} TOW {gst_sf.tow} SVID {satellite.svid} ---")
 
                 if satellite.subframe_with_osnma():
                     raw_hkroot_sf = satellite.get_hkroot_subframe()

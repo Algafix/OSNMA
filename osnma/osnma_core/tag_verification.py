@@ -23,6 +23,7 @@ from osnma.osnma_core.nav_data_manager import NavigationDataManager, ADKD0DataBl
 
 ######## imports ########
 from osnma.structures.maclt import mac_lookup_table
+from osnma.cryptographic.gst_class import GST
 from osnma.utils.config import Config
 
 from bitstring import BitArray
@@ -64,19 +65,19 @@ class TagStateStructure:
         # If a tag fails the cross-authentication and the data is more than one subframe old, probably the data
         # has changed since our last recording from that satellite and therefore should not be used for future tags
         if tag.adkd.uint == 0 or tag.adkd.uint == 12:
-            data_gst_sf = nav_data_block.last_gst_updated.uint // 30 * 30
-            if tag.gst_subframe.uint > data_gst_sf + 30:
-                nav_data_block.gst_limit = BitArray(uint=tag.gst_subframe.uint - 30, length=32)
+            data_gst_sf = nav_data_block.last_gst_updated // 30 * 30
+            if tag.gst_subframe > data_gst_sf + 30:
+                nav_data_block.gst_limit = tag.gst_subframe - 30
                 return True
         return False
 
     def verify_tag(self, tag: TagAndInfo, nav_data_block: Union[ADKD0DataBlock, ADKD4DataBlock]):
         nav_data = nav_data_block.nav_data_stream
         if tag.is_tag0:
-            auth_data = tag.prn_a + tag.gst_subframe + BitArray(uint=tag.ctr, length=8) + tag.nma_status + nav_data
+            auth_data = tag.prn_a + tag.gst_subframe.bitarray + BitArray(uint=tag.ctr, length=8) + tag.nma_status + nav_data
         else:
             prn_d = tag.prn_a if tag.prn_d.uint == 255 else tag.prn_d
-            auth_data = prn_d + tag.prn_a + tag.gst_subframe + BitArray(uint=tag.ctr, length=8) + tag.nma_status + nav_data
+            auth_data = prn_d + tag.prn_a + tag.gst_subframe.bitarray + BitArray(uint=tag.ctr, length=8) + tag.nma_status + nav_data
 
         mac = self.tesla_chain.mac_function(tag.tesla_key.key, auth_data)
         computed_tag0 = mac[:self.tesla_chain.tag_size]
@@ -92,7 +93,7 @@ class TagStateStructure:
 
     def verify_macseq(self, macseq: MACSeqObject):
         tesla_key = macseq.tesla_key
-        auth_data = macseq.svid + macseq.gst
+        auth_data = macseq.svid + macseq.gst.bitarray
         for tag in macseq.flex_list:
             auth_data.append(tag.prn_d + tag.adkd + tag.iod_tag)
 
@@ -126,7 +127,7 @@ class TagStateStructure:
         if self.maclt_dict['sections'] == 1:
             sequence = self.maclt_dict["sequence"]
         elif self.maclt_dict['sections'] == 2:
-            sf_index = 1 if mack_message.gst_sf[12:].uint % 60 else 0
+            sf_index = 1 if mack_message.gst_sf.tow % 60 else 0
             sequence = self.maclt_dict["sequence"][sf_index]
         else:
             raise ValueError(f"MACLT {self.tesla_chain.maclt} sections not 1 nor 2: {self.maclt_dict['sections']}")
@@ -170,7 +171,7 @@ class TagStateStructure:
                 continue
             self.tags_awaiting_key.append(tag)
 
-    def update_tag_lists(self, gst_subframe: BitArray):
+    def update_tag_lists(self, gst_subframe: GST):
 
         # Check for MACSEQ key to update tag list
         for macseq in list(self.macseq_awaiting_key):

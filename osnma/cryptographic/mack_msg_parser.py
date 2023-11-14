@@ -23,6 +23,7 @@ if TYPE_CHECKING:
 from ..structures.mack_structures import MACKMessage, Tag0AndSeq, TagAndInfo, TESLAKey
 from ..structures.fields_information import field_info
 from ..utils.config import Config
+from osnma.cryptographic.gst_class import GST
 
 from bitstring import BitArray
 
@@ -55,7 +56,7 @@ class MACKMessageParser:
         self.tesla_key_gst_start_offset = ((self.full_tag_size * self.num_tags) // MACK_PAGE_SIZE)*2+1
         self.nma_status = None
 
-        self.gst_sf_reconstructed_tesla = None
+        self.gst_sf_reconstructed_tesla = GST()
         self.pages_reconstructed_tesla = []
         self.sf_with_TK_reconstructed = False
 
@@ -102,7 +103,7 @@ class MACKMessageParser:
             key_pages_bits.append(key_page)
         return key_pages_bits, missing_key_pages
 
-    def parse_mack_message(self, mack_message: List[BitArray], gst_sf: BitArray, prn_a: int,
+    def parse_mack_message(self, mack_message: List[BitArray], gst_sf: GST, prn_a: int,
                            nma_status: BitArray) -> MACKMessage:
 
         self.nma_status = nma_status
@@ -151,8 +152,8 @@ class MACKMessageParser:
 
         if not missing_key_pages:
             tesla_key_bits = key_pages_bits[key_bit_slice]
-            tesla_key_gst_page_start = BitArray(uint=gst_sf.uint + self.tesla_key_gst_start_offset, length=32)
-            tesla_key = TESLAKey(gst_sf[:12], gst_sf[12:], tesla_key_bits, prn_a.uint, gst_start=tesla_key_gst_page_start, reconstructed=reconstructed)
+            tesla_key_gst_page_start = gst_sf + self.tesla_key_gst_start_offset
+            tesla_key = TESLAKey(gst_sf, tesla_key_bits, prn_a.uint, gst_start=tesla_key_gst_page_start, reconstructed=reconstructed)
             mack_msg_parsed.add_key(tesla_key)
 
         return mack_msg_parsed

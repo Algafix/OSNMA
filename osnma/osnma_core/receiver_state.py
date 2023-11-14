@@ -25,6 +25,7 @@ from bitstring import BitArray
 from osnma.structures.fields_information import NB_DK_lt, NB_DP_lt, CPKS, NMAS, cpks_lt, nmas_lt
 from osnma.cryptographic.dsm_kroot import DSMKroot
 from osnma.cryptographic.dsm_pkr import DSMPKR
+from osnma.cryptographic.gst_class import GST
 from osnma.osnma_core.tesla_chain import TESLAChain
 from osnma.osnma_core.nav_data_manager import NavigationDataManager
 from osnma.utils.iohandler import IOHandler
@@ -113,7 +114,7 @@ class ReceiverState:
         for i in range(16):
             self.dsm_messages.append(DigitalSignatureMessage(i))
 
-        self.kroot_waiting_mack: List[Tuple[List[Optional[BitArray]], BitArray, int, BitArray]] = []
+        self.kroot_waiting_mack: List[Tuple[List[Optional[BitArray]], GST, int, BitArray]] = []
 
         self._initialize_status()
 
@@ -163,7 +164,7 @@ class ReceiverState:
             current_chain_in_force = nma_header[2:4].uint
             if current_chain_in_force == self.next_tesla_chain.chain_id:
                 logger.info(f"New chain in force: CID {current_chain_in_force} GST0"
-                            f"{self.next_tesla_chain.GST0[:12].uint} {self.next_tesla_chain.GST0[12:].uint}")
+                            f"{self.next_tesla_chain.GST0}")
                 self.tesla_chain_force = self.next_tesla_chain
                 self.next_tesla_chain = None
 
@@ -197,8 +198,7 @@ class ReceiverState:
     def _store_next_tesla_chain(self, cid_kroot: int, dsm_kroot: DSMKroot):
         if cid_kroot != self.tesla_chain_force.chain_id and self.next_tesla_chain is None:
             self.next_tesla_chain = TESLAChain(self.nav_data_structure, dsm_kroot)
-            logger.info(f"Saved as next chain. In force at {self.next_tesla_chain.GST0[:12].uint}"
-                        f" {self.next_tesla_chain.GST0[12:].uint}")
+            logger.info(f"Saved as next chain. In force at {self.next_tesla_chain.GST0}")
 
     def _chain_status_handler(self, nma_header: BitArray, dsm_kroot: DSMKroot):
 
@@ -397,7 +397,7 @@ class ReceiverState:
 
         return sf_nma_header[:2]
 
-    def process_mack_subframe(self, mack_subframe: List[Optional[BitArray]], gst_subframe: BitArray, svid: int, sf_nma_status: BitArray):
+    def process_mack_subframe(self, mack_subframe: List[Optional[BitArray]], gst_subframe: GST, svid: int, sf_nma_status: BitArray):
 
         if self.nma_status == NMAS.DONT_USE:
             logger.warning(f"NMA Status: Don't Use. Subframe tags not processed.")
@@ -436,7 +436,7 @@ class ReceiverState:
                     self.start_status = StartStates.STARTED
                     logger.info(f"One TESLA key verified. Start Status: {self.start_status.name}")
 
-    def load_page(self, nav_bits: BitArray, gst_page: BitArray, svid: int):
+    def load_page(self, nav_bits: BitArray, gst_page: GST, svid: int):
         self.nav_data_structure.load_page(nav_bits, gst_page, svid)
 
 

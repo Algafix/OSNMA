@@ -22,6 +22,7 @@ from osnma.structures.mack_structures import MACSeqObject, TagAndInfo
 ######## imports ########
 from osnma.cryptographic.dsm_kroot import DSMKroot
 from osnma.cryptographic.mack_msg_parser import MACKMessageParser
+from osnma.cryptographic.gst_class import GST
 from osnma.osnma_core.tag_verification import TagStateStructure
 from osnma.structures.fields_information import HF, KS_lt, TS_lt, MF
 from osnma.structures.mack_structures import TESLAKey
@@ -65,10 +66,7 @@ class TESLAChain:
         self.key_size = KS_lt[dsm_kroot.get_value('KS').uint]
         self.tag_size = TS_lt[dsm_kroot.get_value('TS').uint]
         self.maclt = dsm_kroot.get_value('MACLT').uint
-
-        gst0_wn = dsm_kroot.get_value('WN_K')
-        gst0_tow = dsm_kroot.get_value('TOWH_K').uint * 3600
-        self.GST0 = gst0_wn + BitArray(uint=gst0_tow, length=20)
+        self.GST0 = GST(wn=dsm_kroot.get_value('WN_K').uint, tow=dsm_kroot.get_value('TOWH_K').uint * 3600)
 
         # Define the hash function to be used during this chain
         hash_index = dsm_kroot.get_value('HF').uint
@@ -91,9 +89,7 @@ class TESLAChain:
         else:
             raise FieldValueNotRecognized(f"DMSKroot field MF value {mac_f_index} not recognised")
 
-        #gst0_tow = 604770 if gst0_tow == 0 else gst0_tow # TODO: solucionar amb anell a gst
-        # Define the two keys that the chain will be storing at any time: kroot and last verified tesla key
-        root_key = TESLAKey(gst0_wn, gst0_tow - 30, dsm_kroot.get_value('KROOT'), is_kroot=True)
+        root_key = TESLAKey(self.GST0 - 30, dsm_kroot.get_value('KROOT'), is_kroot=True)
         root_key.set_verified(dsm_kroot.is_verified())
         self.root_tesla_key = root_key
         self.last_tesla_key = root_key
@@ -112,7 +108,7 @@ class TESLAChain:
         mac = CMAC.new(key.tobytes(), msg=message.tobytes(), ciphermod=AES)
         return BitArray(mac.digest())
 
-    def _compute_gst_subframe(self, index: int) -> BitArray:
+    def _compute_gst_subframe(self, index: int) -> GST:
         """Compute the GST of the subframe corresponding to a TESLA key index. Uses GST0, ns and nmack values to
         perform the computation.
 
@@ -125,14 +121,9 @@ class TESLAChain:
         """
 
         if index == 0:
-            gst_subframe = self.GST0.uint - 30
+            gst_subframe = self.GST0 - 30
         else:
-            # ICD v1.1
-            # gst_subframe = self.GST0.uint + 30 * ((index - 1) // (self.ns * self.nmack))
-
-            # ICD v1.2 Test Phase
-            gst_subframe = (self.GST0.uint-30) + 30 * -(index // -self.nmack)
-        gst_subframe = BitArray(uint=gst_subframe, length=32)
+            gst_subframe = (self.GST0-30) + 30 * -(index // -self.nmack)
 
         return gst_subframe
 
@@ -148,14 +139,14 @@ class TESLAChain:
         """
         next_index = tesla_key.index - 1
         gst_sf = self._compute_gst_subframe(next_index)
-        key_digest = self.hash_function((tesla_key.key + gst_sf + self.alpha).tobytes()).digest()
+        key_digest = self.hash_function((tesla_key.key + gst_sf.bitarray + self.alpha).tobytes()).digest()
         key_value = key_digest[:(self.key_size // 8)]  # digest is a bytes object, key_size are bits
-        key_gst_start = BitArray(uint=gst_sf.uint + self.tesla_key_gst_start_offset, length=32)
-        computed_tesla_key = TESLAKey(gst_sf[:12], gst_sf[12:], key_value, index=next_index, gst_start=key_gst_start)
+        key_gst_start = gst_sf + self.tesla_key_gst_start_offset
+        computed_tesla_key = TESLAKey(gst_sf, key_value, index=next_index, gst_start=key_gst_start)
 
         return computed_tesla_key
 
-    def parse_mack_message(self, mack_message: List[BitArray], gst_sf: BitArray, prn_a: int, nma_status: BitArray):
+    def parse_mack_message(self, mack_message: List[BitArray], gst_sf: GST, prn_a: int, nma_status: BitArray):
         """Parse a MACK message bit stream. Then handles the MACK object to the tag structure to add the new tags to the
         tag list. Finally, add the key(s) received to the TESLA key chain.
 
@@ -172,17 +163,16 @@ class TESLAChain:
         try:
             mack_object = self.mac_msg_parser.parse_mack_message(mack_message, gst_sf, prn_a, nma_status)
         except Exception as e:
-            raise MackParsingError(f"Error parsing MACK Message from SVID {prn_a} at "
-                                   f"{gst_sf[:12].uint} {gst_sf[12:].uint}\n{traceback.print_exc()}")
+            raise MackParsingError(f"Error parsing MACK Message from SVID {prn_a} at {gst_sf}\n{traceback.print_exc()}")
         else:
             self.tags_structure.load_mack_message(mack_object)
             if tesla_key := mack_object.get_key():
                 self.add_key(tesla_key)
 
-    def update_tag_lists(self, gst_subframe: BitArray):
+    def update_tag_lists(self, gst_subframe: GST):
         self.tags_structure.update_tag_lists(gst_subframe)
 
-    def get_key_index(self, gst_sf: BitArray) -> int:
+    def get_key_index(self, gst_sf: GST) -> int:
         """Computes the key index that would have a key received on the subframe specified and in the position specified
         The index is relative to the first kroot received for this chain.
 
@@ -190,12 +180,8 @@ class TESLAChain:
         :type gst_sf: BitArray
         :return: index of the key
         """
-        # ICD 1.1
-        # past_keys = ((self.gst_sf.uint - gst_0.uint) // 30) * ns * nmack
-        # self.index = past_keys + (self.n_block - 1) * ns + ((self.svid - 1) % ns) + 1
 
-        # ICD 1.2 Test Phase: All satellites transmit the same key at the same epoch
-        past_keys = (gst_sf.uint - self.GST0.uint) // 30
+        past_keys = (gst_sf - self.GST0) // 30
         index = past_keys * self.nmack + 1
 
         return index
@@ -206,7 +192,7 @@ class TESLAChain:
         :return: Tuple[WN,TOWH]
         :rtype: (int, int)
         """
-        return self.GST0[:12].uint, self.GST0[12:].uint//3600
+        return self.GST0.wn, self.GST0.tow//3600
 
     def set_cid(self, cid: int):
         """Set the CID of the TESLA Chain. This value identifies each Chain and rolls over 3.
@@ -245,13 +231,18 @@ class TESLAChain:
                 key_verified = True
                 break
             else:
-                raise TeslaKeyVerificationFailed(f"Tesla Key {new_tesla_key.index} from svid {new_tesla_key.svid}"
+                logger.critical("FAILED AUTH")
+                e = TeslaKeyVerificationFailed(f"Tesla Key {new_tesla_key.index} from svid {new_tesla_key.svid}"
                                                  f"{' Reconstructed' if new_tesla_key.reconstructed else ''},"
-                                                 f" received at {new_tesla_key.wn.uint} {new_tesla_key.tow.uint} failed verification.\n"
-                                                 f"Last authenticated key: {last_tesla_key.index} at {last_tesla_key.tow.uint}.\n"
+                                                 f" received at {new_tesla_key.gst_sf} failed verification.\n"
+                                                 f"Last authenticated key: {last_tesla_key.index} at {last_tesla_key.gst_sf}.\n"
                                                  f"Last hash: {key_index} {tesla_key.key}")
+
+                logger.critical(e)
+                exit()
+
         if key_verified:
-            logger.info(f"Tesla Key Authenticated {new_tesla_key.wn.uint} {new_tesla_key.tow.uint}{' - Regenerated' if new_tesla_key.reconstructed else ''}\n")
+            logger.info(f"Tesla Key Authenticated {new_tesla_key.gst_sf}{' - Regenerated' if new_tesla_key.reconstructed else ''}\n")
 
         return key_verified, new_key_index
 
