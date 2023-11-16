@@ -1,7 +1,5 @@
-[![ICD Test Vectors](https://github.com/Algafix/OSNMA/actions/workflows/icd_test_vectors.yml/badge.svg)](https://github.com/Algafix/OSNMA/actions/workflows/icd_test_vectors.yml)
-[![Python 3.8](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_38.yml/badge.svg)](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_38.yml)
-[![Python 3.9](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_39.yml/badge.svg)](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_39.yml)
-[![Python 3.10](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_310.yml/badge.svg)](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_310.yml)
+[![ICD 1.0 Test Vectors](https://github.com/Algafix/OSNMA/actions/workflows/icd_10_test_vectors.yml/badge.svg?branch=OSNMA_ICD_1.0)](https://github.com/Algafix/OSNMA/actions/workflows/icd_10_test_vectors.yml)
+[![ICD 1.0 Corner Cases](https://github.com/Algafix/OSNMA/actions/workflows/icd_10_corner_cases.yml/badge.svg)](https://github.com/Algafix/OSNMA/actions/workflows/icd_10_corner_cases.yml)
 
 OSNMAlib
 ========
@@ -10,11 +8,11 @@ OSNMAlib is an open-source Python library that can be integrated into existing r
 navigation message authentication to the positioning process. It can read the Galileo I/NAV pages when received, store 
 the navigation and authentication data, perform the authentication verification, and report the status.
 
-The software has been succesfully tested using the official ICD test vectors from the [Receiver Guidelines for the Test Phase v1.1](https://www.gsc-europa.eu/sites/default/files/sites/all/files/Galileo_OSNMA_Receiver_Guidelines_for_the_Test_Phase_v1.1.pdf) available [here](https://www.gsc-europa.eu/sites/default/files/sites/all/files/osnma_annex_2.zip). It has also been tested with old test vectors and real live data recorded by me.
+The software has been successfully tested using part of the official ICD test vectors and should work in the nominal cases.
+However, the vectors to validate all corner cases have not yet been released.
+It has also been tested with real live data recorded by me.
 
 Supports Python 3.8, 3.9 and 3.10+. Tested on Linux and Windows.
-
-**NOTE:** If you want to use live data after 2023-08-03 11:00, please checkout the [ICD 1.0 branch](https://github.com/Algafix/OSNMA/tree/OSNMA_ICD_1.0/)
 
 Features
 ---
@@ -48,15 +46,10 @@ Current data **format supported**:
 
 Future development:
 
-  * **Done!** ~~Support for SBF directly (no conversion to SBF Ascii).~~
-  * **Done!** ~~Development of an input iterator for real-time navigation data.~~
-    * ~~Integration with SBF logging real-time navigation data.~~
-    * ~~Integration with Galmon real-time navigation data.~~
-  * **Done!** ~~Reconstruct MACK subframes.~~
-  * **Done!** ~~TTFAF metric displayed in the logs.~~
-  * Time synchronization options.
-  * Clean up the new ICD 1.0 branch, and implement COP.
-  * Rework of the data link module.
+  * Time synchronization options for live execution.
+  * Implement COP optimization.
+  * Renew Merkle Tree procedure.
+  * IDD ICD implementation for authentication of cryptographic materials.
 
 Documentation
 ---
@@ -85,8 +78,6 @@ $ pip install -r requirements.txt
 Current configuration
 ---
 
-**NOTE:** If you want to use live data after 2023-08-03 11:00, please checkout the [ICD 1.0 branch](https://github.com/Algafix/OSNMA/tree/OSNMA_ICD_1.0/)
-
 The folder `custom_run/` contains the current Merkle Tree and Public Key, both downloaded from the official [GSC](https://www.gsc-europa.eu/) website. It also contains the `current_config.sbf` file with the current configuration recorded by me. You can run it directly with the console with:
 
 ```
@@ -105,8 +96,6 @@ $ python run.py [filename]
 
 Real time execution with data from Galmon
 ---
-
-**NOTE:** Please checkout the [ICD 1.0 branch](https://github.com/Algafix/OSNMA/tree/OSNMA_ICD_1.0/) to use galmon with the new ICD live data.
 
 If you want to see the library process data in real time but don't have a receiver, I've integrated OSNMAlib with the [galmon](https://github.com/berthubert/galmon) project. You can find a  under the folder `live_galmon_run/` and run it:
 

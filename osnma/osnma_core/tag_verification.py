@@ -76,8 +76,7 @@ class TagStateStructure:
         if tag.is_tag0:
             auth_data = tag.prn_a + tag.gst_subframe.bitarray + BitArray(uint=tag.ctr, length=8) + tag.nma_status + nav_data
         else:
-            prn_d = tag.prn_a if tag.prn_d.uint == 255 else tag.prn_d
-            auth_data = prn_d + tag.prn_a + tag.gst_subframe.bitarray + BitArray(uint=tag.ctr, length=8) + tag.nma_status + nav_data
+            auth_data = tag.prn_d + tag.prn_a + tag.gst_subframe.bitarray + BitArray(uint=tag.ctr, length=8) + tag.nma_status + nav_data
 
         mac = self.tesla_chain.mac_function(tag.tesla_key.key, auth_data)
         computed_tag0 = mac[:self.tesla_chain.tag_size]
@@ -95,7 +94,7 @@ class TagStateStructure:
         tesla_key = macseq.tesla_key
         auth_data = macseq.svid + macseq.gst.bitarray
         for tag in macseq.flex_list:
-            auth_data.append(tag.prn_d + tag.adkd + tag.iod_tag)
+            auth_data.append(tag.prn_d + tag.adkd + tag.cop)
 
         computed_macseq = self.tesla_chain.mac_function(tesla_key.key, auth_data)[:12]
         if computed_macseq == macseq.macseq_value:

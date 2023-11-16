@@ -90,8 +90,9 @@ class TagAccumulation:
 class ADKDDataManager:
     ADKD_MASKS = adkd_masks
 
-    def __init__(self, adkd: int):
+    def __init__(self, adkd: int, svid: int):
         self.adkd = adkd
+        self.svid = svid
 
     def _get_adkd_data_from_word(self, full_page: BitArray, word_type: int):
         data_mask = self.ADKD_MASKS[self.adkd]['adkd'][word_type]['bits']
@@ -162,8 +163,7 @@ class ADKD0DataBlock:
 class ADKD0DataManager(ADKDDataManager):
 
     def __init__(self, svid: int):
-        super().__init__(ADKD0)
-        self.svid = svid
+        super().__init__(ADKD0, svid)
         self.adkd0_data_blocks: List[ADKD0DataBlock] = []
 
     def __repr__(self):
@@ -268,9 +268,6 @@ class ADKD0DataManager(ADKDDataManager):
             else:
                 break
 
-        if iod[-3:] != tag.iod_tag[-3:]:
-            raise ValueError(f"IOD from tag {tag.id} and data don't match: Tag {tag.iod_tag[-3:]} - Data {iod[-3:]}.")
-            # print(f"Warning: IOD from tag {tag.id} and data don't match: Tag {tag.iod_tag[-3:]} - Data {iod[-3:]}.")
         return iod
 
 
@@ -295,8 +292,8 @@ class ADKD4DataBlock:
 
 class ADKD4DataManager(ADKDDataManager):
 
-    def __init__(self):
-        super().__init__(ADKD4)
+    def __init__(self, svid: int):
+        super().__init__(ADKD4, svid)
         self.word_lists: Dict[int, List[ADKD4WordData]] = {6: [], 10: []}
 
     def __repr__(self):
@@ -308,9 +305,9 @@ class ADKD4DataManager(ADKDDataManager):
                 return False
         return True
 
-    def add_word(self, word_type: int, page: BitArray, gst_page: GST):
+    def add_word(self, word_type: int, full_page: BitArray, gst_page: GST):
 
-        adkd_data = self._get_adkd_data_from_word(page, word_type)
+        adkd_data = self._get_adkd_data_from_word(full_page, word_type)
         word_list = self.word_lists[word_type]
 
         if not word_list or self._is_new_data(word_list, adkd_data):
@@ -344,10 +341,7 @@ class ADKD4DataManager(ADKDDataManager):
                 if word.gst_start < gst_tag:
                     nav_data[word_type] = BitArray(word.data)
 
-        # Set the TOW to the previous subframe
         if nav_data[6] and nav_data[10]:
-            tow_data = gst_tag - 25
-            nav_data[6].append(tow_data.tow_bitarray)
             return ADKD4DataBlock(gst_tag, nav_data[6] + nav_data[10])
         else:
             return None
@@ -357,14 +351,14 @@ class NavigationDataManager:
 
     def __init__(self):
         self.adkd_masks = adkd_masks
+        self.auth_sats_svid: List[int] = []
         self.tags_accumulated: Dict[Tuple[int, int, int], TagAccumulation] = {}
+
         self.adkd0_data_managers: Dict[int, ADKD0DataManager] = {}
+        self.adkd4_data_managers: Dict[int, ADKD4DataManager] = {}
         for i in range(1, Config.NS+1):
             self.adkd0_data_managers[i] = ADKD0DataManager(i)
-
-        self.adkd4_data_manager = ADKD4DataManager()
-
-        self.auth_sats_svid: List[int] = []
+            self.adkd4_data_managers[i] = ADKD4DataManager(i)
 
         self.active_words = set()
         for adkd, words in WORDS_PER_ADKD.items():
@@ -380,14 +374,11 @@ class NavigationDataManager:
             if adkd == 0 or adkd == 12:
                 tag_has_data = self.adkd0_data_managers[svid].tag_has_data(tag)
             elif adkd == 4:
-                tag_has_data = self.adkd4_data_manager.tag_has_data(tag)
+                tag_has_data = self.adkd4_data_managers[svid].tag_has_data(tag)
         except KeyError as e:
             msg = f"Tag {tag.id} authenticating a satellite with PRN_D {e} is not implemented."
-            if svid in range(64, 96):
-                msg += " PRN_D 64 - 95 was used for GPS in previous OSNMA versions."
             logger.warning(msg)
         return tag_has_data
-
 
     def get_data(self, tag: TagAndInfo):
         svid = tag.prn_d.uint
@@ -398,7 +389,7 @@ class NavigationDataManager:
             if adkd == 0 or adkd == 12:
                 nav_data = self.adkd0_data_managers[svid].get_nav_data(tag)
             elif adkd == 4:
-                nav_data = self.adkd4_data_manager.get_nav_data(tag)
+                nav_data = self.adkd4_data_managers[svid].get_nav_data(tag)
         except KeyError as e:
             msg = f"Tag {tag.id} authenticating a satellite with PRN_D {e} is not implemented."
             if svid in range(64, 96):
@@ -423,7 +414,7 @@ class NavigationDataManager:
         if word_type in WORDS_PER_ADKD[ADKD0]:
             self.adkd0_data_managers[svid].add_word(word_type, page, gst_page)
         else:
-            self.adkd4_data_manager.add_word(word_type, page, gst_page)
+            self.adkd4_data_managers[svid].add_word(word_type, page, gst_page)
 
     def authenticated_data(self, gst_subframe: GST):
 

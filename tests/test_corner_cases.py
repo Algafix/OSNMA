@@ -21,9 +21,9 @@ import logging
 from pathlib import Path
 
 from osnma.receiver.receiver import OSNMAReceiver
-from osnma.input_formats.input_misc import ICDTestVectors
+from osnma.input_formats.input_sbf import SBF
 import osnma.utils.logger_factory as logger_factory
-LOGS_PATH = Path(__file__).parent / 'logs/icd_test_logs/'
+LOGS_PATH = Path(__file__).parent / 'logs/corner_cases_logs/'
 
 
 def get_base_logger_and_file_handler():
@@ -40,18 +40,18 @@ def get_base_logger_and_file_handler():
     return base_logger, file_handler, log_filename
 
 
-def test_vectors_icd_configuration_X(log_level=logging.INFO):
+def test_change_of_word_type_5(log_level=logging.INFO):
 
     config_dict = {
         'console_log_level': log_level,
         'logs_path': LOGS_PATH,
-        'scenario_path': Path(__file__).parent / 'icd_test_vectors/configuration_X/27_JUL_2023_GST_00_00_01_fixed.csv',
-        'exec_path': Path(__file__).parent / 'icd_test_vectors/configuration_X/',
-        'pubk_name': 'OSNMA_PublicKey_2.xml',
+        'scenario_path': Path(__file__).parent / 'test_corner_cases/change_of_word_type_5/change_wt5.sbf',
+        'exec_path': Path(__file__).parent / 'test_corner_cases/change_of_word_type_5/',
+        'pubk_name': 'OSNMA_PublicKey.xml',
         'kroot_name': 'OSNMA_last_KROOT.txt'
     }
 
-    input_module = ICDTestVectors(config_dict['scenario_path'])
+    input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
     osnma_r.start()
 
@@ -68,13 +68,13 @@ def test_vectors_icd_configuration_X(log_level=logging.INFO):
         crc_failed = len(re.findall('WARNING.*CRC', log_text))
         warnings = len(re.findall('WARNING', log_text))
         errors = len(re.findall('ERROR', log_text))
-    
-    assert tags_auth == 11427
-    assert data_auth == 6056
-    assert kroot_auth == 115
-    assert broken_kroot == 0
+
+    assert tags_auth == 1503
+    assert data_auth == 986
+    assert kroot_auth == 26
+    assert broken_kroot == 6
     assert crc_failed == 0
-    assert warnings == 1
+    assert warnings == 7
     assert errors == 0
 
 
@@ -84,9 +84,9 @@ if __name__ == "__main__":
     test_passed = 0
     test_done = 0
 
-    print(f"\nNominal Configuration X")
+    print(f"\nChange of Word Type 5")
     try:
-        test_vectors_icd_configuration_X(general_log_level)
+        test_change_of_word_type_5(general_log_level)
     except AssertionError:
         print(f"\tFAILED")
     else:
@@ -98,3 +98,6 @@ if __name__ == "__main__":
     print('\n=====================================')
     print(f'\tTEST PASSED: {test_passed}/{test_done}')
     print('=====================================')
+
+
+

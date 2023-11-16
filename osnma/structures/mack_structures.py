@@ -129,19 +129,17 @@ class MACSeqObject:
 
 class TagAndInfo:
 
-    def __init__(self, tag_value: BitArray, prn_d: BitArray, adkd: BitArray, iod_tag: BitArray, gst_subframe: GST,
+    def __init__(self, tag_value: BitArray, prn_d: BitArray, adkd: BitArray, cop: BitArray, gst_subframe: GST,
                  prn_a: BitArray, ctr: int, nma_status: BitArray):
         self.tag_value = tag_value
         self.prn_d = prn_d
         self.prn_a = prn_a
         self.adkd = adkd
-        self.iod_tag = iod_tag
-        self.new_data = iod_tag[0]
+        self.cop = cop
         self.ctr = ctr
         self.gst_subframe = gst_subframe
         self.nma_status = nma_status
-
-        self.id = (self.prn_d.uint, self.adkd.uint, self.iod_tag[1:].uint)
+        self.id = (self.prn_d.uint, self.adkd.uint)
         self.verified: bool = False
         self.key_id: Optional[int] = None
         self.tesla_key: Optional[TESLAKey] = None
@@ -155,7 +153,7 @@ class TagAndInfo:
         return self.tesla_key is not None
 
     def get_log(self) -> str:
-        return f"{self.id} PRN_A: {self.prn_a.uint} GST_SF: {self.gst_subframe}"
+        return f"{self.id} PRN_A: {self.prn_a.uint} GST_SF: {self.gst_subframe} COP: {self.cop.uint}"
 
 
 class Tag0AndSeq(TagAndInfo):
@@ -167,9 +165,6 @@ class Tag0AndSeq(TagAndInfo):
         super().__init__(tag0_value, prn_d, adkd, iod_tag, gst_subframe, prn_a, 1, nma_status)
         self.mac_seq = mac_seq
         self.is_tag0 = True
-
-    def is_new_data(self) -> bool:
-        return self.iod_tag[0] == 1
 
     def get_log(self) -> str:
         return f"{super().get_log()} TAG0"
