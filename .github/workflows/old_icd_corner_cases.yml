@@ -1,10 +1,10 @@
 # This workflow will install Python dependencies, run tests and lint.
 
-name: Python 3.8
+name: Old ICD corner cases
 
 on:
   push:
-    branches: [ master ]
+    branches: [ OSNMA_Test_Phase_ICD ]
     paths-ignore:
       - '**.md'
 
@@ -16,12 +16,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.8']
+        python-version: ['3.10']
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies

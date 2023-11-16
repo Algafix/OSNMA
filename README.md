@@ -1,7 +1,8 @@
-[![ICD Test Vectors](https://github.com/Algafix/OSNMA/actions/workflows/icd_test_vectors.yml/badge.svg)](https://github.com/Algafix/OSNMA/actions/workflows/icd_test_vectors.yml)
-[![Python 3.8](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_38.yml/badge.svg)](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_38.yml)
-[![Python 3.9](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_39.yml/badge.svg)](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_39.yml)
-[![Python 3.10](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_310.yml/badge.svg)](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_310.yml)
+[![Old ICD Test Vectors](https://github.com/Algafix/OSNMA/actions/workflows/old_icd_test_vectors.yml/badge.svg)](https://github.com/Algafix/OSNMA/actions/workflows/icd_test_vectors.yml)
+[![Old ICD corner cases](https://github.com/Algafix/OSNMA/actions/workflows/old_icd_corner_cases.yml/badge.svg)](https://github.com/Algafix/OSNMA/actions/workflows/tests_python_38.yml)
+
+BRANCH IMPLEMENTING THE OLD VERSION OF OSNMA (until 2023-08-03 11:00)
+===
 
 OSNMAlib
 ========
@@ -13,8 +14,6 @@ the navigation and authentication data, perform the authentication verification,
 The software has been succesfully tested using the official ICD test vectors from the [Receiver Guidelines for the Test Phase v1.1](https://www.gsc-europa.eu/sites/default/files/sites/all/files/Galileo_OSNMA_Receiver_Guidelines_for_the_Test_Phase_v1.1.pdf) available [here](https://www.gsc-europa.eu/sites/default/files/sites/all/files/osnma_annex_2.zip). It has also been tested with old test vectors and real live data recorded by me.
 
 Supports Python 3.8, 3.9 and 3.10+. Tested on Linux and Windows.
-
-**NOTE:** If you want to use live data after 2023-08-03 11:00, please checkout the [ICD 1.0 branch](https://github.com/Algafix/OSNMA/tree/OSNMA_ICD_1.0/)
 
 Features
 ---
@@ -45,18 +44,6 @@ Current data **format supported**:
   * Live connection to a Septentrio Receiver through IP port.
   * Live aggregated data from the [galmon](https://github.com/berthubert/galmon) project.
   * Allows for custom data by implementing your iterator.
-
-Future development:
-
-  * **Done!** ~~Support for SBF directly (no conversion to SBF Ascii).~~
-  * **Done!** ~~Development of an input iterator for real-time navigation data.~~
-    * ~~Integration with SBF logging real-time navigation data.~~
-    * ~~Integration with Galmon real-time navigation data.~~
-  * **Done!** ~~Reconstruct MACK subframes.~~
-  * **Done!** ~~TTFAF metric displayed in the logs.~~
-  * Time synchronization options.
-  * Clean up the new ICD 1.0 branch, and implement COP.
-  * Rework of the data link module.
 
 Documentation
 ---
@@ -223,26 +210,10 @@ The most important parameters are:
 For a full description see the wiki page [Receiver Options [TBC]](https://github.com/Algafix/OSNMA/wiki/Receiver-Options-%5BTBC%5D).
 
 
-Research Notice
-===
-
-This repository partially contains data, information and ideas regarding an ongoing PhD research.
-
-Please don't publish your own results based on OSNMA ideas and optimizations read on this repository until they have been scientifically disclosed. I will update this note once that happens.
-
-I strongly believe in open-source software and free access to knowledge, and this whole project remains open to honour these ideals.
-
-However, this approach by my side requires the uttermost respect to the research integrity and ethics by anyone accessing this repository. 
-
-In case of doubt, contact me at algafix[@]protonmail.com
-
-Thank you.
-
-
 Support
 ===
 
-If you are having issues, please use the Issues page in GitHub.
+If you are having issues, please use the Issues page in GitHub. **The support for this branch is not prioritized.** 
 
 Contribution
 ===
