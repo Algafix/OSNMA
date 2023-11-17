@@ -15,6 +15,7 @@
 #
 
 from bitstring import BitArray
+from osnma.cryptographic.gst_class import GST
 
 
 class DataFormat:
@@ -38,10 +39,8 @@ class DataFormat:
         "240 bits of the full page (even and odd concatenated)"
         self.svid = svid
         "Space Vehicle (Satellite) ID"
-        self.wn = wn
-        "Week number in Galileo Time"
-        self.tow = tow
-        "Time of week of transmission"
+        self.gst_page: GST = GST(wn=wn, tow=tow)
+        "GST of transmission of the first symbol of the page"
         self.band = band
         self.crc = crc
 

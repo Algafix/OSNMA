@@ -15,7 +15,7 @@
 #
 
 ######## type annotations ########
-from typing import List, Dict, Optional
+from typing import Dict, Tuple, Optional
 from osnma.input_formats.base_classes import PageIterator, DataFormat
 
 ######## imports ########
@@ -61,15 +61,12 @@ class OSNMAReceiver:
         Filter page if it is not useful for teh current OSNMA implementation.
         Checks for CRC, alert pages, dummy pages, other signals aside from E1BC, etc.
         Also, sets the FIST_TOW variable if not specified.
-
-        :param data: Complete page to filter if needed.
-        :return: True if needs to be filtered out, False otherwise.
         """
 
-        if Config.FIRST_TOW is None:
-            Config.FIRST_TOW = data.tow
+        if Config.FIRST_GST is None:
+            Config.FIRST_GST = data.gst_page
 
-        if data.tow < Config.FIRST_TOW:
+        if data.gst_page < Config.FIRST_GST:
             return True
 
         if data.band != 'GAL_L1BC':
@@ -82,8 +79,8 @@ class OSNMAReceiver:
             return True
 
         if not data.crc:
-            logger.warning(f'CRC FAILED\tSVID: {data.svid:02} - TOW: {data.tow} - Page: {(data.tow % 30):02}. '
-                           f'Page NOT processed.')
+            logger.warning(f'CRC FAILED\tSVID: {data.svid:02} - TOW: {data.gst_page.tow} - '
+                           f'Page: {(data.gst_page.tow % 30):02} - Page NOT processed.')
             return True
 
         if data.wn > 1249 or data.wn == 1249 and data.tow > 385200:
@@ -93,10 +90,18 @@ class OSNMAReceiver:
 
         return False
 
-    def start(self, start_at_tow: Optional[int] = None):
+    def start(self, start_at_gst: Optional[Tuple[int, int]] = None):
+        """
+        Start the processing of data from the defined input module.
 
-        # If not defined, it will select the first tow read
-        Config.FIRST_TOW = start_at_tow
+        :param start_at_gst: Tuple with (WN, TOWs) telling the receiver when to start to process OSNMA data. If not
+            provided, the TTFAF will be calculated with respect to the first GST read.
+        """
+
+        if start_at_gst:
+            Config.FIRST_GST = GST(wn=start_at_gst[0], tow=start_at_gst[1])
+        else:
+            Config.FIRST_GST = None
 
         for page in self.nav_data_input:
 
@@ -104,16 +109,13 @@ class OSNMAReceiver:
                 continue
 
             satellite = self.satellites[page.svid]
-
-            # Handle page
-            gst_page = GST(wn=page.wn, tow=page.tow)
-            self.receiver_state.load_page(page.nav_bits, gst_page, satellite.svid)
-            satellite.new_page(page, page.tow)
+            satellite.new_page(page)
+            self.receiver_state.load_page(page.nav_bits, page.gst_page, satellite.svid)
 
             # End of the subframe
-            if page.tow % 30 == 29:
-                gst_sf = GST(wn=page.wn, tow=page.tow // 30 * 30)
-                logger.info(f"--- SUBFRAME --- WN {gst_sf.wn} TOW {gst_sf.tow} SVID {satellite.svid} ---")
+            if page.gst_page % 30 == 29:
+                gst_sf = GST(wn=page.gst_page.wn, tow=page.gst_page.tow // 30 * 30)
+                logger.info(f"--- SUBFRAME --- WN {gst_sf.wn} TOW {gst_sf.tow} SVID {satellite.svid:02} ---")
 
                 if satellite.subframe_with_osnma():
                     raw_hkroot_sf = satellite.get_hkroot_subframe()

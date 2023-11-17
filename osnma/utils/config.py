@@ -50,7 +50,7 @@ class Config:
     DO_TESLA_KEY_REGEN = True
 
     STOP_AT_FAF = False
-    FIRST_TOW = None
+    FIRST_GST = None
 
     @classmethod
     def load_configuration_parameters(cls, custom_parameters: Dict):
