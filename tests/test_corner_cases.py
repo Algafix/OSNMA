@@ -78,6 +78,43 @@ def test_change_of_word_type_5(log_level=logging.INFO):
     assert errors == 0
 
 
+def test_tow_rollover(log_level=logging.INFO):
+
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'test_corner_cases/tow_rollover/tow_rollover_only_inav.sbf',
+        'exec_path': Path(__file__).parent / 'test_corner_cases/tow_rollover/',
+        'pubk_name': 'OSNMA_PublicKey.xml'
+    }
+
+    input_module = SBF(config_dict['scenario_path'])
+    osnma_r = OSNMAReceiver(input_module, config_dict)
+    osnma_r.start()
+
+    base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
+    base_logger.removeHandler(file_handler)
+
+    with open(log_filename, 'r') as log_file:
+        log_text = log_file.read()
+
+        tags_auth = len(re.findall(r'Tag AUTHENTICATED', log_text))
+        data_auth = len(re.findall(r'INFO .* AUTHENTICATED: ADKD', log_text))
+        kroot_auth = len(re.findall(r'INFO .*KROOT.*\n\tAUTHENTICATED\n', log_text))
+        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
+        crc_failed = len(re.findall('WARNING.*CRC', log_text))
+        warnings = len(re.findall('WARNING', log_text))
+        errors = len(re.findall('ERROR', log_text))
+
+    assert tags_auth == 8964
+    assert data_auth == 7393
+    assert kroot_auth == 199
+    assert broken_kroot == 16
+    assert crc_failed == 2498
+    assert warnings == 2515
+    assert errors == 0
+
+
 if __name__ == "__main__":
 
     general_log_level = logging.CRITICAL
@@ -94,6 +131,18 @@ if __name__ == "__main__":
         print(f"\tCORRECT")
     finally:
         test_done += 1
+
+    print(f"\nToW rollover")
+    try:
+        test_tow_rollover(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
 
     print('\n=====================================')
     print(f'\tTEST PASSED: {test_passed}/{test_done}')

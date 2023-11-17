@@ -43,6 +43,11 @@ class GST:
             self.wn = kwargs.get('wn', 0)
             self.tow = kwargs.get('tow', 0)
 
+            if self.tow < 0:
+                q, r = divmod(self.tow, MAX_TOW+1)
+                self.wn += q
+                self.tow = r
+
     def __str__(self):
         return f"{self.wn} {self.tow}"
 
@@ -122,6 +127,9 @@ class GST:
 
     def __floordiv__(self, other: int) -> int:
         return self.int // other
+
+    def __mod__(self, other: int) -> int:
+        return self.tow % other
 
     ### Accessors ###
 

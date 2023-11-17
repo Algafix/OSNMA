@@ -124,7 +124,7 @@ class MACSeqObject:
         return self.tesla_key is not None
 
     def get_log(self) -> str:
-        return f"PRN_A: {self.svid.uint} GST_SF: {self.gst} FLX Tags: {len(self.flex_list)}"
+        return f"PRN_A: {self.svid.uint:02} GST_SF: {self.gst} FLX Tags: {len(self.flex_list)}"
 
 
 class TagAndInfo:
@@ -146,14 +146,14 @@ class TagAndInfo:
         self.is_tag0 = False
 
     def __repr__(self) -> str:
-        return f"{{ID: {self.id} PRN_A: {self.prn_a.uint}}}"
+        return f"{{ID: ({self.id[0]:02}, {self.id[1]:02}) PRN_A: {self.prn_a.uint:02}}}"
 
     @property
     def has_key(self) -> bool:
         return self.tesla_key is not None
 
     def get_log(self) -> str:
-        return f"{self.id} PRN_A: {self.prn_a.uint} GST_SF: {self.gst_subframe} COP: {self.cop.uint}"
+        return f"({self.id[0]:02}, {self.id[1]:02}) PRN_A: {self.prn_a.uint:02} GST_SF: {self.gst_subframe} COP: {self.cop.uint:02}"
 
 
 class Tag0AndSeq(TagAndInfo):

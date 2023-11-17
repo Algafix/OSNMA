@@ -40,7 +40,7 @@ WORDS_PER_ADKD = {0: [1, 2, 3, 4, 5],
 
 class TagAccumulation:
 
-    auth_message = 'AUTHENTICATED: ADKD {adkd} - Satellite {satellite} {iod} ' \
+    auth_message = 'AUTHENTICATED: ADKD {adkd:02} - Satellite {satellite:02} {iod} ' \
                    '\n\t\t GST SF {gst_start}  to  GST SF {gst_last} ' \
                    '\n\t\t {words} \n'
 
@@ -434,8 +434,8 @@ class NavigationDataManager:
                         # Also, OSNMAlib works with pages timestamped with the GST of leading edge of the first page,
                         # but to receive the data of a page we have to wait until the page ends, hence +1 second.
                         gst_subframe_data_end = gst_subframe+30+1
-                        logger.info(f"FIRST AUTHENTICATED FIX {gst_subframe_data_end}")
-                        logger.info(f"FIRST TOW {Config.FIRST_TOW}")
-                        logger.info(f"TTFAF {gst_subframe_data_end - Config.FIRST_TOW}")
+                        logger.info(f"First Authenticated Fix at GST {gst_subframe_data_end}")
+                        logger.info(f"First GST {Config.FIRST_GST}")
+                        logger.info(f"TTFAF {(gst_subframe_data_end - Config.FIRST_GST).tow} seconds\n")
                         if Config.STOP_AT_FAF:
                             raise Exception("Stopped by FAF")

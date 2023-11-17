@@ -20,24 +20,10 @@ from pathlib import Path
 
 from osnma.receiver.receiver import OSNMAReceiver
 from osnma.input_formats.input_sbf import SBF, SBFLive
+from osnma.input_formats.input_misc import ICDTestVectors
 from osnma.input_formats.input_galmon import GALMON
 
 LOGS_PATH = Path(__file__).parent / 'logs/general_logs/'
-
-
-def test_change_of_word_type_5():
-
-    config_dict = {
-        'logs_path': LOGS_PATH,
-        'scenario_path': Path(__file__).parent / 'test_corner_cases/change_of_word_type_5/change_wt5.sbf',
-        'exec_path': Path(__file__).parent / 'test_corner_cases/change_of_word_type_5/',
-        'pubk_name': 'OSNMA_PublicKey.xml',
-        'kroot_name': 'OSNMA_last_KROOT.txt'
-    }
-
-    input_module = SBF(config_dict['scenario_path'])
-    osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start()
 
 
 def sbf_live():
@@ -76,10 +62,56 @@ def sbf_new_config():
 
     osnma_r.start()
 
+def test_vectors_icd_configuration_X():
+    config_dict = {
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/configuration_X/27_JUL_2023_GST_00_00_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'icd_test_vectors/configuration_X/',
+        'pubk_name': 'OSNMA_PublicKey_2.xml',
+        'kroot_name': 'OSNMA_last_KROOT.txt'
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    osnma_r = OSNMAReceiver(input_module, config_dict)
+    osnma_r.start()
+
+
+def test_change_of_word_type_5():
+
+    config_dict = {
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'test_corner_cases/change_of_word_type_5/change_wt5.sbf',
+        'exec_path': Path(__file__).parent / 'test_corner_cases/change_of_word_type_5/',
+        'pubk_name': 'OSNMA_PublicKey.xml',
+        'kroot_name': 'OSNMA_last_KROOT.txt'
+    }
+
+    input_module = SBF(config_dict['scenario_path'])
+    osnma_r = OSNMAReceiver(input_module, config_dict)
+    osnma_r.start()
+
+
+def tow_rollover():
+
+    config_dict = {
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'test_corner_cases/tow_rollover/tow_rollover_only_inav.sbf',
+        'exec_path': Path(__file__).parent / 'test_corner_cases/tow_rollover/',
+        'pubk_name': 'OSNMA_PublicKey.xml'
+    }
+
+    input_module = SBF(config_dict['scenario_path'])
+    osnma_r = OSNMAReceiver(input_module, config_dict)
+    osnma_r.start()
+
 
 if __name__ == "__main__":
 
-    test_change_of_word_type_5()
+    tow_rollover()
+
+    # test_change_of_word_type_5()
+
+    # test_vectors_icd_configuration_X()
 
     # sbf_new_config()
 
