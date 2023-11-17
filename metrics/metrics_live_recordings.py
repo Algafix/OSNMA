@@ -7,6 +7,7 @@ import numpy as np
 import numpy.typing as npt
 
 from pathlib import Path
+from typing import Tuple
 
 from osnma.receiver.receiver import OSNMAReceiver
 from osnma.input_formats.input_sbf import SBF
@@ -40,9 +41,9 @@ def get_TTFAF_stats():
 
     with open(log_filename, 'r') as log_file:
         log_text = log_file.read()
-        first_tow = re.findall(r'FIRST TOW ([0-9]+)', log_text)[0]
-        faf_tow = re.findall(r'FIRST AUTHENTICATED FIX [0-9]+ ([0-9]+)', log_text)[0]
-        ttfaf = re.findall(r'TTFAF ([0-9]+)', log_text)[0]
+        first_tow = re.findall(r'First GST [0-9]+ ([0-9]+)', log_text)[0]
+        faf_tow = re.findall(r'First Authenticated Fix at GST [0-9]+ ([0-9]+)', log_text)[0]
+        ttfaf = re.findall(r'TTFAF ([0-9]+) seconds', log_text)[0]
 
     return first_tow, faf_tow, ttfaf
 
@@ -83,7 +84,7 @@ def print_stats():
     print(f"Errors: {errors}")
 
 
-def sbf_live_parc_leopold(extra_config_dict=None, start_at_tow=None, log_level=logging.INFO):
+def sbf_live_parc_leopold(extra_config_dict=None, start_at_gst: Tuple[int, int] = None, log_level=logging.INFO):
 
     extra_config_dict = extra_config_dict if extra_config_dict else {}
 
@@ -101,12 +102,12 @@ def sbf_live_parc_leopold(extra_config_dict=None, start_at_tow=None, log_level=l
     input_module = SBF(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
     try:
-        osnma_r.start(start_at_tow=start_at_tow)
+        osnma_r.start(start_at_gst=start_at_gst)
     except Exception as e:
         print(e)
         pass
-    first_tow, faf_tow, ttfaf = get_TTFAF_stats()
-    print(f"TTFAF: {ttfaf}\t{first_tow}-{faf_tow}")
+    first_gst, faf_gst, ttfaf = get_TTFAF_stats()
+    print(f"TTFAF: {ttfaf}\t{first_gst}-{faf_gst}")
     return int(ttfaf)
 
 
@@ -152,8 +153,6 @@ def sbf_live_manneken(extra_config_dict=None, log_level=logging.INFO):
     print_stats()
 
 
-
-
 def plot_ttfaf(plot_ttfaf_vectors: npt.NDArray, tow_range: range):
 
     names = ["Base", "Tag extraction", "Tag and Tesla extraction"]
@@ -174,7 +173,7 @@ def plot_ttfaf(plot_ttfaf_vectors: npt.NDArray, tow_range: range):
     plt.show()
 
 
-def get_ttfaf_data_for_parc_leopold(tow_range, save):
+def get_ttfaf_data_for_parc_leopold(wn, tow_range, save):
 
     base = {'log_console': False, 'do_hkroot_regen': True, 'do_crc_failed_extraction': False, 'do_tesla_key_regen': False}
     crc_extraction = {'log_console': False, 'do_hkroot_regen': True, 'do_crc_failed_extraction': True, 'do_tesla_key_regen': False}
@@ -187,7 +186,7 @@ def get_ttfaf_data_for_parc_leopold(tow_range, save):
         for j, tow in enumerate(tow_range):
             ttfaf = sbf_live_parc_leopold(
                 config,
-                start_at_tow=tow)
+                start_at_gst=(wn, tow))
             ttfaf_matrix[i][j] = ttfaf
         print(ttfaf_matrix[i])
 
@@ -205,12 +204,13 @@ if __name__ == "__main__":
     #
     # exit()
 
+    WN = 1210
     TOW_START = 52268
     TOW_STOP = TOW_START + 300
     tow_range = range(TOW_START, TOW_STOP)
 
     ttfaf_matrix = np.load("ttfaf_vectors_leopold_all.npy")
 
-    # ttfaf_matrix = get_ttfaf_data_for_parc_leopold(tow_range, True)
+    # ttfaf_matrix = get_ttfaf_data_for_parc_leopold(WN, tow_range, False)
 
     plot_ttfaf(ttfaf_matrix, tow_range)
