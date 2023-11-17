@@ -320,7 +320,7 @@ def test_sbf_npk_12(log_level=logging.INFO):
         crc_failed = len(re.findall('WARNING.*CRC', log_text))
         broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
         errors = len(re.findall('ERROR', log_text))
-        adkd4_failed = len(re.findall(r'ERROR.*Tag FAILED\n\t.*\(255, 4, 0\)', log_text))
+        adkd4_failed = len(re.findall(r'ERROR.*Tag FAILED\n\t.*\(255, 04, 0\)', log_text))
 
     assert tags_auth == 3147
     assert data_auth == 911

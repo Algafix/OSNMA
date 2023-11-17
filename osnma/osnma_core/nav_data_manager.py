@@ -60,14 +60,12 @@ class TagAccumulation:
         else:
             iod_message = f"- IOD {self.iod}"
 
-        satellite_message = prn_d if prn_d != 255 else "Any"
-
         words_message = "Words "
         for word in WORDS_PER_ADKD[adkd]:
             words_message += f"{word}, "
         words_message = words_message[:-2]
 
-        auth_message = self.auth_message.format(adkd=adkd, satellite=satellite_message,
+        auth_message = self.auth_message.format(adkd=adkd, satellite=prn_d,
                                                 iod=iod_message, words=words_message,
                                                 gst_start='{gst_start}', gst_last='{gst_last}')
         return auth_message

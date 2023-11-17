@@ -83,7 +83,7 @@ class OSNMAReceiver:
                            f'Page: {(data.gst_page.tow % 30):02} - Page NOT processed.')
             return True
 
-        if data.wn > 1249 or data.wn == 1249 and data.tow > 385200:
+        if data.gst_page > GST(wn=1249, tow=385200):
             logger.critical(f"The data used corresponds to the new version of OSNMA transmitted since "
                             f"2023-08-03 11:00 UTC. Please use the corresponding branch.")
             exit()

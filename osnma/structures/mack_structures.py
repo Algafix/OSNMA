@@ -148,14 +148,14 @@ class TagAndInfo:
         self.is_tag0 = False
 
     def __repr__(self) -> str:
-        return f"{{ID: ({self.id[0]:02}, {self.id[1]:02}) PRN_A: {self.prn_a.uint:02}}}"
+        return f"{{ID: ({self.id[0]:02}, {self.id[1]:02}, {self.id[2]}) PRN_A: {self.prn_a.uint:02}}}"
 
     @property
     def has_key(self) -> bool:
         return self.tesla_key is not None
 
     def get_log(self) -> str:
-        return f"({self.id[0]:02}, {self.id[1]:02}) PRN_A: {self.prn_a.uint:02} GST_SF: {self.gst_subframe}"
+        return f"({self.id[0]:02}, {self.id[1]:02}, {self.id[2]}) PRN_A: {self.prn_a.uint:02} GST_SF: {self.gst_subframe}"
 
 
 class Tag0AndSeq(TagAndInfo):
