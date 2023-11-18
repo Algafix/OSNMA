@@ -12,6 +12,8 @@ The software has been successfully tested using part of the official ICD test ve
 However, the vectors to validate all corner cases have not yet been released.
 It has also been tested with real live data recorded by me.
 
+If you are using data from the OSNMA Test Phase (before 2023-08-03 11:00), use the [OSNMA_Test_Phase_ICD branch](https://github.com/Algafix/OSNMA/tree/OSNMA_Test_Phase_ICD).
+
 Supports Python 3.8, 3.9 and 3.10+. Tested on Linux and Windows.
 
 Features
