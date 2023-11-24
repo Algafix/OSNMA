@@ -39,6 +39,33 @@ def get_base_logger_and_file_handler():
 
     return base_logger, file_handler, log_filename
 
+def run(input_module, config_dict, expected_results_dict):
+
+    osnma_r = OSNMAReceiver(input_module, config_dict)
+    osnma_r.start()
+
+    base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
+    base_logger.removeHandler(file_handler)
+
+    with open(log_filename, 'r') as log_file:
+        log_text = log_file.read()
+
+        tags_auth = len(re.findall(r'Tag AUTHENTICATED', log_text))
+        data_auth = len(re.findall(r'INFO .* AUTHENTICATED: ADKD', log_text))
+        kroot_auth = len(re.findall(r'INFO .*KROOT.*\n\tAUTHENTICATED\n', log_text))
+        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
+        crc_failed = len(re.findall('WARNING.*CRC', log_text))
+        warnings = len(re.findall('WARNING', log_text))
+        errors = len(re.findall('ERROR', log_text))
+
+    assert tags_auth == expected_results_dict["tags_auth"]
+    assert data_auth == expected_results_dict["data_auth"]
+    assert kroot_auth == expected_results_dict["kroot_auth"]
+    assert broken_kroot == expected_results_dict["broken_kroot"]
+    assert crc_failed == expected_results_dict["crc_failed"]
+    assert warnings == expected_results_dict["warnings"]
+    assert errors == expected_results_dict["errors"]
+
 def test_vectors_icd_configuration_1(log_level=logging.INFO):
     config_dict = {
         'console_log_level': log_level,
@@ -48,31 +75,18 @@ def test_vectors_icd_configuration_1(log_level=logging.INFO):
         'pubk_name': 'OSNMA_PublicKey.xml'
     }
 
+    expected_results = {
+        "tags_auth": 12532,
+        "data_auth": 6144,
+        "kroot_auth": 176,
+        "broken_kroot": 0,
+        "crc_failed": 0,
+        "warnings": 1,
+        "errors": 0
+    }
+
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start()
-
-    base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
-    base_logger.removeHandler(file_handler)
-
-    with open(log_filename, 'r') as log_file:
-        log_text = log_file.read()
-
-        tags_auth = len(re.findall(r'Tag AUTHENTICATED', log_text))
-        data_auth = len(re.findall(r'INFO .* AUTHENTICATED: ADKD', log_text))
-        kroot_auth = len(re.findall(r'INFO .*KROOT.*\n\tAUTHENTICATED\n', log_text))
-        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
-        crc_failed = len(re.findall('WARNING.*CRC', log_text))
-        warnings = len(re.findall('WARNING', log_text))
-        errors = len(re.findall('ERROR', log_text))
-
-    assert tags_auth == 12532
-    assert data_auth == 6144
-    assert kroot_auth == 176
-    assert broken_kroot == 0
-    assert crc_failed == 0
-    assert warnings == 1
-    assert errors == 0
+    run(input_module, config_dict, expected_results)
 
 def test_vectors_icd_configuration_2(log_level=logging.INFO):
     config_dict = {
@@ -82,31 +96,18 @@ def test_vectors_icd_configuration_2(log_level=logging.INFO):
         'exec_path': Path(__file__).parent / 'icd_test_vectors/configuration_2/'
     }
 
+    expected_results = {
+        "tags_auth": 11427,
+        "data_auth": 5649,
+        "kroot_auth": 115,
+        "broken_kroot": 0,
+        "crc_failed": 0,
+        "warnings": 0,
+        "errors": 0
+    }
+
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start()
-
-    base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
-    base_logger.removeHandler(file_handler)
-
-    with open(log_filename, 'r') as log_file:
-        log_text = log_file.read()
-
-        tags_auth = len(re.findall(r'Tag AUTHENTICATED', log_text))
-        data_auth = len(re.findall(r'INFO .* AUTHENTICATED: ADKD', log_text))
-        kroot_auth = len(re.findall(r'INFO .*KROOT.*\n\tAUTHENTICATED\n', log_text))
-        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
-        crc_failed = len(re.findall('WARNING.*CRC', log_text))
-        warnings = len(re.findall('WARNING', log_text))
-        errors = len(re.findall('ERROR', log_text))
-
-    assert tags_auth == 11427
-    assert data_auth == 5649
-    assert kroot_auth == 115
-    assert broken_kroot == 0
-    assert crc_failed == 0
-    assert warnings == 0
-    assert errors == 0
+    run(input_module, config_dict, expected_results)
 
 def test_vectors_icd_configuration_2_pubk_kroot(log_level=logging.INFO):
     config_dict = {
@@ -118,32 +119,18 @@ def test_vectors_icd_configuration_2_pubk_kroot(log_level=logging.INFO):
         'kroot_name': 'OSNMA_start_KROOT.txt'
     }
 
+    expected_results = {
+        "tags_auth": 11427,
+        "data_auth": 6056,
+        "kroot_auth": 115,
+        "broken_kroot": 0,
+        "crc_failed": 0,
+        "warnings": 1,
+        "errors": 0
+    }
+
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start()
-
-    base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
-    base_logger.removeHandler(file_handler)
-
-    with open(log_filename, 'r') as log_file:
-        log_text = log_file.read()
-
-        tags_auth = len(re.findall(r'Tag AUTHENTICATED', log_text))
-        data_auth = len(re.findall(r'INFO .* AUTHENTICATED: ADKD', log_text))
-        kroot_auth = len(re.findall(r'INFO .*KROOT.*\n\tAUTHENTICATED\n', log_text))
-        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
-        crc_failed = len(re.findall('WARNING.*CRC', log_text))
-        warnings = len(re.findall('WARNING', log_text))
-        errors = len(re.findall('ERROR', log_text))
-
-    assert tags_auth == 11427
-    assert data_auth == 6056
-    assert kroot_auth == 115
-    assert broken_kroot == 0
-    assert crc_failed == 0
-    assert warnings == 1
-    assert errors == 0
-
+    run(input_module, config_dict, expected_results)
 
 if __name__ == "__main__":
 

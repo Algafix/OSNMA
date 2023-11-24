@@ -39,6 +39,32 @@ def get_base_logger_and_file_handler():
 
     return base_logger, file_handler, log_filename
 
+def run(input_module, config_dict, expected_results_dict):
+
+    osnma_r = OSNMAReceiver(input_module, config_dict)
+    osnma_r.start()
+
+    base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
+    base_logger.removeHandler(file_handler)
+
+    with open(log_filename, 'r') as log_file:
+        log_text = log_file.read()
+
+        tags_auth = len(re.findall(r'Tag AUTHENTICATED', log_text))
+        data_auth = len(re.findall(r'INFO .* AUTHENTICATED: ADKD', log_text))
+        kroot_auth = len(re.findall(r'INFO .*KROOT.*\n\tAUTHENTICATED\n', log_text))
+        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
+        crc_failed = len(re.findall('WARNING.*CRC', log_text))
+        warnings = len(re.findall('WARNING', log_text))
+        errors = len(re.findall('ERROR', log_text))
+
+    assert tags_auth == expected_results_dict["tags_auth"]
+    assert data_auth == expected_results_dict["data_auth"]
+    assert kroot_auth == expected_results_dict["kroot_auth"]
+    assert broken_kroot == expected_results_dict["broken_kroot"]
+    assert crc_failed == expected_results_dict["crc_failed"]
+    assert warnings == expected_results_dict["warnings"]
+    assert errors == expected_results_dict["errors"]
 
 def test_change_of_word_type_5(log_level=logging.INFO):
 
@@ -51,32 +77,18 @@ def test_change_of_word_type_5(log_level=logging.INFO):
         'kroot_name': 'OSNMA_last_KROOT.txt'
     }
 
+    expected_results = {
+        "tags_auth": 1503,
+        "data_auth": 986,
+        "kroot_auth": 26,
+        "broken_kroot": 6,
+        "crc_failed": 0,
+        "warnings": 7,
+        "errors": 0
+    }
+
     input_module = SBF(config_dict['scenario_path'])
-    osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start()
-
-    base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
-    base_logger.removeHandler(file_handler)
-
-    with open(log_filename, 'r') as log_file:
-        log_text = log_file.read()
-
-        tags_auth = len(re.findall(r'Tag AUTHENTICATED', log_text))
-        data_auth = len(re.findall(r'INFO .* AUTHENTICATED: ADKD', log_text))
-        kroot_auth = len(re.findall(r'INFO .*KROOT.*\n\tAUTHENTICATED\n', log_text))
-        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
-        crc_failed = len(re.findall('WARNING.*CRC', log_text))
-        warnings = len(re.findall('WARNING', log_text))
-        errors = len(re.findall('ERROR', log_text))
-
-    assert tags_auth == 1503
-    assert data_auth == 986
-    assert kroot_auth == 26
-    assert broken_kroot == 6
-    assert crc_failed == 0
-    assert warnings == 7
-    assert errors == 0
-
+    run(input_module, config_dict, expected_results)
 
 def test_tow_rollover(log_level=logging.INFO):
 
@@ -88,31 +100,18 @@ def test_tow_rollover(log_level=logging.INFO):
         'pubk_name': 'OSNMA_PublicKey.xml'
     }
 
+    expected_results = {
+        "tags_auth": 8964,
+        "data_auth": 7393,
+        "kroot_auth": 199,
+        "broken_kroot": 16,
+        "crc_failed": 2498,
+        "warnings": 2515,
+        "errors": 0
+    }
+
     input_module = SBF(config_dict['scenario_path'])
-    osnma_r = OSNMAReceiver(input_module, config_dict)
-    osnma_r.start()
-
-    base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
-    base_logger.removeHandler(file_handler)
-
-    with open(log_filename, 'r') as log_file:
-        log_text = log_file.read()
-
-        tags_auth = len(re.findall(r'Tag AUTHENTICATED', log_text))
-        data_auth = len(re.findall(r'INFO .* AUTHENTICATED: ADKD', log_text))
-        kroot_auth = len(re.findall(r'INFO .*KROOT.*\n\tAUTHENTICATED\n', log_text))
-        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
-        crc_failed = len(re.findall('WARNING.*CRC', log_text))
-        warnings = len(re.findall('WARNING', log_text))
-        errors = len(re.findall('ERROR', log_text))
-
-    assert tags_auth == 8964
-    assert data_auth == 7393
-    assert kroot_auth == 199
-    assert broken_kroot == 16
-    assert crc_failed == 2498
-    assert warnings == 2515
-    assert errors == 0
+    run(input_module, config_dict, expected_results)
 
 
 if __name__ == "__main__":
