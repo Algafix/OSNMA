@@ -21,7 +21,7 @@ from osnma.cryptographic.gst_class import GST
 from osnma.utils.config import Config
 
 from bitstring import BitArray
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple, Optional, Union
 
 import osnma.utils.logger_factory as logger_factory
 logger = logger_factory.get_logger(__name__)
@@ -102,9 +102,6 @@ class ADKDDataManager:
         return adkd_word_data
 
     def add_word(self, word_type: int, data: BitArray, gst_page: GST):
-        pass
-
-    def tag_has_data(self, tag: TagAndInfo) -> bool:
         pass
 
     def get_nav_data(self, tag: TagAndInfo):
@@ -231,16 +228,6 @@ class ADKD0DataManager(ADKDDataManager):
 
         self._clean_old_data()
 
-    def tag_has_data(self, tag: TagAndInfo) -> bool:
-        tag_has_data = False
-        gst_tag = tag.gst_subframe
-
-        for nav_data in self.adkd0_data_blocks:
-            if nav_data.gst_start < gst_tag:
-                tag_has_data = True
-                break
-        return tag_has_data
-
     def get_nav_data(self, tag: TagAndInfo) -> Optional[ADKD0DataBlock]:
         data = None
         gst_tag = tag.gst_subframe
@@ -312,22 +299,6 @@ class ADKD4DataManager(ADKDDataManager):
             word_data = ADKD4WordData(gst_page, adkd_data)
             word_list.append(word_data)
 
-    def tag_has_data(self, tag: TagAndInfo) -> bool:
-        """
-        TODO
-        Think of the case where only W6 or W10 are received and then the data changes, should not keep tags for
-        the old words.
-        """
-        tag_has_data = False
-        gst_tag = tag.gst_subframe
-
-        for word in [word for word_list in self.word_lists.values() for word in word_list]:
-            if word.gst_start < gst_tag:
-                tag_has_data = True
-                break
-
-        return tag_has_data
-
     def get_nav_data(self, tag: TagAndInfo):
 
         nav_data = {6: False, 10: False}
@@ -348,9 +319,17 @@ class ADKD4DataManager(ADKDDataManager):
 class NavigationDataManager:
 
     def __init__(self):
-        self.adkd_masks = adkd_masks
+        """
+        The NavigationDataManager is instantiated as part of the receiver. For each page received, it is called to
+        extract the relevant navigation data of the page and store it depending on which ADKD authenticates it.
+
+        When a tag requires data, it is called to provide it. When a tag is authenticated, that information is
+        transmitted to the NavigationDataManager to mark that data block as authentic.
+
+        It also has a function to log the updated status of the data.
+        """
         self.auth_sats_svid: List[int] = []
-        self.tags_accumulated: Dict[Tuple[int, int, int], TagAccumulation] = {}
+        self.tags_accumulated: Dict[Tuple[int, int], TagAccumulation] = {}
 
         self.adkd0_data_managers: Dict[int, ADKD0DataManager] = {}
         self.adkd4_data_managers: Dict[int, ADKD4DataManager] = {}
@@ -363,25 +342,30 @@ class NavigationDataManager:
             if adkd in Config.ACTIVE_ADKD:
                 self.active_words.update(words)
 
-    def tag_has_data(self, tag: TagAndInfo):
-        svid = tag.prn_d.uint
+    def _get_dummy_data(self, tag: TagAndInfo) -> Union[ADKD0DataBlock, ADKD4DataBlock]:
+        """
+        For dummy tags, the navigation data has to a zero array of the ADKD size.
+        """
         adkd = tag.adkd.uint
-        tag_has_data = False
+        nav_data_len = adkd_masks[adkd]['len']
+        if adkd == 4:
+            nav_data = ADKD4DataBlock(GST(), BitArray(nav_data_len))
+        elif adkd == 0 or adkd == 12:
+            nav_data = ADKD0DataBlock(GST())
+            nav_data.nav_data_stream = BitArray(nav_data_len)
+        else:
+            logger.warning(f"Dummy tag {tag} for a not implemented ADKD")
+            nav_data = None
 
-        try:
-            if adkd == 0 or adkd == 12:
-                tag_has_data = self.adkd0_data_managers[svid].tag_has_data(tag)
-            elif adkd == 4:
-                tag_has_data = self.adkd4_data_managers[svid].tag_has_data(tag)
-        except KeyError as e:
-            msg = f"Tag {tag.id} authenticating a satellite with PRN_D {e} is not implemented."
-            logger.warning(msg)
-        return tag_has_data
+        return nav_data
 
     def get_data(self, tag: TagAndInfo):
         svid = tag.prn_d.uint
         adkd = tag.adkd.uint
         nav_data = None
+
+        if tag.is_dummy:
+            return self._get_dummy_data(tag)
 
         try:
             if adkd == 0 or adkd == 12:
@@ -391,9 +375,13 @@ class NavigationDataManager:
         except KeyError as e:
             msg = f"Tag {tag.id} authenticating a satellite with PRN_D {e} is not implemented."
             logger.warning(msg)
+            nav_data = None
         return nav_data
 
     def add_authenticated_tag(self, tag: TagAndInfo):
+
+        if tag.is_dummy:
+            return
 
         if tag.id in self.tags_accumulated:
             self.tags_accumulated[tag.id].add_tag(tag)

@@ -16,10 +16,6 @@
 
 adkd_masks = [
     {
-        'iod': {
-            'word': 1,
-            'bits': (15,18)
-        },
         'adkd': {
             1: {
                 'word': 1,
@@ -46,13 +42,13 @@ adkd_masks = [
                 'page': 12,
                 'bits': [(8,75)]
             }
-        }
+        },
+        'len': 549,
     },
     None,
     None,
     None,
     {
-        'iod': None,
         'adkd': {
             6: {
                 'word': 6,
@@ -64,7 +60,8 @@ adkd_masks = [
                 'page': 4,
                 'bits': [(88, 114), (122, 138)]
             }
-        }
+        },
+        'len': 141,
     },
     None, # 5 Data from F/NAV
     None,
@@ -74,10 +71,6 @@ adkd_masks = [
     None,
     None,
     {
-        'iod': {
-            'word': 1,
-            'bits': (15,18)
-        },
         'adkd': {
             1: {
                 'word': 1,
@@ -104,7 +97,8 @@ adkd_masks = [
                 'page': 12,
                 'bits': [(8,75)]
             }
-        }
+        },
+        'len': 549,
     },
     None,
     None,

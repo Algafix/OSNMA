@@ -251,4 +251,53 @@ mac_lookup_table = [
         'MACs': 6,
         'sequence': [['00S', 'FLX', '04S', 'FLX', '12S', '00E'], ['00S', 'FLX', '00E', '12S', '00E', '12E']]
     },
+    {
+        'ID': 35,
+        'sections': 2,
+        'NMACK': 1,
+        'MACs': 6,
+        'sequence': [['00S', 'FLX', '04S', 'FLX', '12S', 'FLX'], ['00S', 'FLX', 'FLX', '12S', 'FLX', 'FLX']]
+    },
+    {
+        'ID': 36,
+        'sections': 2,
+        'NMACK': 1,
+        'MACs': 5,
+        'sequence': [['00S', 'FLX', '04S', 'FLX', '12S'], ['00S', 'FLX', '00E', '12S', '12E']]
+    },
+    {
+        'ID': 37,
+        'sections': 2,
+        'NMACK': 1,
+        'MACs': 5,
+        'sequence': [['00S', '00E', '04S', '00E', '12S'], ['00S', '00E', '00E', '12S', '12E']]
+    },
+    {
+        'ID': 38,
+        'sections': 2,
+        'NMACK': 1,
+        'MACs': 5,
+        'sequence': [['00S', 'FLX', '04S', 'FLX', '12S'], ['00S', 'FLX', 'FLX', '12S', 'FLX']]
+    },
+    {
+        'ID': 39,
+        'sections': 2,
+        'NMACK': 1,
+        'MACs': 4,
+        'sequence': [['00S', 'FLX', '04S', 'FLX'], ['00S', 'FLX', '00E', '12S']]
+    },
+    {
+        'ID': 40,
+        'sections': 2,
+        'NMACK': 1,
+        'MACs': 4,
+        'sequence': [['00S', '00E', '04S', '12S'], ['00S', '00E', '00E', '12E']]
+    },
+    {
+        'ID': 41,
+        'sections': 2,
+        'NMACK': 1,
+        'MACs': 4,
+        'sequence': [['00S', 'FLX', '04S', 'FLX'], ['00S', 'FLX', 'FLX', '12S']]
+    },
 ]
