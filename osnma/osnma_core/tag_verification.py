@@ -64,7 +64,7 @@ class TagStateStructure:
         # In case a satellite leaves sight but we still have data and receive cross-tags
         # If a tag fails the cross-authentication and the data is more than one subframe old, probably the data
         # has changed since our last recording from that satellite and therefore should not be used for future tags
-        if tag.adkd.uint == 0 or tag.adkd.uint == 12:
+        if tag.adkd.uint == 0 or tag.adkd.uint == 12 and not tag.is_dummy:
             data_gst_sf = nav_data_block.last_gst_updated // 30 * 30
             if tag.gst_subframe > data_gst_sf + 30:
                 nav_data_block.gst_limit = tag.gst_subframe - 30

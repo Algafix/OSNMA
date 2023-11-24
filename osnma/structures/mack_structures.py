@@ -140,13 +140,14 @@ class TagAndInfo:
         self.gst_subframe = gst_subframe
         self.nma_status = nma_status
         self.id = (self.prn_d.uint, self.adkd.uint)
+        self.is_dummy = (self.cop.uint == 0)
         self.verified: bool = False
         self.key_id: Optional[int] = None
         self.tesla_key: Optional[TESLAKey] = None
         self.is_tag0 = False
 
     def __repr__(self) -> str:
-        return f"{{ID: ({self.id[0]:02}, {self.id[1]:02}) PRN_A: {self.prn_a.uint:02}}}"
+        return f"{{ID: ({self.id[0]:02}, {self.id[1]:02}, {self.cop.uint:02}) PRN_A: {self.prn_a.uint:02}}}"
 
     @property
     def has_key(self) -> bool:
