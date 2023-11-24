@@ -98,7 +98,7 @@ class TagStateStructure:
 
         computed_macseq = self.tesla_chain.mac_function(tesla_key.key, auth_data)[:12]
         if computed_macseq == macseq.macseq_value:
-            self.set_tag_keys(macseq.flex_list)
+            self.set_key_index_to_tags(macseq.flex_list)
             self.tags_awaiting_key.extend(macseq.flex_list)
             logger.info(f"MACSEQ AUTHENTICATED\n\t{macseq.get_log()}")
         else:
@@ -106,16 +106,14 @@ class TagStateStructure:
 
         self.macseq_awaiting_key.remove(macseq)
 
-    def set_tag_keys(self, tag_list: List[TagAndInfo]):
-
+    def set_key_index_to_tags(self, tag_list: List[TagAndInfo]):
         for tag in tag_list:
             if tag.adkd.uint != 12:
                 tag.key_id = self.tesla_chain.get_key_index(tag.gst_subframe) + 1
             else:
-                subframe_id = self.tesla_chain.get_key_index(tag.gst_subframe)
-                tag.key_id = subframe_id + 10 * self.tesla_chain.nmack + 1
+                tag.key_id = self.tesla_chain.get_key_index(tag.gst_subframe) + 11
 
-    def set_macseq_key(self, macseq: MACSeqObject):
+    def set_key_index_to_macseq(self, macseq: MACSeqObject):
         macseq.key_id = self.tesla_chain.get_key_index(macseq.gst) + 1
 
     def verify_maclt(self, mack_message: MACKMessage) -> (List[TagAndInfo], MACSeqObject, bool):
@@ -154,7 +152,7 @@ class TagStateStructure:
         macseq_object = mack_message.get_macseq(flex_list)
         return tag_list, macseq_object, is_flx_tag_missing
 
-    def add_tags_waiting_key(self, tag_list: List[TagAndInfo]):
+    def _add_tags_waiting_key(self, tag_list: List[TagAndInfo]):
         """
         Adds the tags to the waiting for key list if the tag has an active ADKD and authenticates data of one of the
         valid satellites. The list of valid PRN_D is currently 1-36.
@@ -170,6 +168,14 @@ class TagStateStructure:
             self.tags_awaiting_key.append(tag)
 
     def update_tag_lists(self, gst_subframe: GST):
+        """
+        Should be called every time a new TESLA key is provided.
+
+        Authenticates the MACSEQ of that key and adds the tags to the list. Then authenticates all tags that have
+        a valid TESLA key and for which data has been received. If no data has been received, delete the tag.
+
+        Then informs the NavigationDataManager that new data might be authentic.
+        """
 
         # Check for MACSEQ key to update tag list
         for macseq in list(self.macseq_awaiting_key):
@@ -194,10 +200,9 @@ class TagStateStructure:
         self.nav_data_m.authenticated_data(gst_subframe)
 
     def load_mack_message(self, mack_message: MACKMessage):
-
         tag_list, macseq, is_flx_tag_missing = self.verify_maclt(mack_message)
-        self.set_tag_keys(tag_list)
+        self.set_key_index_to_tags(tag_list)
         if macseq and not is_flx_tag_missing:
-            self.set_macseq_key(macseq)
+            self.set_key_index_to_macseq(macseq)
             self.macseq_awaiting_key.append(macseq)
-        self.add_tags_waiting_key(tag_list)
+        self._add_tags_waiting_key(tag_list)

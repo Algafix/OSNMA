@@ -98,7 +98,7 @@ def test_vectors_icd_configuration_2(log_level=logging.INFO):
 
     expected_results = {
         "tags_auth": 11427,
-        "data_auth": 5649,
+        "data_auth": 6056,
         "kroot_auth": 115,
         "broken_kroot": 0,
         "crc_failed": 0,
