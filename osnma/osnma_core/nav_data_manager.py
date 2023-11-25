@@ -115,9 +115,10 @@ class ADKD0DataBlock:
         self.iod: Optional[BitArray] = None
         self.words: Dict[int, BitArray] = {}
         self.nav_data_stream: Optional[BitArray] = None
-        self.gst_limit = GST(BitArray('0xffffffff'))
         self.last_gst_updated = gst_start
         self.gst_completed = GST()
+        self.last_cop = 0
+        self.last_cop_gst = GST(wn=0, tow=0)
 
     def __repr__(self):
 
@@ -126,7 +127,7 @@ class ADKD0DataBlock:
             gst_completed_msg = f" gst_completed: {self.gst_completed},"
 
         msg = f"gst_start: {self.gst_start}, iod: {self.iod}, words: {self.words}\n\t" \
-              f"last_gst_updated: {self.last_gst_updated},{gst_completed_msg} gst_limit: {self.gst_limit}\n\t"
+              f"last_gst_updated: {self.last_gst_updated},{gst_completed_msg} last_cop: {self.last_cop} {self.last_cop_gst}\n\t"
 
         return msg
 
@@ -205,9 +206,11 @@ class ADKD0DataManager(ADKDDataManager):
             self.adkd0_data_blocks[-1].add_word(5, word_5_data, gst_page)
         elif last_word_type_5 != word_5_data:
             # Create new ADKD0Data block with updated GST
-            # For some reason o this case its assumed the next subframe
+            # Due to a bug in DV bits, this is to the next subframe
             new_adkd0data_block = copy.deepcopy(last_adkd0_block)
-            new_adkd0data_block.gst_start = gst_page + 5
+            new_adkd0data_block.gst_start = gst_page + 30 - (gst_page.tow % 30)  # Next subframe
+            new_adkd0data_block.last_cop = 0
+            new_adkd0data_block.last_cop_gst = GST(wn=0, tow=0)
             new_adkd0data_block.add_word(5, word_5_data, gst_page)
             self.adkd0_data_blocks.append(new_adkd0data_block)
 
@@ -230,18 +233,30 @@ class ADKD0DataManager(ADKDDataManager):
 
     def get_nav_data(self, tag: TagAndInfo) -> Optional[ADKD0DataBlock]:
         data = None
-        gst_tag = tag.gst_subframe
+        tag_data_gst_sf_limit = tag.gst_subframe-30*tag.cop.uint
         gst_start_tesla_key = tag.tesla_key.gst_start
 
         for nav_data in self.adkd0_data_blocks:
-            if nav_data.gst_completed and nav_data.gst_start < gst_tag:
-                if nav_data.gst_completed < gst_start_tesla_key - Config.TL:
-                    tmp_data = nav_data.get_nav_data()
-                else:
-                    tmp_data = None
-                data = None if nav_data.gst_limit < gst_tag else tmp_data
-            else:
+            if tag_data_gst_sf_limit <= nav_data.gst_start < tag.gst_subframe:
+                # Data received inside COP range, check TL and proceed
+                data = nav_data.get_nav_data()
+                if data.gst_completed and data.gst_completed > gst_start_tesla_key - Config.TL:
+                    # Completed after TL, do not use
+                    data = None
                 break
+            elif nav_data.gst_start < tag_data_gst_sf_limit < nav_data.last_gst_updated:
+                    # Case with COP saturated at 15 and data from the satellite still updated in COP limit
+                    data = nav_data.get_nav_data()
+                    break
+
+        if data is None and tag.prn_a != tag.prn_d and len(self.adkd0_data_blocks) >= 1:
+            # Last check: cross-auth tag for a satellite we lost view but the data may still be valid
+            last_data_block = self.adkd0_data_blocks[-1]
+            if tag.cop.uint >= last_data_block.last_cop and last_data_block.last_cop_gst > tag.gst_subframe - last_data_block.last_cop*30:
+                # Only if the COP is equal or higher (no reset in data) AND
+                # we are sure there's not enough time to get to the same COP with new data.
+                data = last_data_block
+
         return data
 
     def get_complete_iod(self, tag: TagAndInfo) -> Optional[BitArray]:
@@ -382,6 +397,10 @@ class NavigationDataManager:
 
         if tag.is_dummy:
             return
+
+        if tag.adkd.uint == 0:
+            tag.nav_data.last_cop = tag.cop.uint
+            tag.nav_data.last_cop_gst = tag.gst_subframe
 
         if tag.id in self.tags_accumulated:
             self.tags_accumulated[tag.id].add_tag(tag)

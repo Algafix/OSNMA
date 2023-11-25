@@ -109,8 +109,8 @@ def test_tow_rollover(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 8964,
-        "data_auth": 7399,
+        "tags_auth": 8979,
+        "data_auth": 7404,
         "kroot_auth": 199,
         "broken_kroot": 16,
         "crc_failed": 2498,

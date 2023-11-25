@@ -60,19 +60,8 @@ class TagStateStructure:
         self.macseq_awaiting_key: List[MACSeqObject] = []
         self.tags_awaiting_key: List[TagAndInfo] = []
 
-    def _check_deprecated_data(self, tag: TagAndInfo, nav_data_block: Union[ADKD0DataBlock, ADKD4DataBlock]):
-        # In case a satellite leaves sight but we still have data and receive cross-tags
-        # If a tag fails the cross-authentication and the data is more than one subframe old, probably the data
-        # has changed since our last recording from that satellite and therefore should not be used for future tags
-        if tag.adkd.uint == 0 or tag.adkd.uint == 12 and not tag.is_dummy:
-            data_gst_sf = nav_data_block.last_gst_updated // 30 * 30
-            if tag.gst_subframe > data_gst_sf + 30:
-                nav_data_block.gst_limit = tag.gst_subframe - 30
-                return True
-        return False
-
-    def verify_tag(self, tag: TagAndInfo, nav_data_block: Union[ADKD0DataBlock, ADKD4DataBlock]):
-        nav_data = nav_data_block.nav_data_stream
+    def verify_tag(self, tag: TagAndInfo):
+        nav_data = tag.nav_data.nav_data_stream
         if tag.is_tag0:
             auth_data = tag.prn_a + tag.gst_subframe.bitarray + BitArray(uint=tag.ctr, length=8) + tag.nma_status + nav_data
         else:
@@ -85,8 +74,7 @@ class TagStateStructure:
             logger.info(f"Tag AUTHENTICATED\n\t{tag.get_log()}")
             self.nav_data_m.add_authenticated_tag(tag)
         else:
-            if not self._check_deprecated_data(tag, nav_data_block):
-                logger.error(f"Tag FAILED\n\t{tag.get_log()}")
+            logger.error(f"Tag FAILED\n\t{tag.get_log()}")
 
         self.tags_awaiting_key.remove(tag)
 
@@ -187,9 +175,9 @@ class TagStateStructure:
         for tag in list(self.tags_awaiting_key):
             if self.tesla_chain.key_check(tag):
                 # Has a verified key
-                nav_data_block = self.nav_data_m.get_data(tag)
-                if nav_data_block is not None:
-                    self.verify_tag(tag, nav_data_block)
+                tag.nav_data  = self.nav_data_m.get_data(tag)
+                if tag.nav_data is not None:
+                    self.verify_tag(tag)
                 else:
                     # The key has arrived but no data: discard tag
                     # logger.critical(f"No data when key arrive: {tag}")

@@ -145,6 +145,7 @@ class TagAndInfo:
         self.key_id: Optional[int] = None
         self.tesla_key: Optional[TESLAKey] = None
         self.is_tag0 = False
+        self.nav_data = None
 
     def __repr__(self) -> str:
         return f"{{ID: ({self.id[0]:02}, {self.id[1]:02}, {self.cop.uint:02}) PRN_A: {self.prn_a.uint:02}}}"
