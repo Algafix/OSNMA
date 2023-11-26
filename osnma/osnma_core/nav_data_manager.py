@@ -38,19 +38,19 @@ WORDS_PER_ADKD = {0: [1, 2, 3, 4, 5],
                   5: []}
 
 
-class TagAccumulation:
+class AuthenticatedData:
 
     auth_message = 'AUTHENTICATED: ADKD {adkd:02} - Satellite {satellite:02} {iod} ' \
                    '\n\t\t GST SF {gst_start}  to  GST SF {gst_last} ' \
                    '\n\t\t {words} \n'
 
-    def __init__(self, tag: TagAndInfo, iod: Optional[BitArray] = None):
+    def __init__(self, tag: TagAndInfo):
         self.acc_length = len(tag.tag_value)
         self.start_gst = tag.gst_subframe
         self.last_gst = self.start_gst
-        self.iod = iod
+        self.iod = tag.nav_data.iod if tag.adkd.uint != 4 else None
         self.new_tags = True
-        self.log_message = self._generate_message(tag.adkd.uint, tag.prn_d.uint, iod)
+        self.log_message = self._generate_message(tag.adkd.uint, tag.prn_d.uint, self.iod)
         self.prn_d = tag.prn_d.uint
         self.adkd = tag.adkd.uint
 
@@ -344,7 +344,7 @@ class NavigationDataManager:
         It also has a function to log the updated status of the data.
         """
         self.auth_sats_svid: List[int] = []
-        self.tags_accumulated: Dict[Tuple[int, int], TagAccumulation] = {}
+        self.authenticated_data_dict: Dict[Tuple[int, BitArray], AuthenticatedData] = {}
 
         self.adkd0_data_managers: Dict[int, ADKD0DataManager] = {}
         self.adkd4_data_managers: Dict[int, ADKD4DataManager] = {}
@@ -393,14 +393,11 @@ class NavigationDataManager:
             nav_data = None
         return nav_data
 
-    def add_authenticated_tag(self, tag: TagAndInfo):
-        if tag.id in self.tags_accumulated:
-            self.tags_accumulated[tag.id].add_tag(tag)
+    def new_tag_verified(self, tag: TagAndInfo):
+        if tag.data_id in self.authenticated_data_dict:
+            self.authenticated_data_dict[tag.data_id].add_tag(tag)
         else:
-            complete_iod = None
-            if tag.adkd.uint == ADKD0 or tag.adkd.uint == ADKD12:
-                complete_iod = self.adkd0_data_managers[tag.prn_d.uint].get_complete_iod(tag)
-            self.tags_accumulated[tag.id] = TagAccumulation(tag, iod=complete_iod)
+            self.authenticated_data_dict[tag.data_id] = AuthenticatedData(tag)
 
     def load_page(self, page: BitArray, gst_page: GST, svid: int):
         word_type = page[2:8].uint
@@ -411,19 +408,23 @@ class NavigationDataManager:
         else:
             self.adkd4_data_managers[svid].add_word(word_type, page, gst_page)
 
-    def authenticated_data(self, gst_subframe: GST):
+    def get_authenticated_data(self, gst_subframe: GST):
+        """
+        Called every time a MACK message with a new TESLA key is received after verifying all possible tags.
+        Authenticates any data blocks possible (according to tag length)
+        """
 
-        for tag_id, tag in self.tags_accumulated.items():
-            if tag.acc_length >= Config.TAG_LENGTH and tag.new_tags:
-                tag.log_authenticated()
-                tag.new_tags = False
+        for auth_data in self.authenticated_data_dict.values():
+            if auth_data.acc_length >= Config.TAG_LENGTH and auth_data.new_tags:
+                auth_data.log_authenticated()
+                auth_data.new_tags = False
                 # TODO: Eliminar quan les dades deixen de ser valides:
                 #       Tinc noves dades al complert I no hi ha cap tag esperant key apuntant a elles
                 #       O han passat 4h(?)
 
                 # TTFAF Calculation
-                if tag.adkd != 4 and tag.prn_d not in self.auth_sats_svid:
-                    self.auth_sats_svid.append(tag.prn_d)
+                if auth_data.adkd != 4 and auth_data.prn_d not in self.auth_sats_svid:
+                    self.auth_sats_svid.append(auth_data.prn_d)
                     if len(self.auth_sats_svid) == 4:
                         # Everything is checked at the end of the SF, so add 30 seconds to the gst of the subframe
                         # Also, OSNMAlib works with pages timestamped with the GST of leading edge of the first page,
