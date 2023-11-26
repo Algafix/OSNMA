@@ -15,18 +15,16 @@
 #
 
 ######## type annotations ########
-from typing import TYPE_CHECKING, List, Union
+from typing import TYPE_CHECKING, List
 if TYPE_CHECKING:
     from osnma.osnma_core.tesla_chain import TESLAChain
 from osnma.structures.mack_structures import MACKMessage, TagAndInfo, MACSeqObject
-from osnma.osnma_core.nav_data_manager import NavigationDataManager, ADKD0DataBlock, ADKD4DataBlock
+from osnma.osnma_core.nav_data_manager import NavigationDataManager
 
 ######## imports ########
 from osnma.structures.maclt import mac_lookup_table
 from osnma.cryptographic.gst_class import GST
 from osnma.utils.config import Config
-
-from bitstring import BitArray
 
 ######## logger ########
 import osnma.utils.logger_factory as logger_factory
@@ -61,37 +59,21 @@ class TagStateStructure:
         self.tags_awaiting_key: List[TagAndInfo] = []
 
     def verify_tag(self, tag: TagAndInfo):
-        nav_data = tag.nav_data.nav_data_stream
-        if tag.is_tag0:
-            auth_data = tag.prn_a + tag.gst_subframe.bitarray + BitArray(uint=tag.ctr, length=8) + tag.nma_status + nav_data
-        else:
-            auth_data = tag.prn_d + tag.prn_a + tag.gst_subframe.bitarray + BitArray(uint=tag.ctr, length=8) + tag.nma_status + nav_data
-
-        mac = self.tesla_chain.mac_function(tag.tesla_key.key, auth_data)
-        computed_tag0 = mac[:self.tesla_chain.tag_size]
-
-        if computed_tag0 == tag.tag_value:
+        if tag.authenticate(self.tesla_chain.mac_function):
             logger.info(f"Tag AUTHENTICATED\n\t{tag.get_log()}")
-            self.nav_data_m.add_authenticated_tag(tag)
+            if not tag.is_dummy:
+                self.nav_data_m.add_authenticated_tag(tag)
         else:
             logger.error(f"Tag FAILED\n\t{tag.get_log()}")
-
         self.tags_awaiting_key.remove(tag)
 
     def verify_macseq(self, macseq: MACSeqObject):
-        tesla_key = macseq.tesla_key
-        auth_data = macseq.svid + macseq.gst.bitarray
-        for tag in macseq.flex_list:
-            auth_data.append(tag.prn_d + tag.adkd + tag.cop)
-
-        computed_macseq = self.tesla_chain.mac_function(tesla_key.key, auth_data)[:12]
-        if computed_macseq == macseq.macseq_value:
+        if macseq.authenticate(self.tesla_chain.mac_function):
             self.set_key_index_to_tags(macseq.flex_list)
             self.tags_awaiting_key.extend(macseq.flex_list)
             logger.info(f"MACSEQ AUTHENTICATED\n\t{macseq.get_log()}")
         else:
             logger.error(f"MACSEQ FAILED\n\t{macseq.get_log()}")
-
         self.macseq_awaiting_key.remove(macseq)
 
     def set_key_index_to_tags(self, tag_list: List[TagAndInfo]):
@@ -180,7 +162,6 @@ class TagStateStructure:
                     self.verify_tag(tag)
                 else:
                     # The key has arrived but no data: discard tag
-                    # logger.critical(f"No data when key arrive: {tag}")
                     self.tags_awaiting_key.remove(tag)
 
         # Check if any data can be authenticated

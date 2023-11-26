@@ -15,7 +15,9 @@
 #
 
 ######## type annotations ########
-from typing import Union, List, Optional
+from typing import Union, List, Optional, TYPE_CHECKING
+if TYPE_CHECKING:
+    from osnma.osnma_core.nav_data_manager import ADKD0DataBlock, ADKD4DataBlock
 
 ######## imports ########
 from osnma.cryptographic.gst_class import GST
@@ -118,6 +120,20 @@ class MACSeqObject:
         self.flex_list = flex_list
         self.key_id = key_id
         self.tesla_key: Optional[TESLAKey] = None
+        self.is_verified: bool = False
+
+    def _get_macseq_auth_data(self):
+        auth_data = self.svid + self.gst.bitarray
+        for tag in self.flex_list:
+            auth_data.append(tag.prn_d + tag.adkd + tag.cop)
+        return auth_data
+
+    def authenticate(self, mac_function) -> bool:
+        auth_data = self._get_macseq_auth_data()
+        computed_macseq_tag = mac_function(self.tesla_key.key, auth_data)
+        computed_macseq_tag_short = computed_macseq_tag[:len(self.macseq_value)]
+        self.is_verified = self.macseq_value == computed_macseq_tag_short
+        return self.is_verified
 
     @property
     def has_key(self):
@@ -141,11 +157,11 @@ class TagAndInfo:
         self.nma_status = nma_status
         self.id = (self.prn_d.uint, self.adkd.uint)
         self.is_dummy = (self.cop.uint == 0)
-        self.verified: bool = False
+        self.is_verified: bool = False
         self.key_id: Optional[int] = None
         self.tesla_key: Optional[TESLAKey] = None
         self.is_tag0 = False
-        self.nav_data = None
+        self.nav_data: Optional[Union['ADKD0DataBlock', 'ADKD4DataBlock']] = None
 
     def __repr__(self) -> str:
         return f"{{ID: ({self.id[0]:02}, {self.id[1]:02}, {self.cop.uint:02}) PRN_A: {self.prn_a.uint:02}}}"
@@ -153,6 +169,24 @@ class TagAndInfo:
     @property
     def has_key(self) -> bool:
         return self.tesla_key is not None
+
+    def _get_tag_auth_data(self):
+        auth_data = self.prn_d + self.prn_a + self.gst_subframe.bitarray + BitArray(uint=self.ctr, length=8) + self.nma_status + self.nav_data.nav_data_stream
+        return auth_data
+
+    def authenticate(self, mac_function) -> bool:
+
+        auth_data = self._get_tag_auth_data()
+        computed_tag = mac_function(self.tesla_key.key, auth_data)
+        computed_tag_short = computed_tag[:len(self.tag_value)]
+
+        if computed_tag_short == self.tag_value:
+            self.is_verified = True
+            if not self.is_dummy and self.adkd.uint == 0:
+                self.nav_data.last_cop = self.cop.uint
+                self.nav_data.last_cop_gst = self.gst_subframe
+
+        return self.is_verified
 
     def get_log(self) -> str:
         return f"({self.id[0]:02}, {self.id[1]:02}) PRN_A: {self.prn_a.uint:02} GST_SF: {self.gst_subframe} COP: {self.cop.uint:02}"
@@ -171,6 +205,9 @@ class Tag0AndSeq(TagAndInfo):
     def get_log(self) -> str:
         return f"{super().get_log()} TAG0"
 
+    def _get_tag_auth_data(self):
+        auth_data = self.prn_a + self.gst_subframe.bitarray + BitArray(uint=self.ctr, length=8) + self.nma_status + self.nav_data.nav_data_stream
+        return auth_data
 
 class MACKMessage:
 

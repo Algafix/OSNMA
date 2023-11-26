@@ -15,7 +15,7 @@
 #
 
 ######## type annotations ########
-from typing import Union, List, Optional
+from typing import Union, List
 from osnma.osnma_core.nav_data_manager import NavigationDataManager
 from osnma.structures.mack_structures import MACSeqObject, TagAndInfo
 

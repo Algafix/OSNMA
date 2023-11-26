@@ -394,14 +394,6 @@ class NavigationDataManager:
         return nav_data
 
     def add_authenticated_tag(self, tag: TagAndInfo):
-
-        if tag.is_dummy:
-            return
-
-        if tag.adkd.uint == 0:
-            tag.nav_data.last_cop = tag.cop.uint
-            tag.nav_data.last_cop_gst = tag.gst_subframe
-
         if tag.id in self.tags_accumulated:
             self.tags_accumulated[tag.id].add_tag(tag)
         else:
