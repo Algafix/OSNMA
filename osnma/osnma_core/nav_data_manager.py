@@ -408,30 +408,44 @@ class NavigationDataManager:
         else:
             self.adkd4_data_managers[svid].add_word(word_type, page, gst_page)
 
-    def get_authenticated_data(self, gst_subframe: GST):
+    def _calculate_TTFAF(self, auth_data: AuthenticatedData, gst_subframe: GST):
+
+        if auth_data.adkd != 4 and auth_data.prn_d not in self.auth_sats_svid:
+            self.auth_sats_svid.append(auth_data.prn_d)
+            if len(self.auth_sats_svid) == 4:
+                # Everything is checked at the end of the SF, so add 30 seconds to the gst of the subframe
+                # Also, OSNMAlib works with pages timestamped with the GST of leading edge of the first page,
+                # but to receive the data of a page we have to wait until the page ends, hence +1 second.
+                gst_subframe_data_end = gst_subframe + 30 + 1
+                logger.info(f"First Authenticated Fix at GST {gst_subframe_data_end}")
+                logger.info(f"First GST {Config.FIRST_GST}")
+                logger.info(f"TTFAF {(gst_subframe_data_end - Config.FIRST_GST).tow} seconds\n")
+                if Config.STOP_AT_FAF:
+                    raise Exception("Stopped by FAF")
+
+    def _clean_old_data(self):
+        """
+        For adkd0 or adkd12, if there's new data authenticated with a COP > 11, we are sure there's no ADKD12 tag
+        pointing to the old data (ADKD12 uses a key 11 subframes after the data is transmitted). Is not perfect, but
+        good enough.
+
+        For adkd4 we will do it after the rework.
+        """
+        for data_manager in self.adkd0_data_managers.values():
+            data_blocks = data_manager.adkd0_data_blocks
+            if len(data_blocks) >= 2 and data_blocks[-1].last_cop > 11:
+                for data_block in list(data_manager.adkd0_data_blocks[:-1]):
+                    data_manager.adkd0_data_blocks.remove(data_block)
+
+    def check_authenticated_data(self, gst_subframe: GST):
         """
         Called every time a MACK message with a new TESLA key is received after verifying all possible tags.
         Authenticates any data blocks possible (according to tag length)
         """
-
+        logger.info(f"Data authenticated:\n")
         for auth_data in self.authenticated_data_dict.values():
             if auth_data.acc_length >= Config.TAG_LENGTH and auth_data.new_tags:
                 auth_data.log_authenticated()
                 auth_data.new_tags = False
-                # TODO: Eliminar quan les dades deixen de ser valides:
-                #       Tinc noves dades al complert I no hi ha cap tag esperant key apuntant a elles
-                #       O han passat 4h(?)
-
-                # TTFAF Calculation
-                if auth_data.adkd != 4 and auth_data.prn_d not in self.auth_sats_svid:
-                    self.auth_sats_svid.append(auth_data.prn_d)
-                    if len(self.auth_sats_svid) == 4:
-                        # Everything is checked at the end of the SF, so add 30 seconds to the gst of the subframe
-                        # Also, OSNMAlib works with pages timestamped with the GST of leading edge of the first page,
-                        # but to receive the data of a page we have to wait until the page ends, hence +1 second.
-                        gst_subframe_data_end = gst_subframe+30+1
-                        logger.info(f"First Authenticated Fix at GST {gst_subframe_data_end}")
-                        logger.info(f"First GST {Config.FIRST_GST}")
-                        logger.info(f"TTFAF {(gst_subframe_data_end - Config.FIRST_GST).tow} seconds\n")
-                        if Config.STOP_AT_FAF:
-                            raise Exception("Stopped by FAF")
+                self._calculate_TTFAF(auth_data, gst_subframe)
+        self._clean_old_data()

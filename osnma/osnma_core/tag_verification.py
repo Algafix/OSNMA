@@ -165,8 +165,7 @@ class TagStateStructure:
                     self.tags_awaiting_key.remove(tag)
 
         # Check if any data can be authenticated
-        logger.info(f"Data authenticated:\n")
-        self.nav_data_m.get_authenticated_data(gst_subframe)
+        self.nav_data_m.check_authenticated_data(gst_subframe)
 
     def load_mack_message(self, mack_message: MACKMessage):
         tag_list, macseq, is_flx_tag_missing = self.verify_maclt(mack_message)
