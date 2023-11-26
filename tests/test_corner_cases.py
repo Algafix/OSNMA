@@ -58,6 +58,14 @@ def run(input_module, config_dict, expected_results_dict):
         warnings = len(re.findall('WARNING', log_text))
         errors = len(re.findall('ERROR', log_text))
 
+    # print(f'{tags_auth} vs {expected_results_dict["tags_auth"]}')
+    # print(f'{data_auth} vs {expected_results_dict["data_auth"]}')
+    # print(f'{kroot_auth} vs {expected_results_dict["kroot_auth"]}')
+    # print(f'{broken_kroot} vs {expected_results_dict["broken_kroot"]}')
+    # print(f'{crc_failed} vs {expected_results_dict["crc_failed"]}')
+    # print(f'{warnings} vs {expected_results_dict["warnings"]}')
+    # print(f'{errors} vs {expected_results_dict["errors"]}')
+
     assert tags_auth == expected_results_dict["tags_auth"]
     assert data_auth == expected_results_dict["data_auth"]
     assert kroot_auth == expected_results_dict["kroot_auth"]
@@ -101,8 +109,8 @@ def test_tow_rollover(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 8964,
-        "data_auth": 7393,
+        "tags_auth": 8979,
+        "data_auth": 7404,
         "kroot_auth": 199,
         "broken_kroot": 16,
         "crc_failed": 2498,

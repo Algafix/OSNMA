@@ -413,7 +413,6 @@ class ReceiverState:
                         self.tesla_chain_force.parse_mack_message(w_mack[0], w_mack[1], w_mack[2], w_mack[3])
                     self.kroot_waiting_mack = []
                 self.tesla_chain_force.parse_mack_message(mack_subframe, gst_subframe, svid, sf_nma_status)
-                self.tesla_chain_force.update_tag_lists(gst_subframe)
 
             except MackParsingError as e:
                 # Unable to parse the message correctly

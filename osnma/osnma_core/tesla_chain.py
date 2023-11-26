@@ -15,7 +15,7 @@
 #
 
 ######## type annotations ########
-from typing import Union, List, Optional
+from typing import Union, List
 from osnma.osnma_core.nav_data_manager import NavigationDataManager
 from osnma.structures.mack_structures import MACSeqObject, TagAndInfo
 
@@ -167,10 +167,9 @@ class TESLAChain:
         else:
             self.tags_structure.load_mack_message(mack_object)
             if tesla_key := mack_object.get_key():
-                self.add_key(tesla_key)
-
-    def update_tag_lists(self, gst_subframe: GST):
-        self.tags_structure.update_tag_lists(gst_subframe)
+                verified, is_new_key = self.add_key(tesla_key)
+                if verified and is_new_key:
+                    self.tags_structure.update_tag_lists(gst_sf)
 
     def get_key_index(self, gst_sf: GST) -> int:
         """Computes the key index that would have a key received on the subframe specified and in the position specified
@@ -186,22 +185,6 @@ class TESLAChain:
 
         return index
 
-    def get_wn_towh(self) -> (int, int):
-        """Get the WN and TOWH (hours) of Chain applicability. Computed from the continuous GST0 attribute.
-
-        :return: Tuple[WN,TOWH]
-        :rtype: (int, int)
-        """
-        return self.GST0.wn, self.GST0.tow//3600
-
-    def set_cid(self, cid: int):
-        """Set the CID of the TESLA Chain. This value identifies each Chain and rolls over 3.
-
-        :param cid: Chain ID value, from 0 to 3.
-        :type cid: int
-        """
-        self.chain_id = cid
-
     def add_key(self, new_tesla_key: TESLAKey) -> (bool, int):
         """Verifies the new tesla key by computing the necessary hashes until reaching the index of the
         `self.last_tesla_key`. Then compares the key value. If the keys are the same, the key is verified and the
@@ -209,25 +192,23 @@ class TESLAChain:
 
         :param new_tesla_key: TESLA Key to be added to the Chain.
         :type new_tesla_key: TESLAKey
-        :return: Tuple indicating if the key has been verified and its index.
-        :rtype: (bool, int)
+        :return: Tuple indicating if the key has been verified and if it is a new key.
+        :rtype: (bool, bool)
         """
 
         # Calculate the index of the new key
         new_tesla_key.calculate_index(self.GST0)
+        is_new_key = (self.last_tesla_key.index < new_tesla_key.index)
 
-        # Starts with the hashes
+        # Copy the key reference to iterate on it
         new_key_index = new_tesla_key.index
-        last_tesla_key = self.last_tesla_key
         tesla_key = new_tesla_key
+
         key_verified = False
         for key_index in reversed(range(new_key_index + 1)):
-            if key_index > last_tesla_key.index:
-                # Normal case when a new key is received. If its not the first key, it will compute only 1 key
+            if key_index > self.last_tesla_key.index:
                 tesla_key = self._compute_next_key(tesla_key)
-            elif key_index == last_tesla_key.index and tesla_key.key == last_tesla_key.key:
-                new_tesla_key.set_verified(True)
-                self.last_tesla_key = new_tesla_key
+            elif key_index == self.last_tesla_key.index and tesla_key.key == self.last_tesla_key.key:
                 key_verified = True
                 break
             else:
@@ -235,26 +216,17 @@ class TESLAChain:
                 e = TeslaKeyVerificationFailed(f"Tesla Key {new_tesla_key.index} from svid {new_tesla_key.svid}"
                                                  f"{' Reconstructed' if new_tesla_key.reconstructed else ''},"
                                                  f" received at {new_tesla_key.gst_sf} failed verification.\n"
-                                                 f"Last authenticated key: {last_tesla_key.index} at {last_tesla_key.gst_sf}.\n"
+                                                 f"Last authenticated key: {self.last_tesla_key.index} "
+                                                 f"at {self.last_tesla_key.gst_sf}.\n"
                                                  f"Last hash: {key_index} {tesla_key.key}")
-
                 logger.critical(e)
-                exit()
 
         if key_verified:
+            new_tesla_key.set_verified(True)
+            self.last_tesla_key = new_tesla_key
             logger.info(f"Tesla Key Authenticated {new_tesla_key.gst_sf}{' - Regenerated' if new_tesla_key.reconstructed else ''}\n")
 
-        return key_verified, new_key_index
-
-    def _update_tags_key(self, tesla_key: TESLAKey, index: int):
-
-        for macseq_tag in self.tags_structure.macseq_awaiting_key:
-            if not macseq_tag.has_key and macseq_tag.key_id == index:
-                macseq_tag.tesla_key = tesla_key
-
-        for tag in self.tags_structure.tags_awaiting_key:
-            if not tag.has_key and tag.key_id == index:
-                tag.tesla_key = tesla_key
+        return key_verified, is_new_key
 
     def _get_tesla_key(self, wanted_key_index: int) -> TESLAKey:
         """Retrieves a TESLA key according to the index provided. In the strange case that the key solicited is not the

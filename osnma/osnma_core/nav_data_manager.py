@@ -38,19 +38,19 @@ WORDS_PER_ADKD = {0: [1, 2, 3, 4, 5],
                   5: []}
 
 
-class TagAccumulation:
+class AuthenticatedData:
 
     auth_message = 'AUTHENTICATED: ADKD {adkd:02} - Satellite {satellite:02} {iod} ' \
                    '\n\t\t GST SF {gst_start}  to  GST SF {gst_last} ' \
                    '\n\t\t {words} \n'
 
-    def __init__(self, tag: TagAndInfo, iod: Optional[BitArray] = None):
+    def __init__(self, tag: TagAndInfo):
         self.acc_length = len(tag.tag_value)
         self.start_gst = tag.gst_subframe
         self.last_gst = self.start_gst
-        self.iod = iod
+        self.iod = tag.nav_data.iod if tag.adkd.uint != 4 else None
         self.new_tags = True
-        self.log_message = self._generate_message(tag.adkd.uint, tag.prn_d.uint, iod)
+        self.log_message = self._generate_message(tag.adkd.uint, tag.prn_d.uint, self.iod)
         self.prn_d = tag.prn_d.uint
         self.adkd = tag.adkd.uint
 
@@ -115,9 +115,10 @@ class ADKD0DataBlock:
         self.iod: Optional[BitArray] = None
         self.words: Dict[int, BitArray] = {}
         self.nav_data_stream: Optional[BitArray] = None
-        self.gst_limit = GST(BitArray('0xffffffff'))
         self.last_gst_updated = gst_start
         self.gst_completed = GST()
+        self.last_cop = 0
+        self.last_cop_gst = GST(wn=0, tow=0)
 
     def __repr__(self):
 
@@ -126,7 +127,7 @@ class ADKD0DataBlock:
             gst_completed_msg = f" gst_completed: {self.gst_completed},"
 
         msg = f"gst_start: {self.gst_start}, iod: {self.iod}, words: {self.words}\n\t" \
-              f"last_gst_updated: {self.last_gst_updated},{gst_completed_msg} gst_limit: {self.gst_limit}\n\t"
+              f"last_gst_updated: {self.last_gst_updated},{gst_completed_msg} last_cop: {self.last_cop} {self.last_cop_gst}\n\t"
 
         return msg
 
@@ -205,9 +206,11 @@ class ADKD0DataManager(ADKDDataManager):
             self.adkd0_data_blocks[-1].add_word(5, word_5_data, gst_page)
         elif last_word_type_5 != word_5_data:
             # Create new ADKD0Data block with updated GST
-            # For some reason o this case its assumed the next subframe
+            # Due to a bug in DV bits, this is to the next subframe
             new_adkd0data_block = copy.deepcopy(last_adkd0_block)
-            new_adkd0data_block.gst_start = gst_page + 5
+            new_adkd0data_block.gst_start = gst_page + 30 - (gst_page.tow % 30)  # Next subframe
+            new_adkd0data_block.last_cop = 0
+            new_adkd0data_block.last_cop_gst = GST(wn=0, tow=0)
             new_adkd0data_block.add_word(5, word_5_data, gst_page)
             self.adkd0_data_blocks.append(new_adkd0data_block)
 
@@ -230,18 +233,30 @@ class ADKD0DataManager(ADKDDataManager):
 
     def get_nav_data(self, tag: TagAndInfo) -> Optional[ADKD0DataBlock]:
         data = None
-        gst_tag = tag.gst_subframe
+        tag_data_gst_sf_limit = tag.gst_subframe-30*tag.cop.uint
         gst_start_tesla_key = tag.tesla_key.gst_start
 
         for nav_data in self.adkd0_data_blocks:
-            if nav_data.gst_completed and nav_data.gst_start < gst_tag:
-                if nav_data.gst_completed < gst_start_tesla_key - Config.TL:
-                    tmp_data = nav_data.get_nav_data()
-                else:
-                    tmp_data = None
-                data = None if nav_data.gst_limit < gst_tag else tmp_data
-            else:
+            if tag_data_gst_sf_limit <= nav_data.gst_start < tag.gst_subframe:
+                # Data received inside COP range, check TL and proceed
+                data = nav_data.get_nav_data()
+                if data.gst_completed and data.gst_completed > gst_start_tesla_key - Config.TL:
+                    # Completed after TL, do not use
+                    data = None
                 break
+            elif nav_data.gst_start < tag_data_gst_sf_limit < nav_data.last_gst_updated:
+                    # Case with COP saturated at 15 and data from the satellite still updated in COP limit
+                    data = nav_data.get_nav_data()
+                    break
+
+        if data is None and tag.prn_a != tag.prn_d and len(self.adkd0_data_blocks) >= 1:
+            # Last check: cross-auth tag for a satellite we lost view but the data may still be valid
+            last_data_block = self.adkd0_data_blocks[-1]
+            if tag.cop.uint >= last_data_block.last_cop and last_data_block.last_cop_gst > tag.gst_subframe - last_data_block.last_cop*30:
+                # Only if the COP is equal or higher (no reset in data) AND
+                # we are sure there's not enough time to get to the same COP with new data.
+                data = last_data_block
+
         return data
 
     def get_complete_iod(self, tag: TagAndInfo) -> Optional[BitArray]:
@@ -329,7 +344,7 @@ class NavigationDataManager:
         It also has a function to log the updated status of the data.
         """
         self.auth_sats_svid: List[int] = []
-        self.tags_accumulated: Dict[Tuple[int, int], TagAccumulation] = {}
+        self.authenticated_data_dict: Dict[Tuple[int, BitArray], AuthenticatedData] = {}
 
         self.adkd0_data_managers: Dict[int, ADKD0DataManager] = {}
         self.adkd4_data_managers: Dict[int, ADKD4DataManager] = {}
@@ -378,18 +393,11 @@ class NavigationDataManager:
             nav_data = None
         return nav_data
 
-    def add_authenticated_tag(self, tag: TagAndInfo):
-
-        if tag.is_dummy:
-            return
-
-        if tag.id in self.tags_accumulated:
-            self.tags_accumulated[tag.id].add_tag(tag)
+    def new_tag_verified(self, tag: TagAndInfo):
+        if tag.data_id in self.authenticated_data_dict:
+            self.authenticated_data_dict[tag.data_id].add_tag(tag)
         else:
-            complete_iod = None
-            if tag.adkd.uint == ADKD0 or tag.adkd.uint == ADKD12:
-                complete_iod = self.adkd0_data_managers[tag.prn_d.uint].get_complete_iod(tag)
-            self.tags_accumulated[tag.id] = TagAccumulation(tag, iod=complete_iod)
+            self.authenticated_data_dict[tag.data_id] = AuthenticatedData(tag)
 
     def load_page(self, page: BitArray, gst_page: GST, svid: int):
         word_type = page[2:8].uint
@@ -400,26 +408,44 @@ class NavigationDataManager:
         else:
             self.adkd4_data_managers[svid].add_word(word_type, page, gst_page)
 
-    def authenticated_data(self, gst_subframe: GST):
+    def _calculate_TTFAF(self, auth_data: AuthenticatedData, gst_subframe: GST):
 
-        for tag_id, tag in self.tags_accumulated.items():
-            if tag.acc_length >= Config.TAG_LENGTH and tag.new_tags:
-                tag.log_authenticated()
-                tag.new_tags = False
-                # TODO: Eliminar quan les dades deixen de ser valides:
-                #       Tinc noves dades al complert I no hi ha cap tag esperant key apuntant a elles
-                #       O han passat 4h(?)
+        if auth_data.adkd != 4 and auth_data.prn_d not in self.auth_sats_svid:
+            self.auth_sats_svid.append(auth_data.prn_d)
+            if len(self.auth_sats_svid) == 4:
+                # Everything is checked at the end of the SF, so add 30 seconds to the gst of the subframe
+                # Also, OSNMAlib works with pages timestamped with the GST of leading edge of the first page,
+                # but to receive the data of a page we have to wait until the page ends, hence +1 second.
+                gst_subframe_data_end = gst_subframe + 30 + 1
+                logger.info(f"First Authenticated Fix at GST {gst_subframe_data_end}")
+                logger.info(f"First GST {Config.FIRST_GST}")
+                logger.info(f"TTFAF {(gst_subframe_data_end - Config.FIRST_GST).tow} seconds\n")
+                if Config.STOP_AT_FAF:
+                    raise Exception("Stopped by FAF")
 
-                # TTFAF Calculation
-                if tag.adkd != 4 and tag.prn_d not in self.auth_sats_svid:
-                    self.auth_sats_svid.append(tag.prn_d)
-                    if len(self.auth_sats_svid) == 4:
-                        # Everything is checked at the end of the SF, so add 30 seconds to the gst of the subframe
-                        # Also, OSNMAlib works with pages timestamped with the GST of leading edge of the first page,
-                        # but to receive the data of a page we have to wait until the page ends, hence +1 second.
-                        gst_subframe_data_end = gst_subframe+30+1
-                        logger.info(f"First Authenticated Fix at GST {gst_subframe_data_end}")
-                        logger.info(f"First GST {Config.FIRST_GST}")
-                        logger.info(f"TTFAF {(gst_subframe_data_end - Config.FIRST_GST).tow} seconds\n")
-                        if Config.STOP_AT_FAF:
-                            raise Exception("Stopped by FAF")
+    def _clean_old_data(self):
+        """
+        For adkd0 or adkd12, if there's new data authenticated with a COP > 11, we are sure there's no ADKD12 tag
+        pointing to the old data (ADKD12 uses a key 11 subframes after the data is transmitted). Is not perfect, but
+        good enough.
+
+        For adkd4 we will do it after the rework.
+        """
+        for data_manager in self.adkd0_data_managers.values():
+            data_blocks = data_manager.adkd0_data_blocks
+            if len(data_blocks) >= 2 and data_blocks[-1].last_cop > 11:
+                for data_block in list(data_manager.adkd0_data_blocks[:-1]):
+                    data_manager.adkd0_data_blocks.remove(data_block)
+
+    def check_authenticated_data(self, gst_subframe: GST):
+        """
+        Called every time a MACK message with a new TESLA key is received after verifying all possible tags.
+        Authenticates any data blocks possible (according to tag length)
+        """
+        logger.info(f"Data authenticated:\n")
+        for auth_data in self.authenticated_data_dict.values():
+            if auth_data.acc_length >= Config.TAG_LENGTH and auth_data.new_tags:
+                auth_data.log_authenticated()
+                auth_data.new_tags = False
+                self._calculate_TTFAF(auth_data, gst_subframe)
+        self._clean_old_data()
