@@ -170,6 +170,10 @@ class TagAndInfo:
     def has_key(self) -> bool:
         return self.tesla_key is not None
 
+    @property
+    def data_id(self):
+        return self.adkd.uint, self.prn_d.uint, self.nav_data.nav_data_stream.tobytes()
+
     def _get_tag_auth_data(self):
         auth_data = self.prn_d + self.prn_a + self.gst_subframe.bitarray + BitArray(uint=self.ctr, length=8) + self.nma_status + self.nav_data.nav_data_stream
         return auth_data

@@ -129,13 +129,13 @@ def tow_rollover():
 
 if __name__ == "__main__":
 
-    test_vectors_icd_configuration_1()
+    #test_vectors_icd_configuration_1()
 
     # test_vectors_icd_configuration_2()
 
     # test_vectors_icd_configuration_2_pubk_kroot()
 
-    # tow_rollover()
+    tow_rollover()
 
     # test_change_of_word_type_5()
 

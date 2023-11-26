@@ -62,7 +62,7 @@ class TagStateStructure:
         if tag.authenticate(self.tesla_chain.mac_function):
             logger.info(f"Tag AUTHENTICATED\n\t{tag.get_log()}")
             if not tag.is_dummy:
-                self.nav_data_m.add_authenticated_tag(tag)
+                self.nav_data_m.new_tag_verified(tag)
         else:
             logger.error(f"Tag FAILED\n\t{tag.get_log()}")
         self.tags_awaiting_key.remove(tag)
@@ -166,7 +166,7 @@ class TagStateStructure:
 
         # Check if any data can be authenticated
         logger.info(f"Data authenticated:\n")
-        self.nav_data_m.authenticated_data(gst_subframe)
+        self.nav_data_m.get_authenticated_data(gst_subframe)
 
     def load_mack_message(self, mack_message: MACKMessage):
         tag_list, macseq, is_flx_tag_missing = self.verify_maclt(mack_message)
