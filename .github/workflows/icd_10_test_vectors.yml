@@ -4,7 +4,7 @@ name: ICD 1.0 Test Vectors
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, general-dev ]
     paths-ignore:
       - '**.md'
   workflow_dispatch:

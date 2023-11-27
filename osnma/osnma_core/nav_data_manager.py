@@ -201,11 +201,9 @@ class ADKD0DataManager(ADKDDataManager):
         elif last_word_type_5 != word_5_data:
             # Create new ADKD0Data block with updated GST
             # Due to a bug in DV bits, this is to the next subframe
-            new_adkd0data_block = copy.deepcopy(last_adkd0_block)
-            new_adkd0data_block.gst_start = gst_page + 30 - (gst_page.tow % 30)  # Next subframe
-            new_adkd0data_block.gst_completed = GST()
-            new_adkd0data_block.last_cop = 0
-            new_adkd0data_block.last_cop_gst = GST(wn=0, tow=0)
+            new_adkd0data_block = ADKD0DataBlock(gst_page + 30 - (gst_page.tow % 30))
+            new_adkd0data_block.iod = last_adkd0_block.iod
+            new_adkd0data_block.words = dict(last_adkd0_block.words)
             new_adkd0data_block.add_word(5, word_5_data, gst_page)
             self.adkd0_data_blocks.append(new_adkd0data_block)
 
