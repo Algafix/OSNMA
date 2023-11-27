@@ -138,6 +138,7 @@ class ADKD0DataBlock:
         self.words[word_type] = data
         if not self.gst_completed and len(self.words) == 5:
             self.gst_completed = gst_page
+            self._compute_data_stream()
 
     def get_word(self, word_type: int) -> Optional[BitArray]:
         return self.words.get(word_type)
@@ -147,13 +148,6 @@ class ADKD0DataBlock:
         for i in range(1, 6):
             data_stream.append(self.words[i])
         self.nav_data_stream = data_stream
-
-    def get_nav_data(self) -> Optional['ADKD0DataBlock']:
-        if len(self.words) != 5:
-            return None
-        else:
-            self._compute_data_stream()
-        return self
 
 
 class ADKD0DataManager(ADKDDataManager):
@@ -209,6 +203,7 @@ class ADKD0DataManager(ADKDDataManager):
             # Due to a bug in DV bits, this is to the next subframe
             new_adkd0data_block = copy.deepcopy(last_adkd0_block)
             new_adkd0data_block.gst_start = gst_page + 30 - (gst_page.tow % 30)  # Next subframe
+            new_adkd0data_block.gst_completed = GST()
             new_adkd0data_block.last_cop = 0
             new_adkd0data_block.last_cop_gst = GST(wn=0, tow=0)
             new_adkd0data_block.add_word(5, word_5_data, gst_page)
@@ -239,15 +234,20 @@ class ADKD0DataManager(ADKDDataManager):
         for nav_data in self.adkd0_data_blocks:
             if tag_data_gst_sf_limit <= nav_data.gst_start < tag.gst_subframe:
                 # Data received inside COP range, check TL and proceed
-                data = nav_data.get_nav_data()
-                if data.gst_completed and data.gst_completed > gst_start_tesla_key - Config.TL:
+                if not nav_data.gst_completed:
+                    # We are missing some data
+                    data = None
+                    break
+                if nav_data.gst_completed and nav_data.gst_completed > gst_start_tesla_key - Config.TL:
                     # Completed after TL, do not use
                     data = None
+                    break
+                data = nav_data
                 break
             elif nav_data.gst_start < tag_data_gst_sf_limit < nav_data.last_gst_updated:
-                    # Case with COP saturated at 15 and data from the satellite still updated in COP limit
-                    data = nav_data.get_nav_data()
-                    break
+                # Case with COP saturated at 15 and data from the satellite still updated in COP limit
+                data = nav_data
+                break
 
         if data is None and tag.prn_a != tag.prn_d and len(self.adkd0_data_blocks) >= 1:
             # Last check: cross-auth tag for a satellite we lost view but the data may still be valid
