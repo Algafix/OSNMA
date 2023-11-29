@@ -199,9 +199,11 @@ class ADKD0DataManager(ADKDDataManager):
         if last_word_type_5 is None:
             self.adkd0_data_blocks[-1].add_word(5, word_5_data, gst_page)
         elif last_word_type_5 != word_5_data:
-            # Create new ADKD0Data block with updated GST
-            # Due to a bug in DV bits, this is to the next subframe
-            new_adkd0data_block = ADKD0DataBlock(gst_page + 30 - (gst_page.tow % 30))
+            # Create new ADKD0Data block with updated GST and same old data.
+            # Update the old data to updated on the previous subframe
+            # TODO: Due to a bug in DV bits, sometimes there is a change in WT5 not reflected in COP. Keep track of COP.
+            last_adkd0_block.last_gst_updated = (gst_page - (gst_page % 30) - 1)
+            new_adkd0data_block = ADKD0DataBlock(gst_page)
             new_adkd0data_block.iod = last_adkd0_block.iod
             new_adkd0data_block.words = dict(last_adkd0_block.words)
             new_adkd0data_block.add_word(5, word_5_data, gst_page)
@@ -236,7 +238,7 @@ class ADKD0DataManager(ADKDDataManager):
                     # We are missing some data
                     data = None
                     break
-                if nav_data.gst_completed and nav_data.gst_completed > gst_start_tesla_key - Config.TL:
+                if nav_data.gst_completed and nav_data.gst_completed >= gst_start_tesla_key - Config.TL:
                     # Completed after TL, do not use
                     data = None
                     break
@@ -250,7 +252,8 @@ class ADKD0DataManager(ADKDDataManager):
         if data is None and tag.prn_a != tag.prn_d and len(self.adkd0_data_blocks) >= 1:
             # Last check: cross-auth tag for a satellite we lost view but the data may still be valid
             last_data_block = self.adkd0_data_blocks[-1]
-            if tag.cop.uint >= last_data_block.last_cop and last_data_block.last_cop_gst > tag.gst_subframe - last_data_block.last_cop*30:
+            if (tag.cop.uint >= last_data_block.last_cop and last_data_block.gst_start < tag.gst_subframe
+                    and last_data_block.last_cop_gst > tag.gst_subframe - last_data_block.last_cop*30):
                 # Only if the COP is equal or higher (no reset in data) AND
                 # we are sure there's not enough time to get to the same COP with new data.
                 data = last_data_block

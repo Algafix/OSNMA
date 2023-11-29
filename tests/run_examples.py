@@ -40,7 +40,7 @@ def sbf_live():
 
 def galmon_live():
     config_dict = {
-        'exec_path': 'scenarios/galmon_live/',
+        'exec_path': Path(__file__).parent / 'scenarios/galmon_live/',
         'pubk_name': 'OSNMA_PublicKey.xml'
     }
 
@@ -126,8 +126,37 @@ def tow_rollover():
     osnma_r = OSNMAReceiver(input_module, config_dict)
     osnma_r.start()
 
+def osnma_outage():
+    config_dict = {
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'test_corner_cases/osnma_outage/osnma_outage.sbf',
+        'exec_path': Path(__file__).parent / 'test_corner_cases/osnma_outage/',
+        'pubk_name': 'OSNMA_PublicKey.xml',
+        'kroot_name': 'OSNMA_start_KROOT.txt'
+    }
+
+    input_module = SBF(config_dict['scenario_path'])
+    osnma_r = OSNMAReceiver(input_module, config_dict)
+    osnma_r.start()
+
+def osnma_after_outage():
+    config_dict = {
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'test_corner_cases/osnma_after_outage/after_outage.sbf',
+        'exec_path': Path(__file__).parent / 'test_corner_cases/osnma_after_outage/',
+        'pubk_name': 'OSNMA_PublicKey.xml',
+        'kroot_name': 'OSNMA_start_KROOT.txt'
+    }
+
+    input_module = SBF(config_dict['scenario_path'])
+    osnma_r = OSNMAReceiver(input_module, config_dict)
+    osnma_r.start()
 
 if __name__ == "__main__":
+
+    #osnma_after_outage()
+
+    osnma_outage()
 
     # test_vectors_icd_configuration_1()
 
@@ -135,9 +164,9 @@ if __name__ == "__main__":
 
     # test_vectors_icd_configuration_2_pubk_kroot()
 
-    tow_rollover()
+    # tow_rollover()
 
-    #test_change_of_word_type_5()
+    # test_change_of_word_type_5()
 
     # sbf_new_config()
 

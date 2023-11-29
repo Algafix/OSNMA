@@ -109,12 +109,60 @@ def test_tow_rollover(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 8979,
-        "data_auth": 7404,
+        "tags_auth": 8964,
+        "data_auth": 7399,
         "kroot_auth": 199,
         "broken_kroot": 16,
         "crc_failed": 2498,
         "warnings": 2515,
+        "errors": 0
+    }
+
+    input_module = SBF(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
+def test_osnma_outage_and_wt5(log_level=logging.INFO):
+
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'test_corner_cases/osnma_outage/osnma_outage.sbf',
+        'exec_path': Path(__file__).parent / 'test_corner_cases/osnma_outage/',
+        'pubk_name': 'OSNMA_PublicKey.xml',
+        'kroot_name': 'OSNMA_start_KROOT.txt'
+    }
+
+    expected_results = {
+        "tags_auth": 5914,
+        "data_auth": 3410,
+        "kroot_auth": 50,
+        "broken_kroot": 13,
+        "crc_failed": 49,
+        "warnings": 63,
+        "errors": 0
+    }
+
+    input_module = SBF(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
+def test_osnma_after_outage(log_level=logging.INFO):
+
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'test_corner_cases/osnma_after_outage/after_outage.sbf',
+        'exec_path': Path(__file__).parent / 'test_corner_cases/osnma_after_outage/',
+        'pubk_name': 'OSNMA_PublicKey.xml',
+        'kroot_name': 'OSNMA_start_KROOT.txt'
+    }
+
+    expected_results = {
+        "tags_auth": 4104,
+        "data_auth": 2640,
+        "kroot_auth": 65,
+        "broken_kroot": 7,
+        "crc_failed": 57,
+        "warnings": 65,
         "errors": 0
     }
 
@@ -150,6 +198,27 @@ if __name__ == "__main__":
     finally:
         test_done += 1
 
+    print(f"\nOSNMA outage")
+    try:
+        test_osnma_outage_and_wt5(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
+    print(f"\nOSNMA after outage")
+    try:
+        test_osnma_after_outage(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
 
     print('\n=====================================')
     print(f'\tTEST PASSED: {test_passed}/{test_done}')
