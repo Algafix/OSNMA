@@ -238,7 +238,7 @@ class ADKD0DataManager(ADKDDataManager):
                     # We are missing some data
                     data = None
                     break
-                if nav_data.gst_completed and nav_data.gst_completed > gst_start_tesla_key - Config.TL:
+                if nav_data.gst_completed and nav_data.gst_completed >= gst_start_tesla_key - Config.TL:
                     # Completed after TL, do not use
                     data = None
                     break

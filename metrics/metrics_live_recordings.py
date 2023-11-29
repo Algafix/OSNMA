@@ -154,35 +154,33 @@ def plot_ttfaf(plot_ttfaf_vectors: npt.NDArray, tow_range: range):
 
 if __name__ == "__main__":
 
-    # ttfaf = sbf_live_parc_leopold(
+    # ttfaf = icd_config_X(
     #     {'log_console': True, 'do_hkroot_regen': True, 'do_crc_failed_extraction': True, 'do_tesla_key_regen': True},
-    #     start_at_tow=52412)
-    #
+    #     start_at_gst=(1248, 345622))
     # exit()
 
-    # sim_params = {
-    #     "WN": 1248,
-    #     "TOW_START": 345601,
-    #     "TOW_STOP": 345601+300,
-    #     "numpy_file_name": "ttfaf_matrix_config_X.npy",
-    #     "function": icd_config_X
-    # }
-
     sim_params = {
-        "WN": 1256,
-        "TOW_START": 599900,
-        "TOW_STOP": 599900+300,
-        "numpy_file_name": "ttfaf_matrix_van_recording.npy",
-        "function": van_recording
+        "WN": 1248,
+        "TOW_START": 345601,
+        "TOW_STOP": 345601+300,
+        "numpy_file_name": "ttfaf_matrix_config_X.npy",
+        "function": icd_config_X
     }
 
+    # sim_params = {
+    #     "WN": 1256,
+    #     "TOW_START": 599900,
+    #     "TOW_STOP": 599900+300,
+    #     "numpy_file_name": "ttfaf_matrix_van_recording.npy",
+    #     "function": van_recording
+    # }
 
-    # ttfaf_matrix = np.load(sim_params["numpy_file_name"])
+    ttfaf_matrix = np.load(sim_params["numpy_file_name"])
 
-    ttfaf_matrix = get_ttfaf_matrix(sim_params["function"],
-                                    sim_params["WN"],
-                                    range(sim_params["TOW_START"], sim_params["TOW_STOP"]),
-                                    True,
-                                    numpy_file_name=sim_params["numpy_file_name"])
+    # ttfaf_matrix = get_ttfaf_matrix(sim_params["function"],
+    #                                 sim_params["WN"],
+    #                                 range(sim_params["TOW_START"], sim_params["TOW_STOP"]),
+    #                                 True,
+    #                                 numpy_file_name=sim_params["numpy_file_name"])
 
     plot_ttfaf(ttfaf_matrix, range(sim_params["TOW_START"], sim_params["TOW_STOP"]))
