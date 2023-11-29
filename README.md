@@ -5,12 +5,17 @@ OSNMAlib
 ========
 
 OSNMAlib is an open-source Python library that can be integrated into existing receivers and applications to incorporate 
-navigation message authentication to the positioning process. It can read the Galileo I/NAV pages when received, store 
-the navigation and authentication data, perform the authentication verification, and report the status.
+navigation message authentication to the positioning process. It can read the Galileo I/NAV pages from an input, store 
+the navigation and authentication data, perform the verification operations, and report the status.
 
 The software has been successfully tested using part of the official ICD test vectors and should work in the nominal cases.
 However, the vectors to validate all corner cases have not yet been released.
 It has also been tested with real live data recorded by me.
+
+Note that the security of the OSNMA protocol can only be guaranteed if the receiver providing the navigation data is synchronized with TL seconds of error with the Galileo System Time.
+OSNMAlib assumes a TL of 30s: the maximum to process all tags.
+However, it can be configured for a different TL depending on what you receiver can guarantee.
+For more information about time synchronisation see the [OSNMA Receiver Guidelines](https://www.gsc-europa.eu/sites/default/files/sites/all/files/Galileo_OSNMA_Receiver_Guidelines_v1.1.pdf), and [Receiver Options](#receiver-options) to configure OSNMAlib.
 
 If you are using data from the OSNMA Test Phase (before 2023-08-03 11:00), use the [OSNMA_Test_Phase_ICD branch](https://github.com/Algafix/OSNMA/tree/OSNMA_Test_Phase_ICD).
 
@@ -210,6 +215,8 @@ The most important parameters are:
 * `exec_path`: Path to the folder where the receiver will search for the Merkle Tree root, Public Key and KROOT files, and where will store the keys and the logs (if no log path is specified).
 * `merkle_name`: Name of the Merkle Tree root file. Shall be in the GSA XML format.
 * `pubkey_name`: Name of the stored Public Key file. Shall be in the GSA XML format.
+* `kroot_name`: Name of the stored KROOT key from a previous execution. To test Hot Start scenarios.
+* `TL`: Time synchronization value [s] of the receiver with the Galileo Satellite System time. Defaults to 30s.
 
 For a full description see the wiki page [Receiver Options [TBC]](https://github.com/Algafix/OSNMA/wiki/Receiver-Options-%5BTBC%5D).
 
