@@ -147,5 +147,6 @@ metrics/*logs/
 
 # Generated KROOT for Hot Start of the ICD Test Vectors
 tests/icd_test_vectors/*/OSNMA_last_KROOT.txt
+tests/test_corner_cases/*/OSNMA_last_KROOT.txt
 !tests/icd_test_vectors/configuration_X/OSNMA_last_KROOT.txt
 /tests/icd_test_vectors/configuration_2/OSNMA_PublicKey_2.xml
