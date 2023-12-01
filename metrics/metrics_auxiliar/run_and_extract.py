@@ -2,7 +2,6 @@ import re
 import logging
 
 from typing import Tuple
-from pathlib import Path
 
 from osnma.receiver.receiver import OSNMAReceiver
 import osnma.utils.logger_factory as logger_factory
