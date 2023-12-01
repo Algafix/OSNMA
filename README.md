@@ -142,18 +142,11 @@ Test Execution
 ===
 
 The software is provided with several test scenarios under the folder `tests/scenarios/`. The scenarios cover 
-different configurations and events of the OSNMA protocol. The data used by this tests was recorded on the OSNMA 
-Internal and Public Test Phases (2020 - 2022).
-
-To run the test is recommended to use the Python framework `pytest`, although they can be run calling the traditional 
-Python interpreter. Keep in mind that this execution may take a few minutes, since each test comprises several hours of satellite data.
+different configurations and events of the OSNMA protocol.
+The data used by the tests comes from the official test vectors and also by the live recording of some corner cases.
 
 By default, all tests are executed with `info` logging level on the file handler. That is, the log files will
-contain the maximum amount of information. This log files are stored under the folder `tests/test_logs`.
-For each sub-test (in this case, for each scenario) a subfolder is created with the name format `logs_YYYYmmdd_HHMMSS`.
-
-Pytest
----
+contain the maximum amount of information. This log files are stored under the folder `tests/logs/`.
 
 The `pytest` framework is the easiest way to execute the OSNMA Open Implementation receiver tests. To do so, the 
 following shell commands are provided. Note that the users interpreter work directory is assumed to be the top
@@ -162,11 +155,10 @@ folder of the provided software and `python pip` shall be already installed.
 ```
 $ pip install -r requirements.txt
 $ cd tests
-$ pytest receiver_test.py
+$ pytest icd_test_vectors.py 
+# or
+$ pytest test_corner_cases.py 
 ```
-
-Python interpreter
----
 
 The tests can also be executed using the traditional Python interpreter. In that case, the following shell commands 
 should be executed.
@@ -174,7 +166,9 @@ should be executed.
 ```
 $ pip install -r requirements.txt
 $ cd tests
-$ python3 receiver_test.py
+$ pytest icd_test_vectors.py 
+# or
+$ pytest test_corner_cases.py 
 ```
 
 Execution with Custom Data
@@ -219,6 +213,19 @@ The most important parameters are:
 * `TL`: Time synchronization value [s] of the receiver with the Galileo Satellite System time. Defaults to 30s.
 
 For a full description see the wiki page [Receiver Options [TBC]](https://github.com/Algafix/OSNMA/wiki/Receiver-Options-%5BTBC%5D).
+
+Metrics
+---
+
+We define the Time To First Authentication Fix (TTFAF) as the time since the receiver starts up until it successfully
+authenticates 4 satellites with ADKD0.
+
+### Hot Start ICD test vectors config 2
+
+This plot shows the TTFAF values for start times separated 1 second in a Hot Start scenario.
+Due to the perfect nature of the test vectors, this repeats for all subframes.
+
+![icd_config2_ttfaf_iod_by_TL.png](metrics%2Fimages%2Ficd_config2_ttfaf_iod_by_TL.png)
 
 
 Research Notice
