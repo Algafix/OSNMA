@@ -152,11 +152,26 @@ def osnma_after_outage():
     osnma_r = OSNMAReceiver(input_module, config_dict)
     osnma_r.start()
 
+def park_and_eu():
+    config_dict = {
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'scenarios/park_and_eu/park_and_eu_inav.sbf',
+        'exec_path': Path(__file__).parent / 'scenarios/park_and_eu/',
+        'pubk_name': 'OSNMA_PublicKey.xml',
+        'kroot_name': 'OSNMA_start_KROOT.txt'
+    }
+
+    input_module = SBF(config_dict['scenario_path'])
+    osnma_r = OSNMAReceiver(input_module, config_dict)
+    osnma_r.start(start_at_gst=(1267, 35400))
+
 if __name__ == "__main__":
 
-    #osnma_after_outage()
+    park_and_eu()
 
-    osnma_outage()
+    # osnma_after_outage()
+
+    # osnma_outage()
 
     # test_vectors_icd_configuration_1()
 
