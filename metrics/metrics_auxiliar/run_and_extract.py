@@ -3,6 +3,8 @@ import logging
 
 from typing import Tuple
 
+import numpy as np
+
 from osnma.receiver.receiver import OSNMAReceiver
 import osnma.utils.logger_factory as logger_factory
 
@@ -47,3 +49,26 @@ def run_with_config(config_dict, input_class, start_at_gst: Tuple[int, int] = No
     first_gst, faf_gst, ttfaf = get_TTFAF_stats()
     print(f"TTFAF: {ttfaf}\t{first_gst}-{faf_gst}")
     return int(ttfaf)
+
+def get_ttfaf_matrix(sim_params, optimizations_list, save):
+
+    wn = sim_params["WN"]
+    tow_range = range(sim_params["TOW_START"], sim_params["TOW_STOP"])
+    numpy_file_name = sim_params["numpy_file_name"] if save else "ttfaf_matrix_last_run.npy"
+
+    ttfaf_matrix = np.zeros([len(optimizations_list)+1, tow_range.stop-tow_range.start])
+    ttfaf_matrix[0] = tow_range
+    for i, config in enumerate(optimizations_list, start=1):
+        for j, tow in enumerate(tow_range):
+            run_config = sim_params["config_dict"]
+            run_config.update(config)
+            ttfaf = run_with_config(run_config, sim_params["input_module"], start_at_gst=(wn, tow))
+            ttfaf_matrix[i][j] = ttfaf
+        # print(ttfaf_matrix[i])
+    # print(ttfaf_matrix)
+
+    if save:
+        np.save(numpy_file_name, ttfaf_matrix)
+
+    return ttfaf_matrix
+
