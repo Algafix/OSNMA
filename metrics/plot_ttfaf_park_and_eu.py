@@ -15,7 +15,7 @@ DATA_FOLDER = Path(__file__).parent / 'scenarios/park_and_eu/'
 sim_params = {
     "WN": 1267,
     "TOW_START": 35400,
-    "TOW_STOP": 35400 + 20,
+    "TOW_STOP": 37350,
     "input_module": SBF,
     "name": "Hot Start TTFAF - Park and EU District",
     "numpy_file_name": DATA_FOLDER / "ttfaf_matrix_park_and_eu.npy",
@@ -29,6 +29,7 @@ sim_params = {
         'log_console': False
     }
 }
+
 def plot_ttfaf(plot_ttfaf_vectors: npt.NDArray, options, name):
 
     tow_vector = plot_ttfaf_vectors[0]
@@ -47,17 +48,41 @@ def plot_ttfaf(plot_ttfaf_vectors: npt.NDArray, options, name):
     plt.title(name)
     plt.grid()
     plt.legend(loc='upper right')
-    plt.show()
+
+def plot_cdf(plot_ttfaf_vectors: npt.NDArray, options, name):
+
+    N = len(plot_ttfaf_vectors[0])
+    Y = np.arange(N) / float(N)
+
+    fig, ax1 = plt.subplots(1, 1, figsize=(16, 9))
+    for idx, (ttfaf_vector, config_name) in enumerate(zip(plot_ttfaf_vectors[1:], options)):
+        sorted_values = np.sort(ttfaf_vector)
+        plt.plot(sorted_values, Y, label=config_name)
+
+        count, bins_count = np.histogram(ttfaf_vector, bins=len(np.unique(ttfaf_vector)))
+        pdf = count/sum(count)
+        cdf = np.cumsum(pdf)
+        plt.plot(bins_count[1:], cdf, label=config_name+' - cont')
+
+    plt.ylabel('Percentage')
+    plt.xlabel('Seconds [s]')
+    plt.title(name)
+    plt.grid()
+    plt.legend(loc='lower right')
 
 if __name__ == "__main__":
 
     options = {
         "No Optimization": {'do_crc_failed_extraction': False, 'do_tesla_key_regen': False, 'TL': 30},
         "CRC Extraction": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': False, 'TL': 30},
-        "CRC and Key Extraction": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 30}
+        "CRC and Key Extraction": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 30},
+        "CRC and Key Extraction TL 28s": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 28}
     }
 
     #ttfaf_matrix = get_ttfaf_matrix(sim_params, options.values(), True)
     ttfaf_matrix = np.load(sim_params["numpy_file_name"])
 
-    plot_ttfaf(ttfaf_matrix, options.keys(), sim_params["name"])
+    #plot_ttfaf(ttfaf_matrix, options.keys(), sim_params["name"])
+    plot_cdf(ttfaf_matrix, options.keys(), sim_params["name"])
+
+    plt.show()
