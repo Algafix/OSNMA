@@ -13,7 +13,6 @@
 #
 # See the Licence for the specific language governing permissions and limitations under the Licence.
 #
-import copy
 
 from osnma.structures.adkd import adkd_masks
 from osnma.structures.mack_structures import TagAndInfo
@@ -239,7 +238,9 @@ class ADKD0DataManager(ADKDDataManager):
                     data = None
                     break
                 if nav_data.gst_completed and nav_data.gst_completed >= gst_start_tesla_key - Config.TL:
-                    # Completed after TL, do not use
+                    # Completed after TL, do not use. The leading edge of both key and the data is used.
+                    # [WT1][WT3][WT5]..|........[Tesla Key 128bits]
+                    # 29   27   25              0                   TL value to use previous subframe if possible
                     data = None
                     break
                 data = nav_data
