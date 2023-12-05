@@ -29,6 +29,8 @@ sim_params = {
         'log_console': False
     }
 }
+
+
 def plot_ttfaf(plot_ttfaf_vectors: npt.NDArray, options, name):
 
     tow_vector = plot_ttfaf_vectors[0]
@@ -48,35 +50,14 @@ def plot_ttfaf(plot_ttfaf_vectors: npt.NDArray, options, name):
     plt.grid()
     plt.legend(loc='upper right')
 
-def plot_cdf_binned(plot_ttfaf_vectors: npt.NDArray, options, name):
-
-    N = len(plot_ttfaf_vectors[0])
-    Y = np.array(range(N))/float(N)
+def plot_cdf(plot_ttfaf_vectors: npt.NDArray, options, name):
 
     fig, ax1 = plt.subplots(1, 1, figsize=(16, 9))
+
     for idx, (ttfaf_vector, config_name) in enumerate(zip(plot_ttfaf_vectors[1:], options)):
-        sorted_values = np.sort(ttfaf_vector)
-        plt.plot(sorted_values, Y, label=config_name)
-
-    plt.ylabel('Percentage')
-    plt.xlabel('Seconds [s]')
-    plt.title(name)
-    plt.grid()
-    plt.legend(loc='upper right')
-
-def plot_cdf_unbinned(plot_ttfaf_vectors: npt.NDArray, options, name):
-
-    N = len(plot_ttfaf_vectors[0])
-    Y = np.arange(N) / float(N)
-
-    fig, ax1 = plt.subplots(1, 1, figsize=(16, 9))
-    for idx, (ttfaf_vector, config_name) in enumerate(zip(plot_ttfaf_vectors[1:], options)):
-        sorted_values = np.sort(ttfaf_vector)
-        plt.plot(sorted_values, Y, label=config_name)
-        count, bins_count = np.histogram(ttfaf_vector, bins=len(np.unique(ttfaf_vector)))
-        pdf = count/sum(count)
-        cdf = np.cumsum(pdf)
-        plt.plot(bins_count[1:], cdf, label=config_name+' - cont')
+        seconds_thr = np.arange(np.min(ttfaf_vector),np.max(ttfaf_vector)+1)
+        cdf = np.array([np.sum(ttfaf_vector <= thr) for thr in seconds_thr]) / len(ttfaf_vector)*100
+        plt.plot(seconds_thr, cdf, label=config_name)
 
     plt.ylabel('Percentage')
     plt.xlabel('Seconds [s]')
@@ -94,9 +75,8 @@ if __name__ == "__main__":
     #ttfaf_matrix = get_ttfaf_matrix(sim_params, options.values(), True)
     ttfaf_matrix = np.load(sim_params["numpy_file_name"])
 
-    plot_ttfaf(ttfaf_matrix, options.keys(), sim_params["name"])
-    #plot_cdf_binned(ttfaf_matrix, options.keys(), sim_params["name"])
-    plot_cdf_unbinned(ttfaf_matrix, options.keys(), sim_params["name"])
+    #plot_ttfaf(ttfaf_matrix, options.keys(), sim_params["name"])
+    plot_cdf(ttfaf_matrix, options.keys(), sim_params["name"])
 
     plt.show()
 
