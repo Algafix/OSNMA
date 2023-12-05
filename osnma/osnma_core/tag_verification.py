@@ -137,6 +137,18 @@ class TagStateStructure:
                 continue
             self.tags_awaiting_key.append(tag)
 
+    def _filter_tag_by_TL(self, tag) -> bool:
+        """
+        Filter a tag based on the TL value. If TL is greater than 30s, only ADKD12 can be verified. If TL is greater
+        than 330s, no tag can be verified.
+        """
+        if Config.TL > 330:
+            return True
+        elif Config.TL > 30 and tag.adkd.uint != 12:
+            return True
+        else:
+            return False
+
     def update_tag_lists(self, gst_subframe: GST):
         """
         Should be called every time a new TESLA key is provided.
@@ -155,6 +167,11 @@ class TagStateStructure:
         # Check if any tags has key and data
         logger.info("Tag verification:\n")
         for tag in list(self.tags_awaiting_key):
+
+            if self._filter_tag_by_TL(tag):
+                self.tags_awaiting_key.remove(tag)
+                continue
+
             if self.tesla_chain.key_check(tag):
                 # Has a verified key
                 tag.nav_data  = self.nav_data_m.get_data(tag)
