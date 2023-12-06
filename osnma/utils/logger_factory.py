@@ -58,18 +58,19 @@ def configure_loggers():
     logger = logging.getLogger('osnma')
     now = datetime.now()
 
-    file_path = Config.LOGS_PATH / f'logs_{now.strftime("%Y%m%d_%H%M%S%f")}'
-    os.makedirs(file_path)
-    file_name = file_path / 'general_logs.log'
-
     # File Handler
-    f_handler = logging.FileHandler(file_name, mode='w')
-    f_handler.setLevel(Config.FILE_LOG_LEVEL)
-    # f_format = logging.Formatter('%(asctime)s | %(name)-35s | %(levelname)-8s | %(message)s')
-    f_format = logging.Formatter('%(name)-35s | %(levelname)-8s | %(message)s')
+    if Config.LOG_FILE:
+        file_path = Config.LOGS_PATH / f'logs_{now.strftime("%Y%m%d_%H%M%S%f")}'
+        os.makedirs(file_path)
+        file_name = file_path / 'general_logs.log'
 
-    f_handler.setFormatter(f_format)
-    logger.addHandler(f_handler)
+        f_handler = logging.FileHandler(file_name, mode='w')
+        f_handler.setLevel(Config.FILE_LOG_LEVEL)
+        # f_format = logging.Formatter('%(asctime)s | %(name)-35s | %(levelname)-8s | %(message)s')
+        f_format = logging.Formatter('%(name)-35s | %(levelname)-8s | %(message)s')
+
+        f_handler.setFormatter(f_format)
+        logger.addHandler(f_handler)
 
     # Console Handler
     if Config.LOG_CONSOLE:

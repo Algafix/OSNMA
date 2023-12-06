@@ -34,6 +34,7 @@ class Config:
     FILE_LOG_LEVEL = logging.INFO
     CONSOLE_LOG_LEVEL = logging.DEBUG
     LOG_CONSOLE = True
+    LOG_FILE = True
     LOGS_PATH = ''
 
     SYNC_SOURCE = 0
@@ -53,11 +54,7 @@ class Config:
     FIRST_GST = None
 
     @classmethod
-    def load_configuration_parameters(cls, custom_parameters: Dict):
-
-        with open(Path(__file__).parent.parent / 'utils/config_params.json') as params_file:
-            param_dict: Dict[str, Any] = json.load(params_file)
-            param_dict.update(custom_parameters)
+    def load_configuration_parameters(cls, param_dict: Dict[str, Any]):
 
         if not param_dict['exec_path']:
             raise AttributeError("The 'exec_path' is a mandatory parameter.")

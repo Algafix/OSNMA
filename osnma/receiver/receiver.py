@@ -39,6 +39,7 @@ class OSNMAReceiver:
         Config.load_configuration_parameters(param_dict)
         log_factory.configure_loggers()
 
+        # Initialize all objects
         self.satellites: Dict[int, Satellite] = {}
         for svid in range(Config.NS):
             self.satellites[svid + 1] = Satellite(svid + 1)
@@ -46,6 +47,7 @@ class OSNMAReceiver:
         self.nav_data_input = input_module
         self.receiver_state = ReceiverState()
         self.subframe_regenerator = SubFrameRegenerator()
+        Config.FIRST_GST = None
 
     def _is_dummy_page(self, data: DataFormat) -> bool:
         return data.nav_bits[2:8].uint == 63
@@ -95,8 +97,6 @@ class OSNMAReceiver:
 
         if start_at_gst:
             Config.FIRST_GST = GST(wn=start_at_gst[0], tow=start_at_gst[1])
-        else:
-            Config.FIRST_GST = None
 
         for page in self.nav_data_input:
 
