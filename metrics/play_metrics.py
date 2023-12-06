@@ -59,12 +59,16 @@ if __name__ == "__main__":
         "Page level Tag processing and Key reconstruction - TL 28s": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 28},
         "Page level Tag processing and Key reconstruction - TL 1s": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 1}
     }
+    # options = {
+    #     "TL 31s": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 31},
+    #     "TL 30s": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 30}
+    # }
 
     sim_params = sim_params_icd
-    sim_params = sim_params_park
+    #sim_params = sim_params_park
 
-    #ttfaf_matrix = get_ttfaf_matrix(sim_params, options.values(), True)
-    ttfaf_matrix = np.load(sim_params["numpy_file_name"])
+    ttfaf_matrix = get_ttfaf_matrix(sim_params, options.values(), True)
+    #ttfaf_matrix = np.load(sim_params["numpy_file_name"])
 
     plot_ttfaf(ttfaf_matrix, options.keys(), sim_params["name"])
     plot_cdf(ttfaf_matrix, options.keys(), sim_params["name"])

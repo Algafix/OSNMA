@@ -33,10 +33,11 @@ sim_params = {
 if __name__ == "__main__":
 
     options = {
-        "No Optimization": {'do_crc_failed_extraction': False, 'do_tesla_key_regen': False, 'TL': 30},
-        "Page level Tag processing": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': False, 'TL': 30},
-        "Page level Tag processing and Key reconstruction": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 30},
-        "Page level Tag processing and Key reconstruction - TL 28s": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 28}
+        "IOD data link": {'do_crc_failed_extraction': False, 'do_tesla_key_regen': False, 'TL': 30},
+        "IOD data link and Page level processing": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 30},
+        "IOD data link and Page level processing - TL 29s": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 29},
+        "IOD data link and Page level processing - TL 27s": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 27},
+        "IOD data link and Page level processing - TL 25s": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 25},
     }
 
     #ttfaf_matrix = get_ttfaf_matrix(sim_params, options.values(), True)
