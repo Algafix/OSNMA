@@ -1,5 +1,3 @@
-import io
-
 from typing import Tuple
 
 import numpy as np
@@ -60,9 +58,7 @@ def get_ttfaf_matrixSBF(sim_params, optimizations_list, save):
     ttfaf_matrix = np.zeros([len(optimizations_list)+1, tow_range.stop-tow_range.start])
     ttfaf_matrix[0] = tow_range
 
-    with open(sim_params["config_dict"]["scenario_path"], 'br') as f:
-        file_in_mem = io.BytesIO(f.read())
-    sbfmetric_input = SBFMetrics(file_in_mem)
+    sbfmetric_input = SBFMetrics(open(sim_params["config_dict"]["scenario_path"], 'br'))
 
     for i, config in enumerate(tqdm(optimizations_list), start=1):
         sbfmetric_input.file_goto(0)

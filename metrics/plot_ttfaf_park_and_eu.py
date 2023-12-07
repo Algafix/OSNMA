@@ -5,8 +5,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-from osnma.input_formats.input_sbf import SBF
-from metrics_auxiliar.run_and_extract import get_ttfaf_matrix
+from metrics_auxiliar.run_and_extract import get_ttfaf_matrixSBF
 from metrics_auxiliar.predefined_plots import plot_ttfaf, plot_cdf
 
 DATA_FOLDER = Path(__file__).parent / 'scenarios/park_and_eu/'
@@ -15,7 +14,6 @@ sim_params = {
     "WN": 1267,
     "TOW_START": 35400,
     "TOW_STOP": 37350,
-    "input_module": SBF,
     "name": "Hot Start TTFAF - Park and EU District",
     "numpy_file_name": DATA_FOLDER / "ttfaf_matrix_park_and_eu.npy",
     "config_dict": {
@@ -39,7 +37,7 @@ if __name__ == "__main__":
         "IOD data link and Page level processing - TL 25s": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 25},
     }
 
-    #ttfaf_matrix = get_ttfaf_matrix(sim_params, options.values(), True)
+    #ttfaf_matrix = get_ttfaf_matrixSBF(sim_params, options.values(), True)
     ttfaf_matrix = np.load(sim_params["numpy_file_name"])
 
     plot_ttfaf(ttfaf_matrix, options.keys(), sim_params["name"])
