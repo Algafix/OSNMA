@@ -15,7 +15,6 @@
 #
 
 import logging
-import json
 from typing import Dict, Any
 from pathlib import Path
 from enum import IntEnum
@@ -67,9 +66,8 @@ class Config:
                     v = Path(v)
                 setattr(cls, k.upper(), v)
 
-        if not param_dict['logs_path']:
+        if not param_dict.get('logs_path', False):
             cls.LOGS_PATH = cls.EXEC_PATH
-
 
 class SYNC_SOURCE(IntEnum):
     SBF = 0

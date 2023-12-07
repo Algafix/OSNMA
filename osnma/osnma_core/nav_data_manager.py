@@ -18,6 +18,7 @@ from osnma.structures.adkd import adkd_masks
 from osnma.structures.mack_structures import TagAndInfo
 from osnma.cryptographic.gst_class import GST
 from osnma.utils.config import Config
+from osnma.utils.exceptions import StoppedAtFAF
 
 from bitstring import BitArray
 from typing import List, Dict, Tuple, Optional, Union
@@ -419,11 +420,12 @@ class NavigationDataManager:
                 # Also, OSNMAlib works with pages timestamped with the GST of leading edge of the first page,
                 # but to receive the data of a page we have to wait until the page ends, hence +1 second.
                 gst_subframe_data_end = gst_subframe + 30 + 1
+                ttfaf = (gst_subframe_data_end - Config.FIRST_GST).tow
                 logger.info(f"First Authenticated Fix at GST {gst_subframe_data_end}")
                 logger.info(f"First GST {Config.FIRST_GST}")
-                logger.info(f"TTFAF {(gst_subframe_data_end - Config.FIRST_GST).tow} seconds\n")
+                logger.info(f"TTFAF {ttfaf} seconds\n")
                 if Config.STOP_AT_FAF:
-                    raise Exception("Stopped by FAF")
+                    raise StoppedAtFAF(f"Stopped by FAF", ttfaf, Config.FIRST_GST.tow, gst_subframe_data_end.tow)
 
     def _clean_old_data(self):
         """

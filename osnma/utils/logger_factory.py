@@ -55,8 +55,15 @@ class CustomFormatter(logging.Formatter):
 
 
 def configure_loggers():
+    """
+    From each file we are getting the logger using __name__. Therefore, all of them share the parent logger 'osnma' and
+    propagate to this parent logger. We can set the appropriate handlers here and let the library do the rest.
+    """
     logger = logging.getLogger('osnma')
     now = datetime.now()
+
+    # Disable the call to logging.lastresort when no handler is found
+    logger.addHandler(logging.NullHandler())
 
     # File Handler
     if Config.LOG_FILE:
@@ -80,9 +87,9 @@ def configure_loggers():
 
         logger.addHandler(c_handler)
 
-
 def get_logger(name):
+    # By default, the log level is Warning. We could use this function to change specific
     logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
 
     return logger

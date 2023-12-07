@@ -17,7 +17,7 @@ DATA_FOLDER_PARK = Path(__file__).parent / 'scenarios/park_and_eu/'
 sim_params_park = {
     "WN": 1267,
     "TOW_START": 35400,
-    "TOW_STOP": 35400+100,
+    "TOW_STOP": 35400+30,
     "input_module": SBF,
     "name": "Hot Start TTFAF - Park and EU District",
     "numpy_file_name": DATA_FOLDER_PARK / "play.npy",
@@ -28,7 +28,8 @@ sim_params_park = {
         'pubk_name': 'OSNMA_PublicKey.xml',
         'kroot_name': 'OSNMA_start_KROOT.txt',
         'stop_at_faf': True,
-        'log_console': False
+        'log_console': False,
+        'log_file': False
     }
 }
 
@@ -41,31 +42,33 @@ sim_params_icd = {
     "name": "Hot Start TTFAF - ICD Config 2",
     "numpy_file_name": DATA_FOLDER_ICD / "play.npy",
     "config_dict": {
-        'logs_path': LOGS_PATH,
         'scenario_path': DATA_FOLDER_ICD / '27_JUL_2023_GST_00_00_01_fixed.csv',
         'exec_path': DATA_FOLDER_ICD,
         'pubk_name': 'OSNMA_PublicKey_2.xml',
         'kroot_name': 'OSNMA_start_KROOT.txt',
         'stop_at_faf': True,
-        'log_console': False
+        'log_console': False,
+        'log_file': False
     }
 }
 
 if __name__ == "__main__":
 
     options = {
-        "No Optimization": {'do_crc_failed_extraction': False, 'do_tesla_key_regen': False, 'TL': 30},
-        "Page level Tag processing and Key reconstruction": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 30},
-        "Page level Tag processing and Key reconstruction - TL 28s": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 28},
-        "Page level Tag processing and Key reconstruction - TL 1s": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 1}
+        "IOD data link": {'do_crc_failed_extraction': False, 'do_tesla_key_regen': False, 'TL': 30},
+        "IOD data link and Page level processing": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 30},
+        "IOD data link and Page level processing - TL 29s": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 29},
+        "IOD data link and Page level processing - TL 27s": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 27},
+        "IOD data link and Page level processing - TL 25s": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 25},
     }
+
     # options = {
-    #     "TL 31s": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 31},
-    #     "TL 30s": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 30}
+    #     "TL 31s": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 30},
+    #     "TL 30s": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 29}
     # }
 
-    sim_params = sim_params_icd
-    #sim_params = sim_params_park
+    #sim_params = sim_params_icd
+    sim_params = sim_params_park
 
     ttfaf_matrix = get_ttfaf_matrix(sim_params, options.values(), True)
     #ttfaf_matrix = np.load(sim_params["numpy_file_name"])

@@ -40,3 +40,10 @@ class MackParsingError(Exception):
 
 class ReceiverStatusError(Exception):
     pass
+
+class StoppedAtFAF(Exception):
+    def __init__(self, message, ttfaf: int, first_tow, faf_tow):
+        super().__init__(message)
+        self.ttfaf = ttfaf
+        self.first_tow = first_tow
+        self.faf_tow = faf_tow

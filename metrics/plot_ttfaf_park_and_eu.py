@@ -9,7 +9,6 @@ from osnma.input_formats.input_sbf import SBF
 from metrics_auxiliar.run_and_extract import get_ttfaf_matrix
 from metrics_auxiliar.predefined_plots import plot_ttfaf, plot_cdf
 
-LOGS_PATH = Path(__file__).parent / 'metrics_live_recordings_logs/'
 DATA_FOLDER = Path(__file__).parent / 'scenarios/park_and_eu/'
 
 sim_params = {
@@ -20,13 +19,13 @@ sim_params = {
     "name": "Hot Start TTFAF - Park and EU District",
     "numpy_file_name": DATA_FOLDER / "ttfaf_matrix_park_and_eu.npy",
     "config_dict": {
-        'logs_path': LOGS_PATH,
         'scenario_path': DATA_FOLDER / 'park_and_eu_inav.sbf',
         'exec_path': DATA_FOLDER,
         'pubk_name': 'OSNMA_PublicKey.xml',
         'kroot_name': 'OSNMA_start_KROOT.txt',
         'stop_at_faf': True,
-        'log_console': False
+        'log_console': False,
+        'log_file': False
     }
 }
 
