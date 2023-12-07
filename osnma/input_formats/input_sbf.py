@@ -14,6 +14,7 @@
 # See the Licence for the specific language governing permissions and limitations under the Licence.
 #
 
+import io
 import socket
 import pandas as pd
 
@@ -320,3 +321,79 @@ class SBFAscii(PageIterator):
 
         return data
 
+
+class SBFMetrics(PageIterator):
+
+    def __init__(self, file_in_mem, use_satellites_list=False):
+        super().__init__()
+        self.file = file_in_mem
+        self.file_pos = self.file.tell()
+        self.use_satellites_list = use_satellites_list
+
+        self.start_tow = None
+        self.start_pos = None
+
+    def file_goto(self, position):
+        """
+        Seek position and reset start_pos
+        """
+        self.file_pos = position
+        self.file.seek(position)
+        self.start_pos = None
+
+    def __next__(self) -> 'DataFormat':
+
+        data_format = None
+
+        while header := self.file.read(8):
+            if header[:2] == SYNC:
+                # Possible block header detected
+                crc, block_id, length, block_num, rev_num = parse_header(header)
+
+                if length % 4 != 0:
+                    # Not a block, advance one byte
+                    self.file_pos += 1
+                    self.file.seek(self.file_pos)
+                    continue
+
+                block = header + self.file.read(length - 8)
+                calculated_crc = crc_calculation(block[4:])
+
+                if calculated_crc != crc:
+                    # Not a block, advance one byte
+                    self.file_pos += 1
+                    self.file.seek(self.file_pos)
+                    continue
+
+                if block_id == 4023:
+                    # We have a block and its a gal raw nav block
+                    tow, wn_c, svid, crc_passed, band, nav_bits_hex = parse_GALRawINAV(block)
+
+                    if self.use_satellites_list and svid not in self.use_satellites_list:
+                        self.file_pos = self.file.tell()
+                        continue
+
+                    if band == 'GAL_L1BC' and tow != 'DNU' and wn_c != 'DNU':
+                        # print(f"WN: {wn_c} TOW: {tow} SVID: {svid} BAND: {band} CRC: {crc_passed}")
+                        tow = tow // 1000 - 2
+                        wn = wn_c - 1024
+                        nav_bits = BitArray(hex="".join(nav_bits_hex))[:234]
+                        nav_bits.insert('0b000000', 114)
+                        data_format = DataFormat(svid, wn, tow, nav_bits, band, crc_passed)
+
+                        if self.start_pos is None and tow >= self.start_tow:
+                            self.start_pos = self.file_pos
+
+                        self.file_pos = self.file.tell()
+                        break
+
+                # It was a valid block, update descriptor and continue
+                self.file_pos = self.file.tell()
+            else:
+                self.file_pos += 1
+                self.file.seek(self.file_pos)
+
+        if data_format is None:
+            raise StopIteration
+
+        return data_format
