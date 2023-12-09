@@ -60,13 +60,18 @@ def configure_loggers():
     propagate to this parent logger. We can set the appropriate handlers here and let the library do the rest.
     """
     logger = logging.getLogger('osnma')
-    now = datetime.now()
+
+    # Clear all handlers (multiple executions would just add infinite loggers)
+    # DO NOT use logger.hasHandlers() because it also checks parents and pytest adds a logger to root
+    while len(logger.handlers) > 0:
+        logger.removeHandler(logger.handlers[0])
 
     # Disable the call to logging.lastresort when no handler is found
     logger.addHandler(logging.NullHandler())
 
     # File Handler
     if Config.LOG_FILE:
+        now = datetime.now()
         file_path = Config.LOGS_PATH / f'logs_{now.strftime("%Y%m%d_%H%M%S%f")}'
         os.makedirs(file_path)
         file_name = file_path / 'general_logs.log'
@@ -87,8 +92,9 @@ def configure_loggers():
 
         logger.addHandler(c_handler)
 
+
 def get_logger(name):
-    # By default, the log level is Warning. We could use this function to change specific
+    # By default, the log level is Warning. We could use this function to change specifics to file
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
 
