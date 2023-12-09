@@ -55,21 +55,34 @@ class CustomFormatter(logging.Formatter):
 
 
 def configure_loggers():
+    """
+    From each file we are getting the logger using __name__. Therefore, all of them share the parent logger 'osnma' and
+    propagate to this parent logger. We can set the appropriate handlers here and let the library do the rest.
+    """
     logger = logging.getLogger('osnma')
-    now = datetime.now()
 
-    file_path = Config.LOGS_PATH / f'logs_{now.strftime("%Y%m%d_%H%M%S%f")}'
-    os.makedirs(file_path)
-    file_name = file_path / 'general_logs.log'
+    # Clear all handlers (multiple executions would just add infinite loggers)
+    # DO NOT use logger.hasHandlers() because it also checks parents and pytest adds a logger to root
+    while len(logger.handlers) > 0:
+        logger.removeHandler(logger.handlers[0])
+
+    # Disable the call to logging.lastresort when no handler is found
+    logger.addHandler(logging.NullHandler())
 
     # File Handler
-    f_handler = logging.FileHandler(file_name, mode='w')
-    f_handler.setLevel(Config.FILE_LOG_LEVEL)
-    # f_format = logging.Formatter('%(asctime)s | %(name)-35s | %(levelname)-8s | %(message)s')
-    f_format = logging.Formatter('%(name)-35s | %(levelname)-8s | %(message)s')
+    if Config.LOG_FILE:
+        now = datetime.now()
+        file_path = Config.LOGS_PATH / f'logs_{now.strftime("%Y%m%d_%H%M%S%f")}'
+        os.makedirs(file_path)
+        file_name = file_path / 'general_logs.log'
 
-    f_handler.setFormatter(f_format)
-    logger.addHandler(f_handler)
+        f_handler = logging.FileHandler(file_name, mode='w')
+        f_handler.setLevel(Config.FILE_LOG_LEVEL)
+        # f_format = logging.Formatter('%(asctime)s | %(name)-35s | %(levelname)-8s | %(message)s')
+        f_format = logging.Formatter('%(name)-35s | %(levelname)-8s | %(message)s')
+
+        f_handler.setFormatter(f_format)
+        logger.addHandler(f_handler)
 
     # Console Handler
     if Config.LOG_CONSOLE:
@@ -81,7 +94,8 @@ def configure_loggers():
 
 
 def get_logger(name):
+    # By default, the log level is Warning. We could use this function to change specifics to file
     logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
 
     return logger

@@ -17,9 +17,13 @@ OSNMAlib assumes a TL of 30s: the maximum to process all tags.
 However, it can be configured for a different TL depending on what you receiver can guarantee.
 For more information about time synchronisation see the [OSNMA Receiver Guidelines](https://www.gsc-europa.eu/sites/default/files/sites/all/files/Galileo_OSNMA_Receiver_Guidelines_v1.1.pdf), and [Receiver Options](#receiver-options) to configure OSNMAlib.
 
+OSNMAlib implements several optimizations in the cryptographic material extraction and in the process of linking navigation data to tags.
+None of these optimizations imply trial-and-error on the verification process, any authentication failure should be assumed as spoofing.
+If you see several authentication failures in a non-spoofing scenario, feel free to report it on the Issues page of GitHub.   
+
 If you are using data from the OSNMA Test Phase (before 2023-08-03 11:00), use the [OSNMA_Test_Phase_ICD branch](https://github.com/Algafix/OSNMA/tree/OSNMA_Test_Phase_ICD).
 
-Supports Python 3.8, 3.9 and 3.10+. Tested on Linux and Windows.
+Supports Python 3.8, 3.9, 3.10 and 3.11. Tested on Linux and Windows.
 
 Features
 ---
@@ -37,12 +41,13 @@ Current OSNMA ICD **features supported**:
   * Authentication of the navigation data.
   * Support for Cold Start, Warm Start and Hot Start.
   * Support for the following events: EOC, NPK, PKREV, OAM.
-    * Missing data to validate the CREV event.
+    * Missing test vectors to validate the CREV and NMT events.
   
 **Extra optimizations** for a faster TTFAF:
   * Reconstruct broken HKROOT messages.
   * Reconstruct TESLA key from partial MACK messages.
   * Extract non-FLX tags from broken MACK messages.
+  * Link data from multiple subframes using the IOD.
 
 Current data **format supported**:
 
@@ -54,16 +59,16 @@ Current data **format supported**:
 Future development:
 
   * Time synchronization options for live execution.
-  * Implement COP optimization.
   * Renew Merkle Tree procedure.
   * IDD ICD implementation for authentication of cryptographic materials.
+  * Implement a uBlox input data format.
 
 Documentation
 ---
 
 NAVITEC Conference on OSNMAlib
   * [OSNMAlib Paper](OSNMAlib_NAVITEC2022.pdf)
-  * [Youtube Presentation](https://www.youtube.com/watch?v=IVPzVM5GdKs)
+  * [YouTube Presentation](https://www.youtube.com/watch?v=IVPzVM5GdKs)
 
 General OSNMA documentation
   * [GSC website with the reference documents](https://www.gsc-europa.eu/electronic-library/programme-reference-documents)
@@ -104,7 +109,7 @@ $ python run.py [filename]
 Real time execution with data from Galmon
 ---
 
-If you want to see the library process data in real time but don't have a receiver, I've integrated OSNMAlib with the [galmon](https://github.com/berthubert/galmon) project. You can find a  under the folder `live_galmon_run/` and run it:
+If you want to see the library process data in real time but don't have a receiver, I've integrated OSNMAlib with the [galmon](https://github.com/berthubert/galmon) project. You can find it under the folder `live_galmon_run/` and run it with:
 
 ```
 $ live_galmon_run/
@@ -126,7 +131,7 @@ setSBFOutput, Stream2, IPS1, GALRawINAV, sec1
 setIPServerSettings, IPS1, 20000
 ```
 
-Then just execute the software. By default it connects to `192.168.3.1:20000`.
+Then just execute the software. By default, it connects to `192.168.3.1:20000`.
 
 ```
 $ live_septentrio_run/
@@ -142,18 +147,11 @@ Test Execution
 ===
 
 The software is provided with several test scenarios under the folder `tests/scenarios/`. The scenarios cover 
-different configurations and events of the OSNMA protocol. The data used by this tests was recorded on the OSNMA 
-Internal and Public Test Phases (2020 - 2022).
-
-To run the test is recommended to use the Python framework `pytest`, although they can be run calling the traditional 
-Python interpreter. Keep in mind that this execution may take a few minutes, since each test comprises several hours of satellite data.
+different configurations and events of the OSNMA protocol.
+The data used by the tests comes from the official test vectors and also by the live recording of some corner cases.
 
 By default, all tests are executed with `info` logging level on the file handler. That is, the log files will
-contain the maximum amount of information. This log files are stored under the folder `tests/test_logs`.
-For each sub-test (in this case, for each scenario) a subfolder is created with the name format `logs_YYYYmmdd_HHMMSS`.
-
-Pytest
----
+contain the maximum amount of information. This log files are stored under the folder `tests/logs/`.
 
 The `pytest` framework is the easiest way to execute the OSNMA Open Implementation receiver tests. To do so, the 
 following shell commands are provided. Note that the users interpreter work directory is assumed to be the top
@@ -162,11 +160,10 @@ folder of the provided software and `python pip` shall be already installed.
 ```
 $ pip install -r requirements.txt
 $ cd tests
-$ pytest receiver_test.py
+$ pytest icd_test_vectors.py 
+# or
+$ pytest test_corner_cases.py 
 ```
-
-Python interpreter
----
 
 The tests can also be executed using the traditional Python interpreter. In that case, the following shell commands 
 should be executed.
@@ -174,7 +171,9 @@ should be executed.
 ```
 $ pip install -r requirements.txt
 $ cd tests
-$ python3 receiver_test.py
+$ pytest icd_test_vectors.py 
+# or
+$ pytest test_corner_cases.py 
 ```
 
 Execution with Custom Data
@@ -220,6 +219,32 @@ The most important parameters are:
 
 For a full description see the wiki page [Receiver Options [TBC]](https://github.com/Algafix/OSNMA/wiki/Receiver-Options-%5BTBC%5D).
 
+Metrics
+---
+
+We define the Time To First Authentication Fix (TTFAF) as the time since the receiver starts up until it successfully
+authenticates 4 satellites with ADKD0.
+On the following examples, the data file has been processed starting 1 second later every time and recorded the time it takes to have First Authenticated Fix.
+
+### Hot Start ICD test vectors config 2
+
+This plot shows the Cumulative Distribution Function (CDF) for the TTFAF values in a Hot Start scenario for the ICD test vector Config 2.
+
+Due to the perfect nature of the test vectors, the OSNMAlib optimizations for challenging scenarios doesn't improve the TTFAF.
+However, a reduction in 1 second in the TL with respect to the maximum TL of 30s improves the TTFAF in 2 seconds.
+
+![cdf_hot_start.png](metrics%2Fscenarios%2Fconfiguration_2%2Fcdf_hot_start.png)
+
+### Walk in the European District in Brussels
+
+This plot shows the Cumulative Distribution Function (CDF) for the TTFAF values in a Hot Start scenario for the data recorded in a walk in the European District of Brussels.
+
+In this challenging scenario the optimizations really bring a lot to the table.
+Processing the MACK message per page and not per subframe decreases substantially the TTFAF.
+Also, reducing the TL to 25 seconds from 30 seconds decreases de TTFAF, showing that a receiver can get benefits by being closer to the GST.
+Reducing the TL further than 25 seconds doesn't provide any decrease in TTFAF with the current optimizations because the receiver can't use more data from the previous subframe for the ADDK0.
+
+![cdf_hot_start.png](metrics%2Fscenarios%2Fpark_and_eu%2Fcdf_hot_start.png)
 
 Research Notice
 ===

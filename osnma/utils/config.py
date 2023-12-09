@@ -15,7 +15,6 @@
 #
 
 import logging
-import json
 from typing import Dict, Any
 from pathlib import Path
 from enum import IntEnum
@@ -23,56 +22,59 @@ from enum import IntEnum
 import osnma.utils.logger_factory as log_factory
 
 
-class Config:
+class _Config:
 
-    SCENARIO_PATH = ''
-    EXEC_PATH = ''
-    MERKLE_NAME = 'OSNMA_MerkleTree.xml'
-    PUBK_NAME = ''
-    KROOT_NAME = ''
+    def __init__(self):
+        self.SCENARIO_PATH = ''
+        self.EXEC_PATH = ''
+        self.MERKLE_NAME = 'OSNMA_MerkleTree.xml'
+        self.PUBK_NAME = ''
+        self.KROOT_NAME = ''
 
-    FILE_LOG_LEVEL = logging.INFO
-    CONSOLE_LOG_LEVEL = logging.DEBUG
-    LOG_CONSOLE = True
-    LOGS_PATH = ''
+        self.FILE_LOG_LEVEL = logging.INFO
+        self.CONSOLE_LOG_LEVEL = logging.DEBUG
+        self.LOG_CONSOLE = True
+        self.LOG_FILE = True
+        self.LOGS_PATH = ''
 
-    SYNC_SOURCE = 0
-    SYNC_TIME = None
-    TL = 30
-    B = 1
+        self.SYNC_SOURCE = 0
+        self.SYNC_TIME = None
+        self.TL = 30
+        self.B = 1
 
-    NS = 36
-    TAG_LENGTH = 40
-    ACTIVE_ADKD = {0, 4, 12}
+        self.NS = 36
+        self.TAG_LENGTH = 40
+        self.ACTIVE_ADKD = {0, 4, 12}
 
-    DO_HKROOT_REGEN = True
-    DO_CRC_FAILED_EXTRACTION = True
-    DO_TESLA_KEY_REGEN = True
+        self.DO_HKROOT_REGEN = True
+        self.DO_CRC_FAILED_EXTRACTION = True
+        self.DO_TESLA_KEY_REGEN = True
 
-    STOP_AT_FAF = False
-    FIRST_GST = None
+        self.STOP_AT_FAF = False
+        self.FIRST_GST = None
 
-    @classmethod
-    def load_configuration_parameters(cls, custom_parameters: Dict):
+    def load_configuration_parameters(self, param_dict: Dict[str, Any]):
+        """
+        Re-loads the default configuration and adds the configuration defined in `param_dict`.
+        """
 
-        with open(Path(__file__).parent.parent / 'utils/config_params.json') as params_file:
-            param_dict: Dict[str, Any] = json.load(params_file)
-            param_dict.update(custom_parameters)
+        self.__init__()
 
         if not param_dict['exec_path']:
             raise AttributeError("The 'exec_path' is a mandatory parameter.")
 
         for k, v in param_dict.items():
-            if k.upper() in cls.__dict__:
+            if k.upper() in self.__dict__:
                 if 'LOG_LEVEL' in k.upper() and type(v) == str:
                     v = log_factory.str_to_log_level[v]
                 elif k.upper().endswith('_PATH'):
                     v = Path(v)
-                setattr(cls, k.upper(), v)
+                setattr(self, k.upper(), v)
 
-        if not param_dict['logs_path']:
-            cls.LOGS_PATH = cls.EXEC_PATH
+        if not param_dict.get('logs_path', False):
+            self.LOGS_PATH = self.EXEC_PATH
 
+Config = _Config()
 
 class SYNC_SOURCE(IntEnum):
     SBF = 0

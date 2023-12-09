@@ -22,7 +22,6 @@ from pathlib import Path
 import re
 import hashlib
 
-import bitstring
 from ecdsa.keys import VerifyingKey
 from ecdsa.curves import NIST256p
 from ecdsa.curves import NIST521p

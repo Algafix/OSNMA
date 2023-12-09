@@ -152,11 +152,45 @@ def osnma_after_outage():
     osnma_r = OSNMAReceiver(input_module, config_dict)
     osnma_r.start()
 
+def park_and_eu():
+    config_dict = {
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'scenarios/park_and_eu/park_and_eu_inav.sbf',
+        'exec_path': Path(__file__).parent / 'scenarios/park_and_eu/',
+        'pubk_name': 'OSNMA_PublicKey.xml',
+        'kroot_name': 'OSNMA_start_KROOT.txt',
+        'TL': 25,
+        'stop_at_faf': True
+    }
+
+    input_module = SBF(config_dict['scenario_path'])
+    osnma_r = OSNMAReceiver(input_module, config_dict)
+    osnma_r.start(start_at_gst=(1267, 35400))
+
+def config2():
+    config_dict = {
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/configuration_2_pubk_kroot/27_JUL_2023_GST_00_00_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'icd_test_vectors/configuration_2_pubk_kroot/',
+        'pubk_name': 'OSNMA_PublicKey_2.xml',
+        'kroot_name': 'OSNMA_start_KROOT.txt',
+        'TL': 30,
+        'stop_at_faf': True
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    osnma_r = OSNMAReceiver(input_module, config_dict)
+    osnma_r.start(start_at_gst=(1248, 345623))
+
 if __name__ == "__main__":
 
-    #osnma_after_outage()
+    #config2()
 
-    osnma_outage()
+    park_and_eu()
+
+    # osnma_after_outage()
+
+    # osnma_outage()
 
     # test_vectors_icd_configuration_1()
 
