@@ -25,7 +25,7 @@ import osnma.utils.logger_factory as log_factory
 class _Config:
 
     def __init__(self):
-        self.SCENARIO_PATH = ''
+        self.SCENARIO_PATH = ''  # Not needed, may be used for debug
         self.EXEC_PATH = ''
         self.MERKLE_NAME = 'OSNMA_MerkleTree.xml'
         self.PUBK_NAME = ''
