@@ -17,9 +17,13 @@ OSNMAlib assumes a TL of 30s: the maximum to process all tags.
 However, it can be configured for a different TL depending on what you receiver can guarantee.
 For more information about time synchronisation see the [OSNMA Receiver Guidelines](https://www.gsc-europa.eu/sites/default/files/sites/all/files/Galileo_OSNMA_Receiver_Guidelines_v1.1.pdf), and [Receiver Options](#receiver-options) to configure OSNMAlib.
 
+OSNMAlib implements several optimizations in the cryptographic material extraction and in the process of linking navigation data to tags.
+None of these optimizations imply trial-and-error on the verification process, any authentication failure should be assumed as spoofing.
+If you see several authentication failures in a non-spoofing scenario, feel free to report it on the Issues page of GitHub.   
+
 If you are using data from the OSNMA Test Phase (before 2023-08-03 11:00), use the [OSNMA_Test_Phase_ICD branch](https://github.com/Algafix/OSNMA/tree/OSNMA_Test_Phase_ICD).
 
-Supports Python 3.8, 3.9 and 3.10+. Tested on Linux and Windows.
+Supports Python 3.8, 3.9, 3.10 and 3.11. Tested on Linux and Windows.
 
 Features
 ---
@@ -37,12 +41,13 @@ Current OSNMA ICD **features supported**:
   * Authentication of the navigation data.
   * Support for Cold Start, Warm Start and Hot Start.
   * Support for the following events: EOC, NPK, PKREV, OAM.
-    * Missing data to validate the CREV event.
+    * Missing test vectors to validate the CREV and NMT events.
   
 **Extra optimizations** for a faster TTFAF:
   * Reconstruct broken HKROOT messages.
   * Reconstruct TESLA key from partial MACK messages.
   * Extract non-FLX tags from broken MACK messages.
+  * Link data from multiple subframes using the IOD.
 
 Current data **format supported**:
 
@@ -54,16 +59,16 @@ Current data **format supported**:
 Future development:
 
   * Time synchronization options for live execution.
-  * Implement COP optimization.
   * Renew Merkle Tree procedure.
   * IDD ICD implementation for authentication of cryptographic materials.
+  * Implement a uBlox input data format.
 
 Documentation
 ---
 
 NAVITEC Conference on OSNMAlib
   * [OSNMAlib Paper](OSNMAlib_NAVITEC2022.pdf)
-  * [Youtube Presentation](https://www.youtube.com/watch?v=IVPzVM5GdKs)
+  * [YouTube Presentation](https://www.youtube.com/watch?v=IVPzVM5GdKs)
 
 General OSNMA documentation
   * [GSC website with the reference documents](https://www.gsc-europa.eu/electronic-library/programme-reference-documents)
@@ -104,7 +109,7 @@ $ python run.py [filename]
 Real time execution with data from Galmon
 ---
 
-If you want to see the library process data in real time but don't have a receiver, I've integrated OSNMAlib with the [galmon](https://github.com/berthubert/galmon) project. You can find a  under the folder `live_galmon_run/` and run it:
+If you want to see the library process data in real time but don't have a receiver, I've integrated OSNMAlib with the [galmon](https://github.com/berthubert/galmon) project. You can find it under the folder `live_galmon_run/` and run it with:
 
 ```
 $ live_galmon_run/
@@ -126,7 +131,7 @@ setSBFOutput, Stream2, IPS1, GALRawINAV, sec1
 setIPServerSettings, IPS1, 20000
 ```
 
-Then just execute the software. By default it connects to `192.168.3.1:20000`.
+Then just execute the software. By default, it connects to `192.168.3.1:20000`.
 
 ```
 $ live_septentrio_run/
@@ -219,14 +224,27 @@ Metrics
 
 We define the Time To First Authentication Fix (TTFAF) as the time since the receiver starts up until it successfully
 authenticates 4 satellites with ADKD0.
+On the following examples, the data file has been processed starting 1 second later every time and recorded the time it takes to have First Authenticated Fix.
 
 ### Hot Start ICD test vectors config 2
 
-This plot shows the TTFAF values for start times separated 1 second in a Hot Start scenario.
-Due to the perfect nature of the test vectors, this repeats for all subframes.
+This plot shows the Cumulative Distribution Function (CDF) for the TTFAF values in a Hot Start scenario for the ICD test vector Config 2.
 
-![icd_config2_ttfaf_iod_by_TL.png](metrics%2Fimages%2Ficd_config2_ttfaf_iod_by_TL.png)
+Due to the perfect nature of the test vectors, the OSNMAlib optimizations for challenging scenarios doesn't improve the TTFAF.
+However, a reduction in 1 second in the TL with respect to the maximum TL of 30s improves the TTFAF in 2 seconds.
 
+![cdf_hot_start.png](metrics%2Fscenarios%2Fconfiguration_2%2Fcdf_hot_start.png)
+
+### Walk in the European District in Brussels
+
+This plot shows the Cumulative Distribution Function (CDF) for the TTFAF values in a Hot Start scenario for the data recorded in a walk in the European District of Brussels.
+
+In this challenging scenario the optimizations really bring a lot to the table.
+Processing the MACK message per page and not per subframe decreases substantially the TTFAF.
+Also, reducing the TL to 25 seconds from 30 seconds decreases de TTFAF, showing that a receiver can get benefits by being closer to the GST.
+Reducing the TL further than 25 seconds doesn't provide any decrease in TTFAF with the current optimizations because the receiver can't use more data from the previous subframe for the ADDK0.
+
+![cdf_hot_start.png](metrics%2Fscenarios%2Fpark_and_eu%2Fcdf_hot_start.png)
 
 Research Notice
 ===
