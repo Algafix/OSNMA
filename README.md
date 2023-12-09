@@ -204,20 +204,24 @@ the instructions on the [Input Data wiki page](https://github.com/Algafix/OSNMA/
 Receiver Options
 ---
 
-The receiver has several configuration parameters that should be defined previous to execution. Those parameters can be 
-specified within code in a Python dictionary or in a separate JSON File and served as an input parameter to the 
-receiver. The receiver will load default values for the configuration parameters not specified.
+The receiver has several configuration parameters that can be defined previous to execution.
+The parameters are defined in a dictionary and sent to the receiver when creating the receiver object.
+Note that you can create a script to read the parameters from a JSON and send it to the receiver.
+The receiver will load default values for the configuration parameters not specified.
 
 The most important parameters are:
+* `exec_path [mandatory]`: Path to the folder where OSNMAlib will search for the Merkle Tree root, Public Key and KROOT. OSNMAlib will also store the received cryptographic material and logs (if no log path is specified).
+* `merkle_name [default='OSNMA_MerkleTree.xml']`: Name of the Merkle Tree root file. Shall be in the GSA XML format.
+* `pubkey_name [default='']`: Name of the stored Public Key file. If nothing is specified, OSNMAlib will assume Cold Start. Shall be in the GSA XML format.
+* `kroot_name [default='']`: Name of the stored KROOT file. Shall have one line with the DSM KROOT complete message in hexadecimal and another line with the NMA Header in hexadecimal.
+* `TL [default=30]`: Time synchronization value [s] of the receiver with the Galileo Satellite System time.
 
-* `scenario_path`: Path to the scenario data file.
-* `exec_path`: Path to the folder where the receiver will search for the Merkle Tree root, Public Key and KROOT files, and where will store the keys and the logs (if no log path is specified).
-* `merkle_name`: Name of the Merkle Tree root file. Shall be in the GSA XML format.
-* `pubkey_name`: Name of the stored Public Key file. Shall be in the GSA XML format.
-* `kroot_name`: Name of the stored KROOT key from a previous execution. To test Hot Start scenarios.
-* `TL`: Time synchronization value [s] of the receiver with the Galileo Satellite System time. Defaults to 30s.
+Based on the cryptographic material provided to OSNMAlib in the configuration dictionary, it will be set in one of the 3 start states defined in the ICD.
+* **Cold Start**: OSNMAlib has no Public Key saved, it needs to be retrieved from the OSNMA message.
+* **Warm Start**: OSNMAlib has a Public Key saved and verified, but it is missing the Tesla KROOT. It needs to be retrieved from the OSNMA message.
+* **Hot Start**: OSNMAlib has a Public Key and a Tesla KROOT saved and verified, but it needs to be sure the KROOT is still useful.
 
-For a full description see the wiki page [Receiver Options [TBC]](https://github.com/Algafix/OSNMA/wiki/Receiver-Options-%5BTBC%5D).
+For a full description of the parameters and a diagram of the starting sequence, see the wiki page [Receiver Options](https://github.com/Algafix/OSNMA/wiki/Receiver-Options-%5BTBC%5D).
 
 Metrics
 ---
