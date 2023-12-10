@@ -201,11 +201,10 @@ If the format of the custom data is not supported by OSNMAlib, a new input itera
 the instructions on the [Input Data wiki page](https://github.com/Algafix/OSNMA/wiki/Input-Data).
 
 
-Receiver Options
+OSNMAlib Options
 ---
 
-The receiver has several configuration parameters that can be defined previous to execution.
-The parameters are defined in a dictionary and sent to the receiver when creating the receiver object.
+OSNMAlib has several configuration parameters that can be defined previous to execution. The parameters are defined in a dictionary and sent to the receiver when creating the receiver object.
 Note that you can create a script to read the parameters from a JSON and send it to the receiver.
 The receiver will load default values for the configuration parameters not specified.
 
@@ -221,7 +220,7 @@ Based on the cryptographic material provided to OSNMAlib in the configuration di
 * **Warm Start**: OSNMAlib has a Public Key saved and verified, but it is missing the Tesla KROOT. It needs to be retrieved from the OSNMA message.
 * **Hot Start**: OSNMAlib has a Public Key and a Tesla KROOT saved and verified, but it needs to be sure the KROOT is still useful.
 
-For a full description of the parameters and a diagram of the starting sequence, see the wiki page [Receiver Options](https://github.com/Algafix/OSNMA/wiki/Receiver-Options-%5BTBC%5D).
+For a full description of the parameters and a diagram of the starting sequence, see the wiki page [OSNMAlib Options](https://github.com/Algafix/OSNMA/wiki/OSNMAlib-Options).
 
 Metrics
 ---
