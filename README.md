@@ -222,33 +222,6 @@ Based on the cryptographic material provided to OSNMAlib in the configuration di
 
 For a full description of the parameters and a diagram of the starting sequence, see the wiki page [OSNMAlib Options](https://github.com/Algafix/OSNMA/wiki/OSNMAlib-Options).
 
-Metrics
----
-
-We define the Time To First Authentication Fix (TTFAF) as the time since the receiver starts up until it successfully
-authenticates 4 satellites with ADKD0.
-On the following examples, the data file has been processed starting 1 second later every time and recorded the time it takes to have First Authenticated Fix.
-
-### Hot Start ICD test vectors config 2
-
-This plot shows the Cumulative Distribution Function (CDF) for the TTFAF values in a Hot Start scenario for the ICD test vector Config 2.
-
-Due to the perfect nature of the test vectors, the OSNMAlib optimizations for challenging scenarios doesn't improve the TTFAF.
-However, a reduction in 1 second in the TL with respect to the maximum TL of 30s improves the TTFAF in 2 seconds.
-
-![cdf_hot_start.png](metrics%2Fscenarios%2Fconfiguration_2%2Fcdf_hot_start.png)
-
-### Walk in the European District in Brussels
-
-This plot shows the Cumulative Distribution Function (CDF) for the TTFAF values in a Hot Start scenario for the data recorded in a walk in the European District of Brussels.
-
-In this challenging scenario the optimizations really bring a lot to the table.
-Processing the MACK message per page and not per subframe decreases substantially the TTFAF.
-Also, reducing the TL to 25 seconds from 30 seconds decreases de TTFAF, showing that a receiver can get benefits by being closer to the GST.
-Reducing the TL further than 25 seconds doesn't provide any decrease in TTFAF with the current optimizations because the receiver can't use more data from the previous subframe for the ADDK0.
-
-![cdf_hot_start.png](metrics%2Fscenarios%2Fpark_and_eu%2Fcdf_hot_start.png)
-
 Research Notice
 ===
 
