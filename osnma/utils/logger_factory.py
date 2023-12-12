@@ -96,6 +96,6 @@ def configure_loggers():
 def get_logger(name):
     # By default, the log level is Warning. We could use this function to change specifics to file
     logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
 
     return logger

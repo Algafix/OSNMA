@@ -72,7 +72,7 @@ NAVITEC Conference on OSNMAlib
 
 General OSNMA documentation
   * [GSC website with the reference documents](https://www.gsc-europa.eu/electronic-library/programme-reference-documents)
-  * Look both at the ICD and the Receiver Guidelines
+  * Look both at the ICD, the Receiver Guidelines and the IDD
  
 
 Quick Run - Try it!

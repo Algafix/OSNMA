@@ -32,7 +32,7 @@ class _Config:
         self.KROOT_NAME = ''
 
         self.FILE_LOG_LEVEL = logging.INFO
-        self.CONSOLE_LOG_LEVEL = logging.DEBUG
+        self.CONSOLE_LOG_LEVEL = logging.INFO
         self.LOG_CONSOLE = True
         self.LOG_FILE = True
         self.LOGS_PATH = ''
@@ -65,7 +65,7 @@ class _Config:
 
         for k, v in param_dict.items():
             if k.upper() in self.__dict__:
-                if 'LOG_LEVEL' in k.upper() and type(v) == str:
+                if 'LOG_LEVEL' in k.upper() and isinstance(v, str):
                     v = log_factory.str_to_log_level[v]
                 elif k.upper().endswith('_PATH'):
                     v = Path(v)
