@@ -29,12 +29,12 @@ class Satellite:
         subframe stores the HKROOT and MACK message. At the end of a subframe, the HKROOT list is requested by
         the subframe regenerator and the MACK message is processed (partially if crc extraction is on).
         """
-        # TODO BUG: If a satellite misses the last page of a subframe the data is not extracted.
         self.svid = svid
         self.hkroot_subframe: List[Optional[BitArray]] = [None for _ in range(15)]
         self.mack_subframe: List[Optional[BitArray]] = [None for _ in range(15)]
         self.osnma_subframe: bool = False
-        self.subframe_start_gst: GST = GST(wn=0, tow=0)
+        self.active_on_this_subframe: bool = False
+        self.already_processed: bool = False
 
     def _load_osnma(self, page: DataFormat, page_number: int):
         if page.has_osnma:
@@ -42,39 +42,32 @@ class Satellite:
             self.hkroot_subframe[page_number] = page_hkroot
             self.mack_subframe[page_number] = page_mack
 
-    def _new_subframe(self, page: DataFormat, page_number: int):
-
+    def reset(self):
         self.hkroot_subframe = [None for _ in range(15)]
         self.mack_subframe = [None for _ in range(15)]
+        self.osnma_subframe = False
+        self.active_on_this_subframe = False
+        self.already_processed = False
 
-        if page.has_osnma:
-            self.osnma_subframe = True
-            self._load_osnma(page, page_number)
-        else:
-            self.osnma_subframe = False
+    def is_already_processed(self):
+        return self.already_processed
 
-    def _check_sync(self, gst_page: GST):
-        return True if self.subframe_start_gst + 30 > gst_page else False
-
-    def _update_sync(self, gst_page: GST, page_number: int):
-        gst_page_start = gst_page - (page_number * 2)
-        self.subframe_start_gst = gst_page_start
+    def set_already_processed(self):
+        self.already_processed = True
 
     def subframe_with_osnma(self) -> bool:
         return self.osnma_subframe
 
+    def is_active(self) -> bool:
+        return self.active_on_this_subframe
+
     def new_page(self, page: DataFormat):
+        self.active_on_this_subframe = True
+        self.osnma_subframe |= page.has_osnma
 
         gst_page = page.gst_page
         page_number = (gst_page.tow % 30) // 2
-
-        if not self._check_sync(gst_page):
-            # New subframe, update sync and save
-            self._update_sync(gst_page, page_number)
-            self._new_subframe(page, page_number)
-        elif self.osnma_subframe:
-            # Current subframe, save
-            self._load_osnma(page, page_number)
+        self._load_osnma(page, page_number)
 
     def get_mack_subframe(self) -> List[Optional[BitArray]]:
         return self.mack_subframe
