@@ -213,13 +213,13 @@ class TESLAChain:
                 break
             else:
                 logger.error("TESLA Key Failed Authentication")
-                e = TeslaKeyVerificationFailed(f"Tesla Key {new_tesla_key.index} from svid {new_tesla_key.svid}"
+                e = TeslaKeyVerificationFailed(f"Tesla Key {new_tesla_key.index} from svid {new_tesla_key.svid}: {new_tesla_key.key}"
                                                  f"{' Reconstructed' if new_tesla_key.reconstructed else ''},"
-                                                 f" received at {new_tesla_key.gst_sf} failed verification.\n"
-                                                 f"Last authenticated key: {self.last_tesla_key.index} "
-                                                 f"at {self.last_tesla_key.gst_sf}.\n"
-                                                 f"Last hash: {key_index} {tesla_key.key}")
+                                                 f" received at {new_tesla_key.gst_sf}\n"
+                                                 f"Last authenticated key: {self.last_tesla_key.index} {self.last_tesla_key.key}"
+                                                 f"at {self.last_tesla_key.gst_sf}")
                 logger.error(e)
+                break
 
         if key_verified:
             new_tesla_key.set_verified(True)

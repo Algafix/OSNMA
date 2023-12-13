@@ -108,9 +108,9 @@ def test_vectors_icd_configuration_2(log_level=logging.INFO):
         "tags_auth": 11427,
         "data_auth": 6056,
         "kroot_auth": 115,
-        "broken_kroot": 0,
+        "broken_kroot": 17,  # The first page for all satellites has no OSNMA data
         "crc_failed": 0,
-        "warnings": 0,
+        "warnings": 17,
         "errors": 0
     }
 
@@ -131,9 +131,9 @@ def test_vectors_icd_configuration_2_pubk_kroot(log_level=logging.INFO):
         "tags_auth": 11427,
         "data_auth": 6056,
         "kroot_auth": 115,
-        "broken_kroot": 0,
+        "broken_kroot": 17,  # The first page for all satellites has no OSNMA data
         "crc_failed": 0,
-        "warnings": 1,
+        "warnings": 18,
         "errors": 0
     }
 

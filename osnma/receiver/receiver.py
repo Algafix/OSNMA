@@ -48,6 +48,7 @@ class OSNMAReceiver:
         self.nav_data_input = input_module
         self.receiver_state = ReceiverState()
         self.subframe_regenerator = SubFrameRegenerator()
+        self.current_gst_subframe = GST()
         Config.FIRST_GST = None
 
     def _is_dummy_page(self, data: DataFormat) -> bool:
@@ -56,10 +57,10 @@ class OSNMAReceiver:
     def _is_alert_page(self, data: DataFormat) -> bool:
         return data.nav_bits[1]
 
-    def _sync_calculation(self, t_ref, t_sig):
-        return (t_ref + Config.B - Config.TL < t_sig) and (Config.B < Config.TL // 2)
+    def _get_gst_subframe(self, gst: GST):
+        return GST(wn=gst.wn, tow=gst.tow // 30 * 30)
 
-    def filter_page(self, data: DataFormat):
+    def _filter_page(self, data: DataFormat):
         """
         Filter page if it is not useful for teh current OSNMA implementation.
         Checks for CRC, alert pages, dummy pages, other signals aside from E1BC, etc.
@@ -68,6 +69,9 @@ class OSNMAReceiver:
 
         if Config.FIRST_GST is None:
             Config.FIRST_GST = data.gst_page
+
+        if not self.current_gst_subframe:
+            self.current_gst_subframe = self._get_gst_subframe(data.gst_page)
 
         if data.gst_page < Config.FIRST_GST:
             return True
@@ -88,6 +92,36 @@ class OSNMAReceiver:
 
         return False
 
+    def _end_of_subframe_satellite(self, gst_sf: GST, satellite: Satellite):
+        """
+        Process all the data of satellite at the end of the subframe
+        """
+
+        logger.info(f"--- SUBFRAME --- WN {gst_sf.wn} TOW {gst_sf.tow} SVID {satellite.svid:02} ---")
+
+        if satellite.subframe_with_osnma():
+            raw_hkroot_sf = satellite.get_hkroot_subframe()
+            hkroot_sf = self.subframe_regenerator.load_dsm_block(raw_hkroot_sf, gst_sf, satellite.svid)
+            if hkroot_sf:
+                # The full subframe has been received consecutively.
+                nma_status = self.receiver_state.process_hkroot_subframe(hkroot_sf, is_consecutive_hkroot=True)
+                mack_sf = satellite.get_mack_subframe()
+                self.receiver_state.process_mack_subframe(mack_sf, gst_sf, satellite.svid, nma_status)
+            else:
+                # Broken subframe. Reconstruct if possible hkroot. Extract what is possible from MACK.
+                logger.warning('Broken HKROOT Subframe. Regenerating HKROOT and processing MACK if active.')
+                if Config.DO_HKROOT_REGEN:
+                    for regen_hkroot_sf, bid in self.subframe_regenerator.get_regenerated_blocks():
+                        logger.info(f'HKROOT regenerated. BID {bid}')
+                        self.receiver_state.process_hkroot_subframe(regen_hkroot_sf)
+                if Config.DO_CRC_FAILED_EXTRACTION:
+                    mack_sf = satellite.get_mack_subframe()
+                    self.receiver_state.process_mack_subframe(
+                        mack_sf, gst_sf, satellite.svid, BitArray(uint=self.receiver_state.nma_status.value, length=2))
+        else:
+            logger.info(f"No OSNMA data.")
+
+
     def start(self, start_at_gst: Optional[Tuple[int, int]] = None):
         """
         Start the processing of data from the defined input module.
@@ -102,38 +136,29 @@ class OSNMAReceiver:
         try:
             for page in self.nav_data_input:
 
-                if self.filter_page(page):
+                if self._filter_page(page):
                     continue
 
+                # The subframe has finished, process leftovers of OSNMA data and reset objects
+                # Note: in real time receivers, this can be removed for a clock input
+                if (gst_sf := self._get_gst_subframe(page.gst_page)) > self.current_gst_subframe:
+                    for satellite in self.satellites.values():
+                        if satellite.is_active() and not satellite.is_already_processed():
+                            self._end_of_subframe_satellite(self.current_gst_subframe, satellite)
+                        satellite.reset()
+                    self.current_gst_subframe = gst_sf
+
+                # Add OSNMA data to satellite
                 satellite = self.satellites[page.svid]
                 satellite.new_page(page)
+
+                # Add nav data of the page to the navigation data manager
                 self.receiver_state.load_page(page.nav_bits, page.gst_page, satellite.svid)
 
-                # End of the subframe
+                # If we get the last subframe page of this satellite, process it now instead of waiting
                 if page.gst_page % 30 == 29:
-                    gst_sf = GST(wn=page.gst_page.wn, tow=page.gst_page.tow // 30 * 30)
-                    logger.info(f"--- SUBFRAME --- WN {gst_sf.wn} TOW {gst_sf.tow} SVID {satellite.svid:02} ---")
+                    self._end_of_subframe_satellite(self.current_gst_subframe, satellite)
+                    satellite.set_already_processed()
 
-                    if satellite.subframe_with_osnma():
-                        raw_hkroot_sf = satellite.get_hkroot_subframe()
-                        hkroot_sf = self.subframe_regenerator.load_dsm_block(raw_hkroot_sf, gst_sf, satellite.svid)
-                        if hkroot_sf:
-                            # The full subframe has been received consecutively.
-                            nma_status = self.receiver_state.process_hkroot_subframe(hkroot_sf, is_consecutive_hkroot=True)
-                            mack_sf = satellite.get_mack_subframe()
-                            self.receiver_state.process_mack_subframe(mack_sf, gst_sf, satellite.svid, nma_status)
-                        else:
-                            # Broken subframe. Reconstruct if possible hkroot. Extract what is possible from MACK.
-                            logger.warning('Broken HKROOT Subframe. Regenerating HKROOT and processing MACK if active.')
-                            if Config.DO_HKROOT_REGEN:
-                                for regen_hkroot_sf, bid in self.subframe_regenerator.get_regenerated_blocks():
-                                    logger.info(f'HKROOT regenerated. BID {bid}')
-                                    self.receiver_state.process_hkroot_subframe(regen_hkroot_sf)
-                            if Config.DO_CRC_FAILED_EXTRACTION:
-                                mack_sf = satellite.get_mack_subframe()
-                                self.receiver_state.process_mack_subframe(
-                                    mack_sf, gst_sf, satellite.svid, BitArray(uint=self.receiver_state.nma_status.value, length=2))
-                    else:
-                        logger.info(f"No OSNMA data.")
         except StoppedAtFAF as e:
             return e.ttfaf, e.first_tow, e.faf_tow

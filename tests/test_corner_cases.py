@@ -109,12 +109,12 @@ def test_tow_rollover(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 8964,
-        "data_auth": 7399,
+        "tags_auth": 8975,
+        "data_auth": 7409,
         "kroot_auth": 199,
-        "broken_kroot": 16,
+        "broken_kroot": 43,
         "crc_failed": 2498,
-        "warnings": 2515,
+        "warnings": 2542,
         "errors": 0
     }
 
@@ -133,12 +133,12 @@ def test_osnma_outage_and_wt5(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 5914,
-        "data_auth": 3410,
+        "tags_auth": 5920,
+        "data_auth": 3412,
         "kroot_auth": 50,
-        "broken_kroot": 13,
+        "broken_kroot": 25,
         "crc_failed": 49,
-        "warnings": 63,
+        "warnings": 75,
         "errors": 0
     }
 
@@ -157,12 +157,12 @@ def test_osnma_after_outage(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 4104,
-        "data_auth": 2640,
+        "tags_auth": 4109,
+        "data_auth": 2641,
         "kroot_auth": 65,
-        "broken_kroot": 7,
+        "broken_kroot": 18,
         "crc_failed": 57,
-        "warnings": 65,
+        "warnings": 76,
         "errors": 0
     }
 
