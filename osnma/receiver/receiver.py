@@ -133,7 +133,10 @@ class OSNMAReceiver:
                 self._end_of_subframe_satellite(self.current_gst_subframe, satellite)
         # Collect status
         if Config.DO_STATUS_LOG:
-            do_status_log(self)
+            try:
+                do_status_log(self)
+            except Exception as e:
+                logger.exception(f"Error doing status logging")
         # Reset
         for satellite in self.satellites.values():
             if satellite.is_active():

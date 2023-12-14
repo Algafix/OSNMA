@@ -65,7 +65,6 @@ def _get_osnma_chain_dict(osnma_r: 'OSNMAReceiver') -> Dict:
         osnma_chain_dict["MACLT Sequence"] = maclt_sequence
         osnma_status_dict["Tesla Chain in Force"] = osnma_chain_dict
 
-    if osnma_r.receiver_state.start_status != StartStates.COLD_START:
         osnma_pubk_dict = {}
         pubk_id = osnma_r.receiver_state.current_pkid
         pkr_in_force_handler = osnma_r.receiver_state.pkr_dict[pubk_id]
@@ -106,8 +105,10 @@ def _get_subframe_nav_data(satellites: Dict[int, 'Satellite']) -> Dict:
     return nav_data_per_satellite
 
 
-def _get_subframe_osnma_data(satellites: Dict[int, 'Satellite']) -> Dict:
+def _get_subframe_osnma_data(osnma_r: 'OSNMAReceiver', satellites: Dict[int, 'Satellite']):
     osnma_data_per_satellite = {}
+    if osnma_r.receiver_state.start_status != StartStates.STARTED:
+        return f"OSNMA has not started: {osnma_r.receiver_state.start_status.name}"
     for svid, satellite in satellites.items():
         if satellite.is_active() and satellite.subframe_with_osnma():
             osnma_data_per_satellite[svid] = {"Tags": satellite.osnma_tags_log}
@@ -123,7 +124,7 @@ def do_status_log(osnma_r: 'OSNMAReceiver'):
     status_dict["OSNMA Status"] = _get_osnma_chain_dict(osnma_r)
     status_dict["OSNMA Authenticated Data"] = _get_osnma_data_auth_dict(osnma_r)
     status_dict["Nav Data Received"] = _get_subframe_nav_data(osnma_r.satellites)
-    status_dict["OSNMA Data"] = _get_subframe_osnma_data(osnma_r.satellites)
+    status_dict["OSNMA Data"] = _get_subframe_osnma_data(osnma_r, osnma_r.satellites)
 
     string_object = (f"--- STATUS END OF SUBFRAME GST {osnma_r.current_gst_subframe} ---\n\n"
                      f"## Nav Data Received in the Subframe\n"
