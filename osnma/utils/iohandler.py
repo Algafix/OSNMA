@@ -103,6 +103,7 @@ class IOHandler:
         pubk_id = pkr.get_value("NPKID").uint
         pubk_type = 'P-256/SHA-256' if 'NIST256' in pkr.key_curve.name else 'P-521/SHA-512'
         pubk_point = pkr.public_key_obj.to_string('compressed').hex()
+        pubk_mid = pkr.get_value("MID").uint
 
         if not pkr.is_verified():
             raise Exception(f'Saving a Public Key that has not been verified. PKID: {pubk_id}')
@@ -112,6 +113,7 @@ class IOHandler:
                 pubk_file.write('<?xml version="1.0" encoding="UTF-8" ?>')
                 pubk_file.write(f'<PKID>{pubk_id}</PKID>')
                 pubk_file.write(f'<PKType>{pubk_type}</PKType>')
+                pubk_file.write(f'<i>{pubk_mid}</i>')
                 pubk_file.write(f'<point>{pubk_point}</point>')
             except IOError:
                 logger.error(f'Error saving Public Key {pubk_id} to file.')
