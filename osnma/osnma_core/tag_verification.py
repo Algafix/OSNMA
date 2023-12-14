@@ -15,7 +15,7 @@
 #
 
 ######## type annotations ########
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional, Dict, Tuple
 if TYPE_CHECKING:
     from osnma.osnma_core.tesla_chain import TESLAChain
 from osnma.structures.mack_structures import MACKMessage, TagAndInfo, MACSeqObject
@@ -86,10 +86,12 @@ class TagStateStructure:
     def set_key_index_to_macseq(self, macseq: MACSeqObject):
         macseq.key_id = self.tesla_chain.get_key_index(macseq.gst) + 1
 
-    def verify_maclt(self, mack_message: MACKMessage) -> (List[TagAndInfo], MACSeqObject, bool):
+    def verify_maclt(self, mack_message: MACKMessage) \
+            -> Tuple[List[TagAndInfo], List[TagAndInfo], MACSeqObject, bool, List[Optional[Dict]]]:
 
         tag_list = []
         flex_list = []
+        tags_log = []
 
         if self.maclt_dict['sections'] == 1:
             sequence = self.maclt_dict["sequence"]
@@ -117,17 +119,18 @@ class TagStateStructure:
                 if tag is None:
                     is_flx_tag_missing = True
                 else:
+                    tag.is_flx = True
                     flex_list.append(tag)
+            tags_log.append(tag if tag is None else tag.get_json())
 
         macseq_object = mack_message.get_macseq(flex_list)
-        return tag_list, macseq_object, is_flx_tag_missing
+        return tag_list, flex_list, macseq_object, is_flx_tag_missing, tags_log
 
     def _add_tags_waiting_key(self, tag_list: List[TagAndInfo]):
         """
         Adds the tags to the waiting for key list if the tag has an active ADKD and authenticates data of one of the
         valid satellites. The list of valid PRN_D is currently 1-36.
         """
-        logger.info(f"Non-FLX tags in MACK:\t{tag_list}\n")
         for tag in tag_list:
             if tag.adkd.uint not in Config.ACTIVE_ADKD:
                 continue
@@ -184,10 +187,13 @@ class TagStateStructure:
         # Check if any data can be authenticated
         self.nav_data_m.check_authenticated_data(gst_subframe)
 
-    def load_mack_message(self, mack_message: MACKMessage):
-        tag_list, macseq, is_flx_tag_missing = self.verify_maclt(mack_message)
+    def load_mack_message(self, mack_message: MACKMessage) -> List[Optional[Dict]]:
+        tag_list, flex_list, macseq, is_flx_tag_missing, tags_log = self.verify_maclt(mack_message)
         self.set_key_index_to_tags(tag_list)
         if macseq and not is_flx_tag_missing:
             self.set_key_index_to_macseq(macseq)
             self.macseq_awaiting_key.append(macseq)
+        logger.info(f"Non-FLX tags in MACK:\t{tag_list}\n")
+        logger.info(f"FLX tags in MACK:\t{flex_list}\n")
         self._add_tags_waiting_key(tag_list)
+        return tags_log

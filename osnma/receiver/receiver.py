@@ -25,6 +25,7 @@ from osnma.osnma_core.receiver_state import ReceiverState
 from osnma.utils.config import Config
 from osnma.utils.exceptions import StoppedAtFAF
 from osnma.cryptographic.gst_class import GST
+from osnma.utils.status_logger import do_status_log
 
 from bitstring import BitArray
 
@@ -59,6 +60,13 @@ class OSNMAReceiver:
 
     def _get_gst_subframe(self, gst: GST):
         return GST(wn=gst.wn, tow=gst.tow // 30 * 30)
+
+    def _do_status_log(self):
+        if Config.DO_STATUS_LOG:
+            try:
+                do_status_log(self)
+            except Exception as e:
+                logger.exception(f"Error doing status logging")
 
     def _filter_page(self, data: DataFormat):
         """
@@ -106,7 +114,7 @@ class OSNMAReceiver:
                 # The full subframe has been received consecutively.
                 nma_status = self.receiver_state.process_hkroot_subframe(hkroot_sf, is_consecutive_hkroot=True)
                 mack_sf = satellite.get_mack_subframe()
-                self.receiver_state.process_mack_subframe(mack_sf, gst_sf, satellite.svid, nma_status)
+                self.receiver_state.process_mack_subframe(mack_sf, gst_sf, satellite, nma_status)
             else:
                 # Broken subframe. Reconstruct if possible hkroot. Extract what is possible from MACK.
                 logger.warning('Broken HKROOT Subframe. Regenerating HKROOT and processing MACK if active.')
@@ -117,10 +125,25 @@ class OSNMAReceiver:
                 if Config.DO_CRC_FAILED_EXTRACTION:
                     mack_sf = satellite.get_mack_subframe()
                     self.receiver_state.process_mack_subframe(
-                        mack_sf, gst_sf, satellite.svid, BitArray(uint=self.receiver_state.nma_status.value, length=2))
+                        mack_sf, gst_sf, satellite, BitArray(uint=self.receiver_state.nma_status.value, length=2))
         else:
             logger.info(f"No OSNMA data.")
 
+    def _end_of_subframe_global(self):
+        """
+        Process OSNMA data for all satellites for which we haven't received the last page (we couldn't know if they were
+        finished). Note that in a real live scenario a clock can be used instead of having to wait for the next page.
+        """
+        # Process leftovers
+        for satellite in self.satellites.values():
+            if satellite.is_active() and not satellite.is_already_processed():
+                self._end_of_subframe_satellite(self.current_gst_subframe, satellite)
+        # Collect status
+        self._do_status_log()
+        # Reset
+        for satellite in self.satellites.values():
+            if satellite.is_active():
+                satellite.reset()
 
     def start(self, start_at_gst: Optional[Tuple[int, int]] = None):
         """
@@ -140,12 +163,8 @@ class OSNMAReceiver:
                     continue
 
                 # The subframe has finished, process leftovers of OSNMA data and reset objects
-                # Note: in real time receivers, this can be removed for a clock input
                 if (gst_sf := self._get_gst_subframe(page.gst_page)) > self.current_gst_subframe:
-                    for satellite in self.satellites.values():
-                        if satellite.is_active() and not satellite.is_already_processed():
-                            self._end_of_subframe_satellite(self.current_gst_subframe, satellite)
-                        satellite.reset()
+                    self._end_of_subframe_global()
                     self.current_gst_subframe = gst_sf
 
                 # Add OSNMA data to satellite
@@ -153,7 +172,7 @@ class OSNMAReceiver:
                 satellite.new_page(page)
 
                 # Add nav data of the page to the navigation data manager
-                self.receiver_state.load_page(page.nav_bits, page.gst_page, satellite.svid)
+                self.receiver_state.load_nav_data_page(page.nav_bits, page.gst_page, satellite)
 
                 # If we get the last subframe page of this satellite, process it now instead of waiting
                 if page.gst_page % 30 == 29:
@@ -161,4 +180,5 @@ class OSNMAReceiver:
                     satellite.set_already_processed()
 
         except StoppedAtFAF as e:
+            self._do_status_log()
             return e.ttfaf, e.first_tow, e.faf_tow

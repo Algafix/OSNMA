@@ -15,7 +15,9 @@
 #
 
 ######## type annotations ########
-from typing import List, Optional, Tuple, Dict
+from typing import TYPE_CHECKING, List, Optional, Tuple, Dict
+if TYPE_CHECKING:
+    from osnma.receiver.satellite import Satellite
 
 ######## imports ########
 from enum import IntEnum
@@ -397,7 +399,7 @@ class ReceiverState:
 
         return sf_nma_header[:2]
 
-    def process_mack_subframe(self, mack_subframe: List[Optional[BitArray]], gst_subframe: GST, svid: int, sf_nma_status: BitArray):
+    def process_mack_subframe(self, mack_subframe: List[Optional[BitArray]], gst_subframe: GST, satellite: 'Satellite', sf_nma_status: BitArray):
 
         if self.nma_status == NMAS.DONT_USE:
             logger.warning(f"NMA Status: Don't Use. Subframe tags not processed.")
@@ -405,22 +407,24 @@ class ReceiverState:
             return
 
         if self.tesla_chain_force is None:
-            self.kroot_waiting_mack.append((mack_subframe, gst_subframe, svid, sf_nma_status))
+            self.kroot_waiting_mack.append((mack_subframe, gst_subframe, satellite.svid, sf_nma_status))
         else:
             try:
                 if self.kroot_waiting_mack:
                     for w_mack in self.kroot_waiting_mack:
                         self.tesla_chain_force.parse_mack_message(w_mack[0], w_mack[1], w_mack[2], w_mack[3])
                     self.kroot_waiting_mack = []
-                self.tesla_chain_force.parse_mack_message(mack_subframe, gst_subframe, svid, sf_nma_status)
+                tags_log, tkey = self.tesla_chain_force.parse_mack_message(mack_subframe, gst_subframe, satellite.svid, sf_nma_status)
+                satellite.osnma_tags_log = tags_log
+                satellite.osnma_tesla_key_log = tkey
 
             except MackParsingError as e:
                 # Unable to parse the message correctly
-                logger.error(f"ERROR: Unable to parse the MACK message correctly.\n{e}")
+                logger.error(f"Unable to parse the MACK message correctly.\n{e}")
                 if self.start_status == StartStates.HOT_START:
                     self._fallback_to_warm_start()
                 else:
-                    logger.warning("WARNING: Deleting first mack message from waiting list")
+                    logger.warning("Deleting first mack message from waiting list")
                     self.kroot_waiting_mack = self.kroot_waiting_mack[1:]
             except TeslaKeyVerificationFailed as e:
                 # Unable to verify the TESLA key
@@ -428,15 +432,15 @@ class ReceiverState:
                 if self.start_status == StartStates.HOT_START:
                     self._fallback_to_warm_start()
                 else:
-                    logger.warning("WARNING: Deleting first mack message from waiting list")
+                    logger.warning("Deleting first mack message from waiting list")
                     self.kroot_waiting_mack = self.kroot_waiting_mack[1:]
             else:
                 if self.start_status == StartStates.HOT_START:
                     self.start_status = StartStates.STARTED
                     logger.info(f"One TESLA key verified. Start Status: {self.start_status.name}")
 
-    def load_page(self, nav_bits: BitArray, gst_page: GST, svid: int):
-        self.nav_data_structure.load_page(nav_bits, gst_page, svid)
+    def load_nav_data_page(self, nav_bits: BitArray, gst_page: GST, satellite: 'Satellite'):
+        self.nav_data_structure.load_page(nav_bits, gst_page, satellite)
 
 
 if __name__ == '__main__':

@@ -15,10 +15,9 @@
 #
 
 ######## type annotations ########
-from typing import List, Optional
+from typing import List, Optional, Dict
 from bitstring import BitArray
 from osnma.input_formats.base_classes import DataFormat
-from osnma.cryptographic.gst_class import GST
 
 
 class Satellite:
@@ -35,6 +34,10 @@ class Satellite:
         self.osnma_subframe: bool = False
         self.active_on_this_subframe: bool = False
         self.already_processed: bool = False
+        self.words_adkd0: Dict[int, Optional[str]] = {1: None, 2: None, 3: None, 4: None, 5: None}
+        self.words_adkd4: Dict[int, Optional[str]] = {6: None, 10: None}
+        self.osnma_tags_log = []
+        self.osnma_tesla_key_log = None
 
     def _load_osnma(self, page: DataFormat, page_number: int):
         if page.has_osnma:
@@ -48,6 +51,16 @@ class Satellite:
         self.osnma_subframe = False
         self.active_on_this_subframe = False
         self.already_processed = False
+        self.words_adkd0 = {1: None, 2: None, 3: None, 4: None, 5: None}
+        self.words_adkd4 = {6: None, 10: None}
+        self.osnma_tags_log = []
+        self.osnma_tesla_key_log = None
+
+    def add_word(self, adkd: int, word_type: int):
+        if adkd == 0:
+            self.words_adkd0[word_type] = f"W{word_type}"
+        elif adkd == 4:
+            self.words_adkd4[word_type] = f"W{word_type}"
 
     def is_already_processed(self):
         return self.already_processed

@@ -73,6 +73,7 @@ class IOHandler:
                 file_text = self._handle_input_file_format(pubk_file)
                 pubk_id = int(re.findall(r'<PKID>(.*?)</PKID>', file_text)[0])
                 pubk_type = re.findall(r'<PKType>(.*?)</PKType>', file_text)[0]
+                mid = int(re.findall(r'<i>(\d+)</i>', file_text)[0])
                 pubk_point = bytes.fromhex(re.findall(r'<point>(.*?)</point>', file_text)[0])
 
                 if 'P-256' in pubk_type:
@@ -85,7 +86,9 @@ class IOHandler:
                     raise Exception(f'Invalid Public Key type or not recognized: {pubk_type} not [P-256, P-512].')
 
                 dsm_pkr = DSMPKR()
-                dsm_pkr.set_value('NPKT', pubk_type)
+                dsm_pkr.set_value("NPKT", pubk_type)
+                dsm_pkr.set_value("NPKID", pubk_id)
+                dsm_pkr.set_value("MID", mid)
                 dsm_pkr.public_key_obj = pubk_object
                 dsm_pkr.verified = True
 
@@ -100,6 +103,7 @@ class IOHandler:
         pubk_id = pkr.get_value("NPKID").uint
         pubk_type = 'P-256/SHA-256' if 'NIST256' in pkr.key_curve.name else 'P-521/SHA-512'
         pubk_point = pkr.public_key_obj.to_string('compressed').hex()
+        pubk_mid = pkr.get_value("MID").uint
 
         if not pkr.is_verified():
             raise Exception(f'Saving a Public Key that has not been verified. PKID: {pubk_id}')
@@ -109,6 +113,7 @@ class IOHandler:
                 pubk_file.write('<?xml version="1.0" encoding="UTF-8" ?>')
                 pubk_file.write(f'<PKID>{pubk_id}</PKID>')
                 pubk_file.write(f'<PKType>{pubk_type}</PKType>')
+                pubk_file.write(f'<i>{pubk_mid}</i>')
                 pubk_file.write(f'<point>{pubk_point}</point>')
             except IOError:
                 logger.error(f'Error saving Public Key {pubk_id} to file.')

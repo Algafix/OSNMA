@@ -15,7 +15,7 @@
 #
 
 ######## type annotations ########
-from typing import Union, List
+from typing import Union, List, Optional, Tuple
 from osnma.osnma_core.nav_data_manager import NavigationDataManager
 from osnma.structures.mack_structures import MACSeqObject, TagAndInfo
 
@@ -146,7 +146,8 @@ class TESLAChain:
 
         return computed_tesla_key
 
-    def parse_mack_message(self, mack_message: List[BitArray], gst_sf: GST, prn_a: int, nma_status: BitArray):
+    def parse_mack_message(self, mack_message: List[BitArray], gst_sf: GST, prn_a: int, nma_status: BitArray)\
+            -> Tuple[List[Optional[TagAndInfo]], Optional[TESLAKey]]:
         """Parse a MACK message bit stream. Then handles the MACK object to the tag structure to add the new tags to the
         tag list. Finally, add the key(s) received to the TESLA key chain.
 
@@ -165,11 +166,12 @@ class TESLAChain:
         except Exception as e:
             raise MackParsingError(f"Error parsing MACK Message from SVID {prn_a} at {gst_sf}\n{traceback.print_exc()}")
         else:
-            self.tags_structure.load_mack_message(mack_object)
+            tags_log = self.tags_structure.load_mack_message(mack_object)
             if tesla_key := mack_object.get_key():
                 verified, is_new_key = self.add_key(tesla_key)
                 if verified and is_new_key:
                     self.tags_structure.update_tag_lists(gst_sf)
+            return tags_log, tesla_key
 
     def get_key_index(self, gst_sf: GST) -> int:
         """Computes the key index that would have a key received on the subframe specified and in the position specified
