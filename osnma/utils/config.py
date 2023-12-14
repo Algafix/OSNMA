@@ -36,6 +36,7 @@ class _Config:
         self.LOG_CONSOLE = True
         self.LOG_FILE = True
         self.LOGS_PATH = ''
+        self.DO_STATUS_LOG = False
 
         self.SYNC_SOURCE = 0
         self.SYNC_TIME = None

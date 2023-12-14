@@ -14,6 +14,12 @@
 # See the Licence for the specific language governing permissions and limitations under the Licence.
 #
 
+######## type annotations ########
+from typing import TYPE_CHECKING, List, Dict, Tuple, Optional, Union
+if TYPE_CHECKING:
+    from osnma.receiver.satellite import Satellite
+
+######## imports ########
 from osnma.structures.adkd import adkd_masks
 from osnma.structures.mack_structures import TagAndInfo
 from osnma.cryptographic.gst_class import GST
@@ -21,10 +27,10 @@ from osnma.utils.config import Config
 from osnma.utils.exceptions import StoppedAtFAF
 
 from bitstring import BitArray
-from typing import List, Dict, Tuple, Optional, Union
 
-import osnma.utils.logger_factory as logger_factory
-logger = logger_factory.get_logger(__name__)
+######## logger ########
+import osnma.utils.logger_factory as log_factory
+logger = log_factory.get_logger(__name__)
 
 
 ADKD0 = 0
@@ -79,6 +85,10 @@ class AuthenticatedData:
         gst_start = f"{self.start_gst}"
         gst_last = f"{self.last_gst}"
         logger.info(self.log_message.format(gst_start=gst_start, gst_last=gst_last))
+
+    def get_json(self) -> dict:
+        return {'iod': None if self.adkd == 4 else self.iod.bin, 'start_gst': [self.start_gst.wn, self.start_gst.tow],
+                'last_gst': [self.last_gst.wn, self.last_gst.tow], 'acc_length': self.acc_length}
 
     def __repr__(self):
         return f"{{acc_length: {self.acc_length}, start_gst: {self.start_gst}, " \
@@ -347,7 +357,7 @@ class NavigationDataManager:
         It also has a function to log the updated status of the data.
         """
         self.auth_sats_svid: List[int] = []
-        self.authenticated_data_dict: Dict[Tuple[int, BitArray], AuthenticatedData] = {}
+        self.authenticated_data_dict: Dict[Tuple[int, int, BitArray], AuthenticatedData] = {}
 
         self.adkd0_data_managers: Dict[int, ADKD0DataManager] = {}
         self.adkd4_data_managers: Dict[int, ADKD4DataManager] = {}
@@ -402,14 +412,16 @@ class NavigationDataManager:
         else:
             self.authenticated_data_dict[tag.data_id] = AuthenticatedData(tag)
 
-    def load_page(self, page: BitArray, gst_page: GST, svid: int):
+    def load_page(self, page: BitArray, gst_page: GST, satellite: 'Satellite'):
         word_type = page[2:8].uint
         if word_type not in self.active_words:
             return
         if word_type in WORDS_PER_ADKD[ADKD0]:
-            self.adkd0_data_managers[svid].add_word(word_type, page, gst_page)
+            satellite.add_word(ADKD0, word_type)
+            self.adkd0_data_managers[satellite.svid].add_word(word_type, page, gst_page)
         else:
-            self.adkd4_data_managers[svid].add_word(word_type, page, gst_page)
+            satellite.add_word(ADKD4, word_type)
+            self.adkd4_data_managers[satellite.svid].add_word(word_type, page, gst_page)
 
     def _calculate_TTFAF(self, auth_data: AuthenticatedData, gst_subframe: GST):
 

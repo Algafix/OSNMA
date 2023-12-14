@@ -73,6 +73,7 @@ class IOHandler:
                 file_text = self._handle_input_file_format(pubk_file)
                 pubk_id = int(re.findall(r'<PKID>(.*?)</PKID>', file_text)[0])
                 pubk_type = re.findall(r'<PKType>(.*?)</PKType>', file_text)[0]
+                mid = int(re.findall(r'<i>(\d+)</i>', file_text)[0])
                 pubk_point = bytes.fromhex(re.findall(r'<point>(.*?)</point>', file_text)[0])
 
                 if 'P-256' in pubk_type:
@@ -85,7 +86,9 @@ class IOHandler:
                     raise Exception(f'Invalid Public Key type or not recognized: {pubk_type} not [P-256, P-512].')
 
                 dsm_pkr = DSMPKR()
-                dsm_pkr.set_value('NPKT', pubk_type)
+                dsm_pkr.set_value("NPKT", pubk_type)
+                dsm_pkr.set_value("NPKID", pubk_id)
+                dsm_pkr.set_value("MID", mid)
                 dsm_pkr.public_key_obj = pubk_object
                 dsm_pkr.verified = True
 

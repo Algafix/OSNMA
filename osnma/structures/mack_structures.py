@@ -54,14 +54,8 @@ class TESLAKey:
         self.gst_sf = gst_sf
         self.gst_start: GST = gst_start
 
-    def get_as_dict(self) -> dict:
-        """Returns the key in a dictionary format for debug or log purposes.
-
-        :return: TESLA key in a dictionary object with 'Index', 'WN', 'TOW', 'Key' and 'Verified' keys.
-        :rtype: dict
-        """
-        return {'Index': self.index, 'WN': self.gst_sf.wn, 'TOW': self.gst_sf.wn, 'is_kroot': self.is_kroot,
-                'Key': self.key.hex, 'Verified': self.verified}
+    def get_json(self) -> dict:
+        return {'Value': self.key.hex, 'Verified': self.verified, 'Reconstructed': self.reconstructed}
 
     def set_gst(self, gst_sf: GST):
         """Set the GST at the start of the Galileo Subframe where the key is received.
@@ -161,10 +155,17 @@ class TagAndInfo:
         self.key_id: Optional[int] = None
         self.tesla_key: Optional[TESLAKey] = None
         self.is_tag0 = False
+        self.is_flx = False
         self.nav_data: Optional[Union['ADKD0DataBlock', 'ADKD4DataBlock']] = None
 
     def __repr__(self) -> str:
         return f"{{ID: ({self.id[0]:02}, {self.id[1]:02}, {self.cop.uint:02}) PRN_A: {self.prn_a.uint:02}}}"
+
+    def get_json(self) -> list:
+        id = [self.id[0], self.id[1], self.cop.uint]
+        if self.is_flx:
+            id.append('FLX')
+        return id
 
     @property
     def has_key(self) -> bool:
