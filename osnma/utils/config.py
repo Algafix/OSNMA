@@ -39,7 +39,8 @@ class _Config:
         self.LOG_FILE = True
         self.DO_VERBOSE_LOG = True
         self.DO_STATUS_LOG = True
-        self.DO_JSON_STATUS = True
+        self.DO_JSON_STATUS = False
+        self.JSON_STATUS_PATH = 'last_state.json'
 
         self.SYNC_SOURCE = 0
         self.SYNC_TIME = None

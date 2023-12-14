@@ -22,9 +22,11 @@ if TYPE_CHECKING:
 
 ### imports ###
 import pprint
+import json
 from osnma.structures.maclt import mac_lookup_table
 from osnma.structures.fields_information import mf_lt, hf_lt, npkt_lt
 from osnma.osnma_core.receiver_state import StartStates
+from osnma.utils.config import Config
 
 ######## logger ########
 import osnma.utils.logger_factory as log_factory
@@ -120,11 +122,16 @@ def _get_subframe_osnma_data(osnma_r: 'OSNMAReceiver', satellites: Dict[int, 'Sa
 
 def do_status_log(osnma_r: 'OSNMAReceiver'):
 
-    status_dict = {"OSNMA Status": {}}
-    status_dict["OSNMA Status"] = _get_osnma_chain_dict(osnma_r)
-    status_dict["OSNMA Authenticated Data"] = _get_osnma_data_auth_dict(osnma_r)
-    status_dict["Nav Data Received"] = _get_subframe_nav_data(osnma_r.satellites)
-    status_dict["OSNMA Data"] = _get_subframe_osnma_data(osnma_r, osnma_r.satellites)
+    status_dict = {
+        "Metadata": {
+            "GST Subframe": [osnma_r.current_gst_subframe.wn, osnma_r.current_gst_subframe.tow],
+            "Input Module": osnma_r.nav_data_input.__class__.__name__,
+        },
+        "OSNMA Status": _get_osnma_chain_dict(osnma_r),
+        "OSNMA Authenticated Data": _get_osnma_data_auth_dict(osnma_r),
+        "Nav Data Received": _get_subframe_nav_data(osnma_r.satellites),
+        "OSNMA Data": _get_subframe_osnma_data(osnma_r, osnma_r.satellites)
+    }
 
     string_object = (f"--- STATUS END OF SUBFRAME GST {osnma_r.current_gst_subframe} ---\n\n"
                      f"## Nav Data Received in the Subframe\n"
@@ -136,3 +143,7 @@ def do_status_log(osnma_r: 'OSNMAReceiver'):
                      f"## OSNMA Authenticated Data\n"
                      f"{int_pformat(status_dict['OSNMA Authenticated Data'], sort_dicts=False, width=150)}\n")
     logger.info(string_object)
+
+    if Config.DO_JSON_STATUS:
+        with open(Config.JSON_STATUS_PATH, 'w') as f:
+            json.dump(status_dict, f)
