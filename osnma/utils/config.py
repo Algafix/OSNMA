@@ -33,10 +33,13 @@ class _Config:
 
         self.FILE_LOG_LEVEL = logging.INFO
         self.CONSOLE_LOG_LEVEL = logging.INFO
+        self.LOGS_PATH = ''
+
         self.LOG_CONSOLE = True
         self.LOG_FILE = True
-        self.LOGS_PATH = ''
-        self.DO_STATUS_LOG = False
+        self.DO_VERBOSE_LOG = True
+        self.DO_STATUS_LOG = True
+        self.DO_JSON_STATUS = True
 
         self.SYNC_SOURCE = 0
         self.SYNC_TIME = None
@@ -65,17 +68,18 @@ class _Config:
             raise AttributeError("The 'exec_path' is a mandatory parameter.")
 
         for k, v in param_dict.items():
-            if k.upper() in self.__dict__:
-                if 'LOG_LEVEL' in k.upper() and isinstance(v, str):
+            if (attr := k.upper()) in self.__dict__:
+                if 'LOG_LEVEL' in attr and isinstance(v, str):
                     v = log_factory.str_to_log_level[v]
-                elif k.upper().endswith('_PATH'):
+                elif attr.endswith('_PATH'):
                     v = Path(v)
-                setattr(self, k.upper(), v)
+                setattr(self, attr, v)
 
         if not param_dict.get('logs_path', False):
             self.LOGS_PATH = self.EXEC_PATH
 
 Config = _Config()
+
 
 class SYNC_SOURCE(IntEnum):
     SBF = 0

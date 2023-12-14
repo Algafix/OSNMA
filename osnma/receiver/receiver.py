@@ -61,6 +61,13 @@ class OSNMAReceiver:
     def _get_gst_subframe(self, gst: GST):
         return GST(wn=gst.wn, tow=gst.tow // 30 * 30)
 
+    def _do_status_log(self):
+        if Config.DO_STATUS_LOG:
+            try:
+                do_status_log(self)
+            except Exception as e:
+                logger.exception(f"Error doing status logging")
+
     def _filter_page(self, data: DataFormat):
         """
         Filter page if it is not useful for teh current OSNMA implementation.
@@ -132,11 +139,7 @@ class OSNMAReceiver:
             if satellite.is_active() and not satellite.is_already_processed():
                 self._end_of_subframe_satellite(self.current_gst_subframe, satellite)
         # Collect status
-        if Config.DO_STATUS_LOG:
-            try:
-                do_status_log(self)
-            except Exception as e:
-                logger.exception(f"Error doing status logging")
+        self._do_status_log()
         # Reset
         for satellite in self.satellites.values():
             if satellite.is_active():
@@ -177,4 +180,5 @@ class OSNMAReceiver:
                     satellite.set_already_processed()
 
         except StoppedAtFAF as e:
+            self._do_status_log()
             return e.ttfaf, e.first_tow, e.faf_tow
