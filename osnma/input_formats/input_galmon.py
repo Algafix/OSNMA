@@ -15,6 +15,7 @@
 #
 
 import socket
+import time
 import traceback
 
 from bitstring import BitArray
@@ -95,8 +96,8 @@ class GALMON(PageIterator):
             except TimeoutError as e:
                 print("Galmon socket timeout, re-opening")
                 self.s.close()
+                time.sleep(10)
                 self.s = self._get_socket()
-
             except Exception as e:
                 # print(f"Failed:\n{nmm}")
                 # traceback.print_exc()
