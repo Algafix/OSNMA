@@ -32,22 +32,6 @@ from osnma.utils.config import Config
 import osnma.utils.logger_factory as log_factory
 logger = log_factory.get_logger(__name__)
 
-
-def int_pformat(object, indent=1, width=80, depth=None, *, compact=False, sort_dicts=True):
-    class FormatPrinter(pprint.PrettyPrinter):
-        def __init__(self, **kwargs):
-            super().__init__(**kwargs)
-
-        def format(self, object, context, maxlevels, level):
-            if isinstance(object, int):
-                return f'{object:02d}', 1, 0
-            else:
-                return pprint.PrettyPrinter.format(self, object, context, maxlevels, level)
-
-    return FormatPrinter(indent=indent, width=width, depth=depth,
-                         compact=compact, sort_dicts=sort_dicts).pformat(object)
-
-
 def _get_osnma_chain_dict(osnma_r: 'OSNMAReceiver') -> Dict:
     osnma_status_dict = {"Tesla Chain in Force": None, "Public Key in Force": None}
 
@@ -84,7 +68,7 @@ def _get_osnma_data_auth_dict(osnma_r: 'OSNMAReceiver') -> Dict:
 
     auth_data_dict_handler = osnma_r.receiver_state.nav_data_structure.authenticated_data_dict
     for data_block in auth_data_dict_handler.values():
-        svid = data_block.prn_d
+        svid = f"{data_block.prn_d:02d}"
         adkd = data_block.adkd
         last_adkd_per_sat = osnma_data_dict[f"ADKD{adkd}"]
         if not (saved_data := last_adkd_per_sat.get(svid, False)):
@@ -103,6 +87,7 @@ def _get_subframe_nav_data(satellites: Dict[int, 'Satellite']) -> Dict:
     nav_data_per_satellite = {}
     for svid, satellite in satellites.items():
         if satellite.is_active():
+            svid = f"{svid:02d}"
             nav_data_per_satellite[svid] = {"ADKD0": satellite.words_adkd0, "ADKD4": satellite.words_adkd4}
     return nav_data_per_satellite
 
@@ -113,6 +98,7 @@ def _get_subframe_osnma_data(osnma_r: 'OSNMAReceiver', satellites: Dict[int, 'Sa
         return f"OSNMA has not started: {osnma_r.receiver_state.start_status.name}"
     for svid, satellite in satellites.items():
         if satellite.is_active() and satellite.subframe_with_osnma():
+            svid = f"{svid:02d}"
             osnma_data_per_satellite[svid] = {"Tags": satellite.osnma_tags_log}
             tk_log = satellite.osnma_tesla_key_log
             osnma_data_per_satellite[svid]["Key"] = tk_log if tk_log is None else tk_log.get_json()
@@ -135,13 +121,13 @@ def do_status_log(osnma_r: 'OSNMAReceiver'):
 
     string_object = (f"--- STATUS END OF SUBFRAME GST {osnma_r.current_gst_subframe} ---\n\n"
                      f"## Nav Data Received in the Subframe\n"
-                     f"{int_pformat(status_dict['Nav Data Received'], sort_dicts=False, width=150)}\n\n"
+                     f"{pprint.pformat(status_dict['Nav Data Received'], sort_dicts=False, width=150)}\n\n"
                      f"## OSNMA Data Received in the Subframe\n"
-                     f"{int_pformat(status_dict['OSNMA Data'], sort_dicts=False, width=150)}\n\n"
+                     f"{pprint.pformat(status_dict['OSNMA Data'], sort_dicts=False, width=150)}\n\n"
                      f"## OSNMA Status\n"
                      f"{pprint.pformat(status_dict['OSNMA Status'], sort_dicts=False, width=150)}\n\n"
                      f"## OSNMA Authenticated Data\n"
-                     f"{int_pformat(status_dict['OSNMA Authenticated Data'], sort_dicts=False, width=150)}\n")
+                     f"{pprint.pformat(status_dict['OSNMA Authenticated Data'], sort_dicts=False, width=150)}\n")
     logger.info(string_object)
 
     if Config.DO_JSON_STATUS:
