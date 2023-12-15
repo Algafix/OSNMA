@@ -46,7 +46,7 @@ class GALMON(PageIterator):
         while True:
             try:
                 sync = self.s.recv(4, socket.MSG_WAITALL)
-                if sync == '':
+                if sync == b'':
                     raise TimeoutError("Galmon returning only nulls")
                 if sync == b'bert':
                     size = int.from_bytes(self.s.recv(2, socket.MSG_WAITALL), 'big')
