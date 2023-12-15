@@ -28,29 +28,30 @@ class GALMON(PageIterator):
 
     def __init__(self, host='86.82.68.237', port=10000):
         super().__init__()
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.s.connect((host, port))
+        self.host = host
+        self.port = port
+        self.s = self._get_socket()
 
         self.newest_tow = 0
         self.sv_list = []
 
+    def _get_socket(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(30.0)
+        s.connect((self.host, self.port))
+        return s
+
     def __next__(self):
-
         data_format = None
-
         while True:
-            sync = self.s.recv(4)
-            if sync == b'bert':
+            try:
+                sync = self.s.recv(4, socket.MSG_WAITALL)
+                if sync == b'bert':
+                    size = int.from_bytes(self.s.recv(2, socket.MSG_WAITALL), 'big')
+                    message = self.s.recv(size, socket.MSG_WAITALL)
 
-                size = int.from_bytes(self.s.recv(2), 'big')
-                message = self.s.recv(size, socket.MSG_WAITALL)
-
-                try:
                     nmm = navmon_pb2.NavMonMessage()
                     nmm.ParseFromString(message)
-
-                    # if nmm.sourceID != 200:
-                    #     continue
 
                     # Check if it is Galileo signal from EB1
                     if nmm.type != 3 or nmm.gi.sigid != 1:
@@ -90,8 +91,15 @@ class GALMON(PageIterator):
                         data_format = DataFormat(sv, wn, tow, long_page)
                         break
 
-                except Exception as e:
-                    traceback.print_exc()
+            except TimeoutError as e:
+                print("Galmon socket timeout, re-opening")
+                self.s.close()
+                self.s = self._get_socket()
+
+            except Exception as e:
+                # print(f"Failed:\n{nmm}")
+                # traceback.print_exc()
+                continue
 
         if data_format is None:
             raise StopIteration
