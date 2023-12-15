@@ -54,7 +54,6 @@ class GALMON(PageIterator):
 
                     nmm = navmon_pb2.NavMonMessage()
                     nmm.ParseFromString(message)
-                    print(nmm)
                     # Check if it is Galileo signal from EB1
                     if nmm.type != 3 or nmm.gi.sigid != 1:
                         continue
