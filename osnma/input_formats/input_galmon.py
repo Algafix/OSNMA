@@ -37,7 +37,7 @@ class GALMON(PageIterator):
 
     def _get_socket(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(30.0)
+        s.settimeout(30)
         s.connect((self.host, self.port))
         return s
 
@@ -46,13 +46,15 @@ class GALMON(PageIterator):
         while True:
             try:
                 sync = self.s.recv(4, socket.MSG_WAITALL)
+                if sync == '':
+                    raise TimeoutError("Galmon returning only nulls")
                 if sync == b'bert':
                     size = int.from_bytes(self.s.recv(2, socket.MSG_WAITALL), 'big')
                     message = self.s.recv(size, socket.MSG_WAITALL)
 
                     nmm = navmon_pb2.NavMonMessage()
                     nmm.ParseFromString(message)
-
+                    print(nmm)
                     # Check if it is Galileo signal from EB1
                     if nmm.type != 3 or nmm.gi.sigid != 1:
                         continue
