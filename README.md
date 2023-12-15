@@ -21,6 +21,11 @@ OSNMAlib implements several optimizations in the cryptographic material extracti
 None of these optimizations imply trial-and-error on the verification process, any authentication failure should be assumed as spoofing.
 If you see several authentication failures in a non-spoofing scenario, feel free to report it on the Issues page of GitHub.   
 
+A web visualization of OSNMAlib can be found at [OSNMAmon.eu](https://osnmamon.eu/).
+This web view uses live aggregated data from [galmon](https://github.com/berthubert/galmon), 
+therefore it should not be seen as *receiver* but more like a general status of OSNMA.
+Note that this web display is in beta and is subject to known synchronization issues of the galmon network.
+
 If you are using data from the OSNMA Test Phase (before 2023-08-03 11:00), use the [OSNMA_Test_Phase_ICD branch](https://github.com/Algafix/OSNMA/tree/OSNMA_Test_Phase_ICD).
 
 Supports Python 3.8, 3.9, 3.10 and 3.11. Tested on Linux and Windows.
