@@ -15,16 +15,16 @@ It has also been tested with real live data recorded by me.
 Note that the security of the OSNMA protocol can only be guaranteed if the receiver providing the navigation data is synchronized with TL seconds of error with the Galileo System Time.
 OSNMAlib assumes a TL of 30s: the maximum to process all tags.
 However, it can be configured for a different TL depending on what you receiver can guarantee.
-For more information about time synchronisation see the [OSNMA Receiver Guidelines](https://www.gsc-europa.eu/sites/default/files/sites/all/files/Galileo_OSNMA_Receiver_Guidelines_v1.1.pdf), and [Receiver Options](#receiver-options) to configure OSNMAlib.
+For more information about time synchronisation see the [OSNMA Receiver Guidelines](https://www.gsc-europa.eu/sites/default/files/sites/all/files/Galileo_OSNMA_Receiver_Guidelines_v1.1.pdf), and [Configuration Options](#osnmalib-configuration-options) to configure OSNMAlib.
 
 OSNMAlib implements several optimizations in the cryptographic material extraction and in the process of linking navigation data to tags.
 None of these optimizations imply trial-and-error on the verification process, any authentication failure should be assumed as spoofing.
 If you see several authentication failures in a non-spoofing scenario, feel free to report it on the Issues page of GitHub.   
 
-A web visualization of OSNMAlib can be found at [OSNMAmon.eu](https://osnmamon.eu/).
-This web view uses live aggregated data from [galmon](https://github.com/berthubert/galmon), 
-therefore it should not be seen as *a receiver* but more like a general status of OSNMA.
-Note that this web display is in beta and is subject to known synchronization issues of the galmon network.
+A web visualization of OSNMAlib can be found at [OSNMAlib.eu](https://osnmalib.eu/).
+For now, this web view uses live aggregated data from [galmon](https://github.com/berthubert/galmon), 
+therefore it should not be seen as *a receiver* but more like a general state of OSNMA.
+Note that this web display is in beta and uses the new OSNMAlib [status logging feature](#osnmalib-logging-options).
 
 If you are using data from the OSNMA Test Phase (before 2023-08-03 11:00), use the [OSNMA_Test_Phase_ICD branch](https://github.com/Algafix/OSNMA/tree/OSNMA_Test_Phase_ICD).
 
@@ -77,7 +77,7 @@ NAVITEC Conference on OSNMAlib
 
 General OSNMA documentation
   * [GSC website with the reference documents](https://www.gsc-europa.eu/electronic-library/programme-reference-documents)
-  * Look both at the ICD, the Receiver Guidelines and the IDD
+  * Look at the ICD, the Receiver Guidelines, and the IDD
  
 
 Quick Run - Try it!
@@ -104,7 +104,7 @@ $ python run.py
 
 **Beware** the console output will be huge, you can limit it in the configuration dictionary. A log folder will be created with the same logs for easy parsing.
 
-You can also run your own SBF files (if they contain the GALRawINAV block) by giving it the same name or passing the file as parameter. Mind to also update the Merkle Tree and Public Key files accordingly.
+You can also run your own SBF files (if they contain the GALRawINAV block) by giving it the same name or passing the file as parameter. Mind to also update the Merkle Tree and Public Key files if they contain old data.
 
 ```
 $ cd custom_run/
@@ -176,9 +176,9 @@ should be executed.
 ```
 $ pip install -r requirements.txt
 $ cd tests
-$ pytest icd_test_vectors.py 
+$ python3 icd_test_vectors.py 
 # or
-$ pytest test_corner_cases.py 
+$ python3 test_corner_cases.py 
 ```
 
 Execution with Custom Data
@@ -206,8 +206,8 @@ If the format of the custom data is not supported by OSNMAlib, a new input itera
 the instructions on the [Input Data wiki page](https://github.com/Algafix/OSNMA/wiki/Input-Data).
 
 
-OSNMAlib Options
----
+OSNMAlib Configuration Options
+===
 
 OSNMAlib has several configuration parameters that can be defined previous to execution. The parameters are defined in a dictionary and sent to the receiver when creating the receiver object.
 Note that you can create a script to read the parameters from a JSON and send it to the receiver.
@@ -225,7 +225,25 @@ Based on the cryptographic material provided to OSNMAlib in the configuration di
 * **Warm Start**: OSNMAlib has a Public Key saved and verified, but it is missing the Tesla KROOT. It needs to be retrieved from the OSNMA message.
 * **Hot Start**: OSNMAlib has a Public Key and a Tesla KROOT saved and verified, but it needs to be sure the KROOT is still useful.
 
-For a full description of the parameters and a diagram of the starting sequence, see the wiki page [OSNMAlib Options](https://github.com/Algafix/OSNMA/wiki/OSNMAlib-Options).
+For a full description of the parameters and a diagram of the starting sequence, see the wiki page [OSNMAlib Configuration Options](https://github.com/Algafix/OSNMA/wiki/OSNMAlib-Configuration-Options).
+
+OSNMAlib Logging Options
+---
+
+There are two logging modalities (verbose and status) and two logging destinations (console and file) that can be enabled independently.
+
+The **verbose** log outputs everything meaningful that happens in OSNMAlib in a time-sorted way.
+This means that OSNMAlib processes the data from the input and outputs what has managed to do with this data before
+reading the next.
+
+The **status** log, on the other hand, outputs information only at the end of a subframe. This logging modality can be useful
+to see the current state of OSNMAlib without having to scroll and get overwhelmed by it.
+
+When enabling the console as logging destination, both logging modalities are merged in the console output.
+However, if you enable the file logging, a file is created for each modality.
+Finally, there is a beta logging mode that outputs always the last subframe status in JSON format to a file.
+
+For more information on how to set this logging options, see the wiki page [OSNMAlib Configuration Options](https://github.com/Algafix/OSNMA/wiki/OSNMAlib-Configuration-Options).
 
 Research Notice
 ===
@@ -258,7 +276,7 @@ Or you can create a Pull Request with your implementation. I will help you with 
 License
 ===
 
-The project is licensed under the EUPL.
+The project is licensed under the EUPL-1.2 license.
 
 About
 ===
@@ -270,4 +288,4 @@ Disclaimer
 
 OSNMAlib has not been developed or tested operationally. OSNMAlib users use it at their own risk, without any guarantee or liability from the code authors or the Galileo OSNMA signal provider.
 
-OSNMAlib is not affiliated with any private company.
+OSNMAlib is not under any private company.
