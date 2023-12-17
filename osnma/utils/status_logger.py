@@ -94,8 +94,6 @@ def _get_subframe_nav_data(satellites: Dict[int, 'Satellite']) -> Dict:
 
 def _get_subframe_osnma_data(osnma_r: 'OSNMAReceiver', satellites: Dict[int, 'Satellite']):
     osnma_data_per_satellite = {}
-    if osnma_r.receiver_state.start_status != StartStates.STARTED:
-        return f"OSNMA has not started: {osnma_r.receiver_state.start_status.name}"
     for svid, satellite in satellites.items():
         if satellite.is_active() and satellite.subframe_with_osnma():
             svid = f"{svid:02d}"
@@ -112,6 +110,7 @@ def do_status_log(osnma_r: 'OSNMAReceiver'):
         "Metadata": {
             "GST Subframe": [osnma_r.current_gst_subframe.wn, osnma_r.current_gst_subframe.tow],
             "Input Module": osnma_r.nav_data_input.__class__.__name__,
+            "OSNMAlib Status": osnma_r.receiver_state.start_status.name,
         },
         "OSNMA Status": _get_osnma_chain_dict(osnma_r),
         "OSNMA Authenticated Data": _get_osnma_data_auth_dict(osnma_r),
@@ -120,6 +119,7 @@ def do_status_log(osnma_r: 'OSNMAReceiver'):
     }
 
     string_object = (f"--- STATUS END OF SUBFRAME GST {osnma_r.current_gst_subframe} ---\n\n"
+                     f"OSNMAlib Status: {status_dict['Metadata']['OSNMAlib Status']}\n\n"
                      f"## Nav Data Received in the Subframe\n"
                      f"{pprint.pformat(status_dict['Nav Data Received'], sort_dicts=False, width=150)}\n\n"
                      f"## OSNMA Data Received in the Subframe\n"
