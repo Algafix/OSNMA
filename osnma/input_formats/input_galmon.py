@@ -37,9 +37,16 @@ class GALMON(PageIterator):
         self.sv_list = []
 
     def _get_socket(self):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(30)
-        s.connect((self.host, self.port))
+        while True:
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.settimeout(30)
+                s.connect((self.host, self.port))
+            except ConnectionRefusedError as e:
+                print("Galmon refusing connection, retrying in 10 seconds")
+                time.sleep(10)
+            else:
+                break
         return s
 
     def __next__(self):
@@ -47,8 +54,8 @@ class GALMON(PageIterator):
         while True:
             try:
                 sync = self.s.recv(4, socket.MSG_WAITALL)
-                if sync == b'':
-                    raise TimeoutError("Galmon returning only nulls")
+                if len(sync) == 0:
+                    raise TimeoutError("Galmon closed connection")
                 if sync == b'bert':
                     size = int.from_bytes(self.s.recv(2, socket.MSG_WAITALL), 'big')
                     message = self.s.recv(size, socket.MSG_WAITALL)
@@ -92,11 +99,9 @@ class GALMON(PageIterator):
                         long_page[138:178] = osnma_bits
                         data_format = DataFormat(sv, wn, tow, long_page)
                         break
-
             except TimeoutError as e:
-                print("Galmon socket timeout, re-opening")
+                print(f"Unexpected read from Galmon: {e}")
                 self.s.close()
-                time.sleep(10)
                 self.s = self._get_socket()
             except Exception as e:
                 # print(f"Failed:\n{nmm}")
