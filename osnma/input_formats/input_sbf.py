@@ -16,6 +16,7 @@
 
 import io
 import socket
+import signal
 import pandas as pd
 
 from bitstring import BitArray
@@ -286,6 +287,13 @@ class SBFLiveServer(PageIterator):
         server_sock.listen(1)  # Only 1 simultaneous connection
         print(f"Waiting for connection at {host}:{port}...")
         self.s, self.c_ip = server_sock.accept()
+
+        def exit_gracefully(sig, frame):
+            print(f"You pressed Ctrl+C, closing port and exiting.")
+            self.s.close()
+            exit(0)
+        signal.signal(signal.SIGINT, exit_gracefully)
+
         print(f"Connection accepted from {self.c_ip[0]}:{self.c_ip[1]}! Starting OSNMAlib...")
 
     def __next__(self) -> 'DataFormat':
