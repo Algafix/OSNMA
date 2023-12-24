@@ -291,6 +291,7 @@ class SBFLiveServer(PageIterator):
         def exit_gracefully(sig, frame):
             print(f"You pressed Ctrl+C, closing port and exiting.")
             self.s.close()
+            server_sock.close()
             exit(0)
         signal.signal(signal.SIGINT, exit_gracefully)
 
