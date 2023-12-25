@@ -14,9 +14,10 @@
 # See the Licence for the specific language governing permissions and limitations under the Licence.
 #
 
-import io
 import socket
 import signal
+import time
+
 import pandas as pd
 
 from bitstring import BitArray
@@ -282,16 +283,16 @@ class SBFLiveServer(PageIterator):
 
     def __init__(self, host, port):
         super().__init__()
-        server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server_sock.bind((host, port))
-        server_sock.listen(1)  # Only 1 simultaneous connection
+        server_s = socket.create_server((host, port), backlog=1, reuse_port=True)
         print(f"Waiting for connection at {host}:{port}...")
-        self.s, self.c_ip = server_sock.accept()
+        self.s, self.c_ip = server_s.accept()
 
         def exit_gracefully(sig, frame):
             print(f"You pressed Ctrl+C, closing port and exiting.")
+            self.s.shutdown(socket.SHUT_RDWR)
+            server_s.shutdown(socket.SHUT_RDWR)
             self.s.close()
-            server_sock.close()
+            server_s.close()
             exit(0)
         signal.signal(signal.SIGINT, exit_gracefully)
 
