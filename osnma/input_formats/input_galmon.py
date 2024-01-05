@@ -20,6 +20,7 @@ import traceback
 
 from bitstring import BitArray
 from osnma.input_formats.base_classes import DataFormat, PageIterator
+from google.protobuf.message import DecodeError
 import osnma.input_formats.navmon_pb2 as navmon_pb2
 
 
@@ -103,9 +104,13 @@ class GALMON(PageIterator):
                 print(f"Unexpected read from Galmon: {e}")
                 self.s.close()
                 self.s = self._get_socket()
-            except Exception as e:
+            except DecodeError as e:
                 # print(f"Failed:\n{nmm}")
                 # traceback.print_exc()
+                continue
+            except Exception as e:
+                print(f"Unhandled exception in galmon input module:")
+                traceback.print_exc()
                 continue
 
         if data_format is None:

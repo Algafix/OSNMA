@@ -16,7 +16,6 @@
 
 import socket
 import signal
-import time
 
 import pandas as pd
 
