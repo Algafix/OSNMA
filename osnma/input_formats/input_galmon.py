@@ -20,6 +20,7 @@ import traceback
 
 from bitstring import BitArray
 from osnma.input_formats.base_classes import DataFormat, PageIterator
+from google.protobuf.message import DecodeError
 import osnma.input_formats.navmon_pb2 as navmon_pb2
 
 
@@ -53,12 +54,12 @@ class GALMON(PageIterator):
         data_format = None
         while True:
             try:
-                sync = self.s.recv(4, socket.MSG_WAITALL)
+                sync = self.s.recv(4)
                 if len(sync) == 0:
                     raise TimeoutError("Galmon closed connection")
                 if sync == b'bert':
-                    size = int.from_bytes(self.s.recv(2, socket.MSG_WAITALL), 'big')
-                    message = self.s.recv(size, socket.MSG_WAITALL)
+                    size = int.from_bytes(self.s.recv(2), 'big')
+                    message = self.s.recv(size)
 
                     nmm = navmon_pb2.NavMonMessage()
                     nmm.ParseFromString(message)
@@ -103,9 +104,13 @@ class GALMON(PageIterator):
                 print(f"Unexpected read from Galmon: {e}")
                 self.s.close()
                 self.s = self._get_socket()
-            except Exception as e:
+            except DecodeError as e:
                 # print(f"Failed:\n{nmm}")
                 # traceback.print_exc()
+                continue
+            except Exception as e:
+                print(f"Unhandled exception in galmon input module:")
+                traceback.print_exc()
                 continue
 
         if data_format is None:
