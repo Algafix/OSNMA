@@ -54,12 +54,12 @@ class GALMON(PageIterator):
         data_format = None
         while True:
             try:
-                sync = self.s.recv(4, socket.MSG_WAITALL)
+                sync = self.s.recv(4)
                 if len(sync) == 0:
                     raise TimeoutError("Galmon closed connection")
                 if sync == b'bert':
-                    size = int.from_bytes(self.s.recv(2, socket.MSG_WAITALL), 'big')
-                    message = self.s.recv(size, socket.MSG_WAITALL)
+                    size = int.from_bytes(self.s.recv(2), 'big')
+                    message = self.s.recv(size)
 
                     nmm = navmon_pb2.NavMonMessage()
                     nmm.ParseFromString(message)
