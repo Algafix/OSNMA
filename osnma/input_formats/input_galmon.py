@@ -50,16 +50,23 @@ class GALMON(PageIterator):
                 break
         return s
 
+    def _recv_exact(self, size) -> bytes:
+        message = bytes()
+        while len(message) < size:
+            recv_buff = self.s.recv(size-len(message))
+            if len(recv_buff) == 0:
+                raise TimeoutError("Galmon closed connection")
+            message += recv_buff
+        return message
+
     def __next__(self):
         data_format = None
         while True:
             try:
-                sync = self.s.recv(4)
-                if len(sync) == 0:
-                    raise TimeoutError("Galmon closed connection")
+                sync = self._recv_exact(4)
                 if sync == b'bert':
-                    size = int.from_bytes(self.s.recv(2), 'big')
-                    message = self.s.recv(size)
+                    size = int.from_bytes(self._recv_exact(2), 'big')
+                    message = self._recv_exact(size)
 
                     nmm = navmon_pb2.NavMonMessage()
                     nmm.ParseFromString(message)
@@ -73,6 +80,11 @@ class GALMON(PageIterator):
                     sv = nmm.gi.gnssSV
                     tow = nmm.gi.gnssTOW
                     wn = nmm.gi.gnssWN
+
+                    # Fix galmon bug: when word 16 is transmitted at subframe offset 29, it gets assigned a wrong tow
+                    # It can be that self.newest_tow is already updated if we got a word different that 16, hence the >=
+                    if self.newest_tow % 30 >= 27 and word == 16 and tow % 30 == 15:
+                        tow = tow + 14
 
                     # Update TOW and reset everything
                     if tow > self.newest_tow:
@@ -105,7 +117,7 @@ class GALMON(PageIterator):
                 self.s.close()
                 self.s = self._get_socket()
             except DecodeError as e:
-                # print(f"Failed:\n{nmm}")
+                print(f"Galmon decoding failed:\t{nmm}")
                 # traceback.print_exc()
                 continue
             except Exception as e:
