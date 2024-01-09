@@ -44,6 +44,7 @@ Current OSNMA ICD **features supported**:
     * FLX tags.
   * Verification of the ADKD 0, ADKD 4 and ADKD 12 tags.
   * Authentication of the navigation data.
+  * Support for custom TL values.
   * Support for Cold Start, Warm Start and Hot Start.
   * Support for the following events: EOC, NPK, PKREV, OAM.
     * Missing test vectors to validate the CREV and NMT events.
@@ -51,7 +52,7 @@ Current OSNMA ICD **features supported**:
 **Extra optimizations** for a faster TTFAF:
   * Reconstruct broken HKROOT messages.
   * Reconstruct TESLA key from partial MACK messages.
-  * Extract non-FLX tags from broken MACK messages.
+  * Extract valid tags from broken MACK messages.
   * Link data from multiple subframes using the IOD.
 
 Current data **format supported**:
@@ -256,7 +257,7 @@ I strongly believe in open-source software and free access to knowledge, and thi
 
 However, this approach by my side requires the uttermost respect to the research integrity and ethics by anyone accessing this repository. 
 
-In case of doubt, contact me at algafix[@]protonmail.com
+In case of doubt, contact me at aleix.galan[@]kuleuven.be
 
 Thank you.
 
