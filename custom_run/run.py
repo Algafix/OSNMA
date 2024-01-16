@@ -18,7 +18,7 @@ def sbf_current_config():
     config_dict = {
         'scenario_path': args.sbf_file,
         'exec_path': '.',
-        'pubk_name': 'OSNMA_PublicKey_2.xml',
+        'pubk_name': 'OSNMA_PublicKey_1.xml',
         'merkle_name': 'OSNMA_MerkleTree.xml'
     }
 

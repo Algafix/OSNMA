@@ -377,7 +377,7 @@ class ReceiverState:
                 self.start_status = StartStates.WARM_START
                 logger.info(f"Start status from {StartStates.COLD_START.name} to {self.start_status.name}")
         else:
-            logger.error(f"PKR with NPKID {npkid} failed.")
+            logger.error(f"PKR verification failed! PRK received: NPKID {npkid}, NPKT {dsm_pkr.get_value('NPKT').uint}, MID {dsm_pkr.get_value('MID').uint}.")
 
     def process_hkroot_subframe(self, hkroot_sf: BitArray, is_consecutive_hkroot=False) -> BitArray:
 
