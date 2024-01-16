@@ -140,7 +140,7 @@ class DSMPKR(DSM):
 
         is_padding_correct = self._padding_verification(message)
         if not is_padding_correct:
-            logger.error(f"Padding values not consistent.")
+            logger.error(f"Padding values are not correct! Has the merkle tree changed?")
 
         is_pkr_correct = self._pkr_merkle_verification(message)
         if not is_pkr_correct:
