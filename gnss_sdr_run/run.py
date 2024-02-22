@@ -14,11 +14,12 @@ def gnss_sdr_config():
     config_dict = {
         'exec_path': '.',
         'pubk_name': 'OSNMA_PublicKey_1.xml',
-        'merkle_name': 'OSNMA_MerkleTree.xml'
+        'merkle_name': 'OSNMA_MerkleTree.xml',
+        'kroot_name': 'OSNMA_start_KROOT.txt'
     }
 
-    #input_module = GNSS_SDR()  # Default host='127.0.0.1', port=1234, wn=None
-    input_module = GNSS_SDR(wn=1263)
+    input_module = GNSS_SDR()  # Default host='127.0.0.1', port=1234, wn=None
+    #input_module = GNSS_SDR(wn=1263)
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
     osnma_r.start()
