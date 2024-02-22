@@ -58,8 +58,11 @@ Current OSNMA ICD **features supported**:
 Current data **format supported**:
 
   * Septentrio Binary Format (SBF) log files.
-  * Live connection to a Septentrio Receiver through IP port.
+  * Septentrio receiver live connection through IP port.
+  * u-blox UBX log files
+  * u-blox live connection through COM port 
   * Live aggregated data from the [galmon](https://github.com/berthubert/galmon) project.
+  * GNSS-SDR project format through UDP socket
   * Allows for custom data by implementing your iterator.
 
 Future development:
@@ -67,7 +70,6 @@ Future development:
   * Time synchronization options for live execution.
   * Renew Merkle Tree procedure.
   * IDD ICD implementation for authentication of cryptographic materials.
-  * Implement a uBlox input data format.
 
 Documentation
 ---
