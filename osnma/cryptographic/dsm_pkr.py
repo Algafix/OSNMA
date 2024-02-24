@@ -27,15 +27,19 @@ logger = logger_factory.get_logger(__name__)
 
 class DSMPKR(DSM):
 
-    def __init__(self):
+    def __init__(self, pkr_message=None, merkle_root=None):
         super().__init__()
 
-        self.merkle_root = None
+        self.merkle_root = merkle_root
         self.pk_type = None
         self.hash_f = None
         self.key_curve = None
         self.public_key_obj = None
         self.is_OAM = False
+        self.from_file = False
+
+        if pkr_message is not None:
+            self.process_data(pkr_message)
 
     def _extra_actions(self, name):
 
@@ -48,11 +52,9 @@ class DSMPKR(DSM):
             elif name == 'NPKT':
                 self.set_size('NPK', NPKT_size_lt[uint_value])
                 self._set_key_params(uint_value)
-                try:
+                if not self.from_file:
                     padding_size = self.size_bits - 1040 - self.get_size('NPK')
                     self.set_size('P_DP', padding_size)
-                except TypeError as e:
-                    logger.warning(f"Cannot compute Padding length: Missing attribute NB_DP")
 
     @to_bitarray
     def set_merkle_root(self, merkle_root):
@@ -153,3 +155,29 @@ class DSMPKR(DSM):
 
         return self.verified
 
+    def pkr_from_file(self, pubk_point: bytes, mid: int, pubk_type: str, pubk_id: int):
+        """
+        Create a DSMPKR object from the data contained in a GSC xml file. In the future this should be updated
+        to use the intermediate nodes from the merkle tree xml file for a quick verification.
+        """
+
+        self.from_file = True
+
+        if 'P-256' in pubk_type:
+            pubk_type = NPKT.ECDSA_P256.value
+            pubk_object = VerifyingKey.from_string(pubk_point, curve=curves.NIST256p, hashfunc=hashlib.sha256)
+        elif 'P-521' in pubk_type:
+            pubk_type = NPKT.ECDSA_P521.value
+            pubk_object = VerifyingKey.from_string(pubk_point, curve=curves.NIST521p, hashfunc=hashlib.sha512)
+        else:
+            raise Exception(f'Invalid Public Key type or not recognized: {pubk_type} not [P-256, P-512].')
+
+        self.set_value("MID", mid)
+        self.set_value("NPKT", pubk_type)
+        self.set_value("NPKID", pubk_id)
+        self.public_key_obj = pubk_object
+
+        if self.is_OAM:
+            raise Exception("Cant use OAM PKR for warm start")
+
+        self.verified = True

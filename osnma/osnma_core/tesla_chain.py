@@ -95,10 +95,9 @@ class TESLAChain:
         self.last_tesla_key = root_key
 
         # Instantiate the auxiliary object for the tag management and parsing of messages
-        self.nav_data_structure = nav_data_structure
         self.mac_msg_parser = MACKMessageParser(self)
         self.tesla_key_gst_start_offset = self.mac_msg_parser.tesla_key_gst_start_offset
-        self.tags_structure = TagStateStructure(self, self.nav_data_structure)
+        self.tags_structure = TagStateStructure(self, nav_data_structure)
 
     def _hmac256(self, key: BitArray, message: BitArray):
         mac = hmac.new(key=key.tobytes(), msg=message.tobytes(), digestmod=hashlib.sha256)

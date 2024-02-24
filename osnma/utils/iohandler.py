@@ -15,21 +15,16 @@
 #
 
 ######## type annotations ########
-from typing import TextIO
+from typing import TextIO, Tuple
 from pathlib import Path
 
 ######## imports ########
 import re
-import hashlib
-
-from ecdsa.keys import VerifyingKey
-from ecdsa.curves import NIST256p
-from ecdsa.curves import NIST521p
+import traceback
 from bitstring import BitArray
 
 from osnma.cryptographic.dsm_pkr import DSMPKR
 from osnma.cryptographic.dsm_kroot import DSMKroot
-from osnma.structures.fields_information import NPKT
 
 ######## logger ########
 import osnma.utils.logger_factory as logger_factory
@@ -67,7 +62,7 @@ class IOHandler:
             exit(1)
         return merkle_root
 
-    def read_pubk(self, file_name: str):
+    def read_pubk(self, file_name: str) -> Tuple[DSMPKR, int]:
         try:
             with open(self.path / file_name, 'r') as pubk_file:
                 file_text = self._handle_input_file_format(pubk_file)
@@ -76,27 +71,14 @@ class IOHandler:
                 mid = int(re.findall(r'<i>(\d+)</i>', file_text)[0])
                 pubk_point = bytes.fromhex(re.findall(r'<point>(.*?)</point>', file_text)[0])
 
-                if 'P-256' in pubk_type:
-                    pubk_type = NPKT.ECDSA_P256.value
-                    pubk_object = VerifyingKey.from_string(pubk_point, curve=NIST256p, hashfunc=hashlib.sha256)
-                elif 'P-521' in pubk_type:
-                    pubk_type = NPKT.ECDSA_P521.value
-                    pubk_object = VerifyingKey.from_string(pubk_point, curve=NIST521p, hashfunc=hashlib.sha512)
-                else:
-                    raise Exception(f'Invalid Public Key type or not recognized: {pubk_type} not [P-256, P-512].')
-
                 dsm_pkr = DSMPKR()
-                dsm_pkr.set_value("NPKT", pubk_type)
-                dsm_pkr.set_value("NPKID", pubk_id)
-                dsm_pkr.set_value("MID", mid)
-                dsm_pkr.public_key_obj = pubk_object
-                dsm_pkr.verified = True
+                dsm_pkr.pkr_from_file(pubk_point, mid, pubk_type, pubk_id)
 
         except IOError as e:
-            raise IOError(f"IOError while reading the Public Key file {self.path / file_name}. Not used.\n\t{e}")
+            raise IOError(f"IOError while reading the Public Key file {self.path / file_name}. Not used.\n{traceback.format_exc()}")
         except Exception as e:
-            raise Exception(f"Error when parsing the public key according to the GSC format. Not used.\n\t Error: {e}")
-        return pubk_id, dsm_pkr
+            raise Exception(f"Error when parsing the public key according to the GSC format. Not used.\n{traceback.format_exc()}")
+        return dsm_pkr, pubk_id
 
     def store_pubk(self, pkr: DSMPKR):
 
