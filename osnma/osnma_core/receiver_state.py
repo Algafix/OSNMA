@@ -126,17 +126,17 @@ class ReceiverState:
         pubkey_file = Config.PUBK_NAME
         kroot_file = Config.KROOT_NAME
         self.merkle_root = self.io_handler.read_merkle_root(merkle_file)
-        logger.info(f"\nStart status {self.start_status.name}\n")
+        logger.info(f"Start status {self.start_status.name}\n")
 
         if pubkey_file:
             try:
-                pubk_id, dsm_pkr = self.io_handler.read_pubk(pubkey_file)
+                dsm_pkr, pubk_id = self.io_handler.read_pubk(pubkey_file)
             except Exception as e:
                 logger.warning(e)
             else:
                 self.pkr_dict[pubk_id] = dsm_pkr
                 self.start_status = StartStates.WARM_START
-                logger.info(f"Public Key {pubk_id} read. Start status {self.start_status.name}\n")
+                logger.info(f"Public Key ID {pubk_id} read. Start status {self.start_status.name}\n")
                 if kroot_file:
                     try:
                         kroot_bits, nmah_bits = self.io_handler.read_kroot(kroot_file)
@@ -144,10 +144,13 @@ class ReceiverState:
                         dsm_kroot.set_value('NMA_H', nmah_bits)
                         dsm_kroot.process_data(kroot_bits)
                         if dsm_kroot.kroot_verification():
-                            self._chain_status_handler(nmah_bits, dsm_kroot)
+                            # self._chain_status_handler(nmah_bits, dsm_kroot)
+                            self.nma_status, _, self.chain_status = self._nma_header_parser(nmah_bits)
+                            self.nma_header = nmah_bits
+                            self.tesla_chain_force = TESLAChain(self.nav_data_structure, dsm_kroot)
                             self.current_pkid = dsm_kroot.get_value('PKID').uint
                             self.start_status = StartStates.HOT_START
-                            logger.info(f"KROOT read. Start status {self.start_status.name}\n")
+                            logger.info(f"KROOT read with NMA Status {self.nma_status.name} and Chain Status {self.chain_status.name}. Start status {self.start_status.name}\n")
                         else:
                             logger.warning(f"KROOT read is not verified. Not used.")
                     except IOError as e:
@@ -353,9 +356,7 @@ class ReceiverState:
                     self._fallback_to_cold_start()
 
     def process_pkr_message(self, pkr: BitArray):
-        dsm_pkr = DSMPKR()
-        dsm_pkr.process_data(pkr)
-        dsm_pkr.set_merkle_root(self.merkle_root)
+        dsm_pkr = DSMPKR(pkr_message=pkr, merkle_root=self.merkle_root)
 
         npkid = dsm_pkr.get_value('NPKID').uint
         if dsm_pkr.pkr_verification():
@@ -435,7 +436,7 @@ class ReceiverState:
                     logger.warning("Deleting first mack message from waiting list")
                     self.kroot_waiting_mack = self.kroot_waiting_mack[1:]
             else:
-                if self.start_status == StartStates.HOT_START:
+                if self.start_status == StartStates.HOT_START and tkey is not None:
                     self.start_status = StartStates.STARTED
                     logger.info(f"One TESLA key verified. Start Status: {self.start_status.name}")
 

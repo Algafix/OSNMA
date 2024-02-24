@@ -91,7 +91,7 @@ def test_change_of_word_type_5(log_level=logging.INFO):
         "kroot_auth": 26,
         "broken_kroot": 6,
         "crc_failed": 0,
-        "warnings": 7,
+        "warnings": 6,
         "errors": 0
     }
 
@@ -114,7 +114,7 @@ def test_tow_rollover(log_level=logging.INFO):
         "kroot_auth": 199,
         "broken_kroot": 43,
         "crc_failed": 2498,
-        "warnings": 2542,
+        "warnings": 2541,
         "errors": 0
     }
 
@@ -138,7 +138,7 @@ def test_osnma_outage_and_wt5(log_level=logging.INFO):
         "kroot_auth": 50,
         "broken_kroot": 25,
         "crc_failed": 49,
-        "warnings": 75,
+        "warnings": 74,
         "errors": 0
     }
 
@@ -162,7 +162,7 @@ def test_osnma_after_outage(log_level=logging.INFO):
         "kroot_auth": 65,
         "broken_kroot": 18,
         "crc_failed": 57,
-        "warnings": 76,
+        "warnings": 75,
         "errors": 0
     }
 
