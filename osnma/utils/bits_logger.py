@@ -17,6 +17,8 @@ class BitsLogger:
 
     def __init__(self):
         self.last_subframes_bits = []
+        self.subframes_in_memory = 12
+        """12 subrames allow for at least one ADKD12 verification in memory"""
 
     def _format_subframe_bits(self, satellites: Dict[int, 'Satellite']) -> Dict:
         """
@@ -33,7 +35,7 @@ class BitsLogger:
         Inserts the last subframe bits at the beginning of the list and pops the last one if needed
         """
         self.last_subframes_bits.insert(0, {"WN": gst.wn, "TOW": gst.tow, "svid_bits": subframe_bits})
-        if len(self.last_subframes_bits) > 10:
+        if len(self.last_subframes_bits) > self.subframes_in_memory:
             self.last_subframes_bits.pop(-1)
 
     def do_subframe_bits_log(self, gst: 'GST', satellites: Dict[int, 'Satellite']):
