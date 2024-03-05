@@ -38,6 +38,7 @@ class Satellite:
         self.words_adkd4: Dict[int, Optional[str]] = {6: None, 10: None}
         self.osnma_tags_log = []
         self.osnma_tesla_key_log = None
+        self.pages_bits_log: List[Optional[str]] = [None for _ in range(15)]
 
     def _load_osnma(self, page: DataFormat, page_number: int):
         if page.has_osnma:
@@ -55,6 +56,7 @@ class Satellite:
         self.words_adkd4 = {6: None, 10: None}
         self.osnma_tags_log = []
         self.osnma_tesla_key_log = None
+        self.pages_bits_log = [None for _ in range(15)]
 
     def add_word(self, adkd: int, word_type: int):
         if adkd == 0:
@@ -81,6 +83,7 @@ class Satellite:
         gst_page = page.gst_page
         page_number = (gst_page.tow % 30) // 2
         self._load_osnma(page, page_number)
+        self.pages_bits_log[page_number] = page.nav_bits.hex
 
     def get_mack_subframe(self) -> List[Optional[BitArray]]:
         return self.mack_subframe

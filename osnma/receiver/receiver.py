@@ -26,6 +26,7 @@ from osnma.utils.config import Config
 from osnma.utils.exceptions import StoppedAtFAF
 from osnma.cryptographic.gst_class import GST
 from osnma.utils.status_logger import do_status_log
+from osnma.utils.bits_logger import BitsLogger
 
 from bitstring import BitArray
 
@@ -50,6 +51,8 @@ class OSNMAReceiver:
         self.receiver_state = ReceiverState()
         self.subframe_regenerator = SubFrameRegenerator()
         self.current_gst_subframe = GST()
+        self.bits_logger = BitsLogger()
+
         Config.FIRST_GST = None
 
     def _is_dummy_page(self, data: DataFormat) -> bool:
@@ -67,6 +70,13 @@ class OSNMAReceiver:
                 do_status_log(self)
             except Exception as e:
                 logger.exception(f"Error doing status logging")
+
+    def _do_bits_log(self):
+        if Config.DO_SUBFRAME_BITS_LOG:
+            try:
+                self.bits_logger.do_subframe_bits_log(self.current_gst_subframe, self.satellites)
+            except Exception as e:
+                logger.exception(f"Error doing subframe bits logging")
 
     def _filter_page(self, data: DataFormat):
         """
@@ -134,12 +144,13 @@ class OSNMAReceiver:
         Process OSNMA data for all satellites for which we haven't received the last page (we couldn't know if they were
         finished). Note that in a real live scenario a clock can be used instead of having to wait for the next page.
         """
-        # Process leftovers
+        # Process active subframe satellites for which we lost the last page
         for satellite in self.satellites.values():
             if satellite.is_active() and not satellite.is_already_processed():
                 self._end_of_subframe_satellite(self.current_gst_subframe, satellite)
         # Collect status
         self._do_status_log()
+        self._do_bits_log()
         # Reset
         for satellite in self.satellites.values():
             if satellite.is_active():
