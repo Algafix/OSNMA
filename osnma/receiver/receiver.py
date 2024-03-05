@@ -72,11 +72,11 @@ class OSNMAReceiver:
                 logger.exception(f"Error doing status logging")
 
     def _do_bits_log(self):
-        if Config.DO_BITS_LOG:
+        if Config.DO_SUBFRAME_BITS_LOG:
             try:
-                self.bits_logger.do_bits_log(self.current_gst_subframe, self.satellites)
+                self.bits_logger.do_subframe_bits_log(self.current_gst_subframe, self.satellites)
             except Exception as e:
-                logger.exception(f"Error doing bits logging")
+                logger.exception(f"Error doing subframe bits logging")
 
     def _filter_page(self, data: DataFormat):
         """

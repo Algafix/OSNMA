@@ -41,8 +41,8 @@ class _Config:
         self.DO_STATUS_LOG = True
         self.DO_JSON_STATUS = False
         self.JSON_STATUS_PATH = 'last_state.json'
-        self.DO_BITS_LOG = False
-        self.SUBFRAME_BITS_FILE = 'last_navigation_bits.json'
+        self.DO_SUBFRAME_BITS_LOG = False
+        self.SUBFRAME_BITS_FILE = 'last_subframe_bits.json'
 
         self.SYNC_SOURCE = 0
         self.SYNC_TIME = None
