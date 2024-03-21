@@ -140,6 +140,50 @@ def test_vectors_icd_configuration_2_pubk_kroot(log_level=logging.INFO):
     input_module = ICDTestVectors(config_dict['scenario_path'])
     run(input_module, config_dict, expected_results)
 
+def test_vectors_oam_step_1(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/oam_step1/07_OCT_2023_GST_18_45_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'icd_test_vectors/oam_step1/',
+        'pubk_name': 'OSNMA_PublicKey_1.xml'
+    }
+
+    expected_results = {
+        "tags_auth": 6648,
+        "data_auth": 3161,
+        "kroot_auth": 109,
+        "broken_kroot": 0,
+        "crc_failed": 0,
+        "warnings": 2332,
+        "errors": 0
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
+def test_vectors_oam_step_2(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/oam_step2/07_OCT_2023_GST_19_45_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'icd_test_vectors/oam_step2/',
+        'pubk_name': 'OSNMA_PublicKey_1.xml'
+    }
+
+    expected_results = {
+        "tags_auth": 0,
+        "data_auth": 0,
+        "kroot_auth": 1,
+        "broken_kroot": 20,
+        "crc_failed": 0,
+        "warnings": 2289,
+        "errors": 0
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
 if __name__ == "__main__":
 
     general_log_level = logging.CRITICAL
@@ -171,6 +215,28 @@ if __name__ == "__main__":
     print(f"\nNominal Configuration 2 with pubk and kroot")
     try:
         test_vectors_icd_configuration_2_pubk_kroot(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
+    print(f"\nOSNMA Alert Message Step 1")
+    try:
+        test_vectors_oam_step_1(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
+    print(f"\nOSNMA Alert Message Step 2")
+    try:
+        test_vectors_oam_step_2(general_log_level)
     except AssertionError:
         print(f"\tFAILED")
     else:

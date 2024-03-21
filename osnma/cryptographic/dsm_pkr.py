@@ -45,12 +45,10 @@ class DSMPKR(DSM):
 
         if name != 'P_DP':
             uint_value = self.get_value(name).uint
-
             if name == 'NB_DP':
                 self.size_blocks = NB_DP_lt[uint_value]
                 self.size_bits = NB_DP_size_lt[uint_value]
             elif name == 'NPKT':
-                self.set_size('NPK', NPKT_size_lt[uint_value])
                 self._set_key_params(uint_value)
                 if not self.from_file:
                     padding_size = self.size_bits - 1040 - self.get_size('NPK')
@@ -74,19 +72,16 @@ class DSMPKR(DSM):
         self.public_key_obj = VerifyingKey.from_string(key_bytes, curve=self.key_curve, hashfunc=self.hash_f)
 
     def _set_key_params(self, npkt):
-        if npkt == NPKT.ECDSA_P224:
-            self.hash_f = hashlib.sha224
-            self.key_curve = curves.NIST224p
-        elif npkt == NPKT.ECDSA_P256:
+        if npkt == NPKT.ECDSA_P256:
+            self.set_size('NPK', NPKT_size_lt[npkt])
             self.hash_f = hashlib.sha256
             self.key_curve = curves.NIST256p
-        elif npkt == NPKT.ECDSA_P384:
-            self.hash_f = hashlib.sha384
-            self.key_curve = curves.NIST384p
         elif npkt == NPKT.ECDSA_P521:
+            self.set_size('NPK', NPKT_size_lt[npkt])
             self.hash_f = hashlib.sha512
             self.key_curve = curves.NIST521p
         elif npkt == NPKT.OAM:
+            self.set_size('NPK', self.size_bits - 1040)
             self.is_OAM = True
 
     def _length_verification(self):
@@ -98,7 +93,6 @@ class DSMPKR(DSM):
 
         full_padding = BitArray(hashlib.sha256((self.merkle_root + leaf).tobytes()).digest())
         correct_padding = full_padding[:self.get_size('P_DP')]
-
         return correct_padding == self.get_value('P_DP')
 
     def _pkr_merkle_verification(self, leaf):

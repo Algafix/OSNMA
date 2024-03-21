@@ -51,11 +51,12 @@ class HKROOT(IntEnum):
     NB_END = 20
 
 
-class StartStates(IntEnum):
+class OSNMAlibSTATE(IntEnum):
     COLD_START = 0
     WARM_START = 1
     HOT_START = 2
     STARTED = 6
+    OSNMA_AM = 7
 
 
 class DigitalSignatureMessage:
@@ -96,7 +97,7 @@ class ReceiverState:
 
     def __init__(self):
 
-        self.start_status = StartStates.COLD_START
+        self.osnmalib_state = OSNMAlibSTATE.COLD_START
         self.chain_status = CPKS.NOMINAL
         self.nma_status = NMAS.TEST
 
@@ -126,7 +127,7 @@ class ReceiverState:
         pubkey_file = Config.PUBK_NAME
         kroot_file = Config.KROOT_NAME
         self.merkle_root = self.io_handler.read_merkle_root(merkle_file)
-        logger.info(f"Start status {self.start_status.name}\n")
+        logger.info(f"Start status {self.osnmalib_state.name}\n")
 
         if pubkey_file:
             try:
@@ -135,8 +136,8 @@ class ReceiverState:
                 logger.warning(e)
             else:
                 self.pkr_dict[pubk_id] = dsm_pkr
-                self.start_status = StartStates.WARM_START
-                logger.info(f"Public Key ID {pubk_id} read. Start status {self.start_status.name}\n")
+                self.osnmalib_state = OSNMAlibSTATE.WARM_START
+                logger.info(f"Public Key ID {pubk_id} read. Start status {self.osnmalib_state.name}\n")
                 if kroot_file:
                     try:
                         kroot_bits, nmah_bits = self.io_handler.read_kroot(kroot_file)
@@ -149,8 +150,8 @@ class ReceiverState:
                             self.nma_header = nmah_bits
                             self.tesla_chain_force = TESLAChain(self.nav_data_structure, dsm_kroot)
                             self.current_pkid = dsm_kroot.get_value('PKID').uint
-                            self.start_status = StartStates.HOT_START
-                            logger.info(f"KROOT read with NMA Status {self.nma_status.name} and Chain Status {self.chain_status.name}. Start status {self.start_status.name}\n")
+                            self.osnmalib_state = OSNMAlibSTATE.HOT_START
+                            logger.info(f"KROOT read with NMA Status {self.nma_status.name} and Chain Status {self.chain_status.name}. Start status {self.osnmalib_state.name}\n")
                         else:
                             logger.warning(f"KROOT read is not verified. Not used.")
                     except IOError as e:
@@ -173,32 +174,25 @@ class ReceiverState:
                 self.tesla_chain_force = self.next_tesla_chain
                 self.next_tesla_chain = None
 
-    def _fallback_to_warm_start(self):
+    def _fallback_to_state(self, new_osnmalib_state: OSNMAlibSTATE, cpks: CPKS = CPKS.NOMINAL):
 
-        logger.info(f"Fallback to {StartStates.WARM_START.name} from {self.start_status.name}.")
+        logger.info(f"Fallback to {new_osnmalib_state.name} from {self.osnmalib_state.name}")
 
-        self.start_status = StartStates.WARM_START
-        self.chain_status = CPKS.NOMINAL
-
-        self.current_pkid = None
+        self.osnmalib_state = new_osnmalib_state
+        self.chain_status = cpks
 
         self.tesla_chain_force = None
         self.next_tesla_chain = None
         self.kroot_waiting_mack = []
 
-    def _fallback_to_cold_start(self):
-
-        logger.info(f"Fallback to {StartStates.COLD_START.name} from {self.start_status.name}")
-
-        self.start_status = StartStates.COLD_START
-        self.chain_status = CPKS.NOMINAL
-
-        self.pkr_dict = {}
         self.current_pkid = None
 
-        self.tesla_chain_force = None
-        self.next_tesla_chain = None
-        self.kroot_waiting_mack = []
+        if new_osnmalib_state == OSNMAlibSTATE.COLD_START:
+            self.pkr_dict = {}
+        if new_osnmalib_state == OSNMAlibSTATE.OSNMA_AM:
+            self.pkr_dict = {}
+            self.merkle_root = None
+            self.nma_status = NMAS.DONT_USE
 
     def _store_next_tesla_chain(self, cid_kroot: int, dsm_kroot: DSMKroot):
         if cid_kroot != self.tesla_chain_force.chain_id and self.next_tesla_chain is None:
@@ -215,7 +209,7 @@ class ReceiverState:
         logger.info(f"Chain in force is {cid}.")
         logger.info(f"CPKS is {cpks.name}.\n")
 
-        if self.start_status != StartStates.STARTED:
+        if self.osnmalib_state != OSNMAlibSTATE.STARTED:
             # Haven't received the kroot in force
             if self.chain_status == CPKS.NOMINAL:
                 self.chain_status = cpks
@@ -224,17 +218,20 @@ class ReceiverState:
                     self.tesla_chain_force = TESLAChain(self.nav_data_structure, dsm_kroot)
                     self.io_handler.store_kroot(dsm_kroot, nma_header)
                     self.current_pkid = dsm_kroot.get_value('PKID').uint
-                    logger.info(f"Start status from {self.start_status.name} to {StartStates.STARTED.name}.")
-                    self.start_status = StartStates.STARTED
+                    logger.info(f"Start status from {self.osnmalib_state.name} to {OSNMAlibSTATE.STARTED.name}.")
+                    self.osnmalib_state = OSNMAlibSTATE.STARTED
                 elif cpks == CPKS.EOC:
                     # The key received is not in force and EOC
                     self.next_tesla_chain = TESLAChain(self.nav_data_structure, dsm_kroot)
                 elif cpks == CPKS.PKREV:
                     # The receiver connects at PKREV Step 1
                     self.next_tesla_chain = TESLAChain(self.nav_data_structure, dsm_kroot)
+                elif cpks == CPKS.AM:
+                    # The receiver connects at AM Step 1
+                    self._fallback_to_state(OSNMAlibSTATE.OSNMA_AM, CPKS.AM)
                 else:
                     raise ReceiverStatusError(f"CID {cid}, CIDK {cid_kroot} and CPKS {cpks.name} not possible in"
-                                              f" {self.start_status.name} if stored CPKS is {self.chain_status.name}")
+                                              f" {self.osnmalib_state.name} if stored CPKS is {self.chain_status.name}")
             elif self.chain_status == CPKS.EOC:
                 # The key read was not the one in force
                 self.chain_status = cpks
@@ -242,8 +239,8 @@ class ReceiverState:
                     self.tesla_chain_force = TESLAChain(self.nav_data_structure, dsm_kroot)
                     self.io_handler.store_kroot(dsm_kroot, nma_header)
                     self.current_pkid = dsm_kroot.get_value('PKID').uint
-                    logger.info(f"Start status from {self.start_status.name} to {StartStates.STARTED.name}.")
-                    self.start_status = StartStates.STARTED
+                    logger.info(f"Start status from {self.osnmalib_state.name} to {OSNMAlibSTATE.STARTED.name}.")
+                    self.osnmalib_state = OSNMAlibSTATE.STARTED
             elif self.chain_status == CPKS.PKREV:
                 self.chain_status = cpks
                 if cid == self.next_tesla_chain.chain_id:
@@ -252,21 +249,24 @@ class ReceiverState:
                     self.next_tesla_chain = None
                     new_dsm_kroot = self.tesla_chain_force.dsm_kroot
                     self.io_handler.store_kroot(new_dsm_kroot, new_dsm_kroot.get_value('NMA_H'))
-                    logger.info(f"Start status from {self.start_status.name} to {StartStates.STARTED.name}.")
-                    self.start_status = StartStates.STARTED
+                    logger.info(f"Start status from {self.osnmalib_state.name} to {OSNMAlibSTATE.STARTED.name}.")
+                    self.osnmalib_state = OSNMAlibSTATE.STARTED
             else:
                 raise ReceiverStatusError(f"Saved chain status {self.chain_status.name} not possible in"
-                                          f" {self.start_status.name} state.")
+                                          f" {self.osnmalib_state.name} state.")
 
-        elif self.start_status == StartStates.STARTED:
+        elif self.osnmalib_state == OSNMAlibSTATE.STARTED:
             # The receiver has the KROOT in force
             if nmas == NMAS.DONT_USE:
                 if cpks == CPKS.PKREV:
                     logger.info(f"Public Key {self.current_pkid} revoked.")
-                    self._fallback_to_cold_start()
+                    self._fallback_to_state(OSNMAlibSTATE.COLD_START)
                 elif cpks == CPKS.CREV:
                     logger.info(f"TESLA Chain {self.tesla_chain_force.chain_id} revoked")
-                    self._fallback_to_warm_start()
+                    self._fallback_to_state(OSNMAlibSTATE.WARM_START)
+                elif cpks == CPKS.AM:
+                    logger.warning(f"OSNMA in Alert Message. Connect to GSC OSNMA Server for further updates.")
+                    self._fallback_to_state(OSNMAlibSTATE.OSNMA_AM, CPKS.AM)
                 else:
                     raise ReceiverStatusError(f"NMA Status set to {nmas.name} and CPKS to {cpks.name}. Invalid.")
 
@@ -339,8 +339,8 @@ class ReceiverState:
             dsm_kroot.process_data(kroot)
         except PublicKeyObjectError as e:
             logger.error(f"Problem with the Public Key for authenticating this DSMKroot: {e}")
-            if self.start_status == StartStates.WARM_START:
-                self._fallback_to_cold_start()
+            if self.osnmalib_state == OSNMAlibSTATE.WARM_START:
+                self._fallback_to_state(OSNMAlibSTATE.COLD_START)
         else:
             if dsm_kroot.kroot_verification():
                 logger.info(f"KROOT with CID: {dsm_kroot.get_value('CIDKR').uint} - PKID: "
@@ -352,8 +352,8 @@ class ReceiverState:
                     f"KROOT with CID: {dsm_kroot.get_value('CIDKR').uint} - PKID: {dsm_kroot.get_value('PKID').uint}"
                     f" - GST0: WN {dsm_kroot.get_value('WN_K').uint} TOW {dsm_kroot.get_value('TOWH_K').uint*3600}"
                     f"\n\tFAILED\n")
-                if self.start_status == StartStates.WARM_START:
-                    self._fallback_to_cold_start()
+                if self.osnmalib_state == OSNMAlibSTATE.WARM_START:
+                    self._fallback_to_state(OSNMAlibSTATE.COLD_START)
 
     def process_pkr_message(self, pkr: BitArray):
         dsm_pkr = DSMPKR(pkr_message=pkr, merkle_root=self.merkle_root)
@@ -364,8 +364,7 @@ class ReceiverState:
 
             if dsm_pkr.is_OAM:
                 logger.warning("OAM Detected - Please connect to the GSC OSNMA Server")
-                logger.info("Falling back to Cold Start - Discarding any cryptographic material.\n")
-                self.start_status = StartStates.COLD_START
+                self._fallback_to_state(OSNMAlibSTATE.OSNMA_AM, CPKS.AM)
                 return
 
             if npkid not in self.pkr_dict:
@@ -374,13 +373,17 @@ class ReceiverState:
                 logger.info(f"New PK. Current PKs: {self.pkr_dict.keys()}")
             else:
                 logger.info(f"PK already read: {self.pkr_dict.keys()}")
-            if self.start_status == StartStates.COLD_START:
-                self.start_status = StartStates.WARM_START
-                logger.info(f"Start status from {StartStates.COLD_START.name} to {self.start_status.name}")
+            if self.osnmalib_state == OSNMAlibSTATE.COLD_START:
+                self.osnmalib_state = OSNMAlibSTATE.WARM_START
+                logger.info(f"Start status from {OSNMAlibSTATE.COLD_START.name} to {self.osnmalib_state.name}")
         else:
             logger.error(f"PKR verification failed! PRK received: NPKID {npkid}, NPKT {dsm_pkr.get_value('NPKT').uint}, MID {dsm_pkr.get_value('MID').uint}.")
 
     def process_hkroot_subframe(self, hkroot_sf: BitArray, is_consecutive_hkroot=False) -> BitArray:
+
+        if self.osnmalib_state == OSNMAlibSTATE.OSNMA_AM:
+            logger.warning(f"OSNMA Alert Message. Not processing OSNMA data. Connect to the GSC OSNMA sever.")
+            return BitArray(uint=NMAS.DONT_USE.value, length=2)
 
         sf_nma_header = hkroot_sf[:HKROOT.NMA_HEADER_END]
         if is_consecutive_hkroot:
@@ -393,7 +396,7 @@ class ReceiverState:
         if dsm_message.is_complete():
             dsm_data = dsm_message.get_data()
             if dsm_id <= 11:
-                if self.start_status != StartStates.COLD_START:
+                if self.osnmalib_state != OSNMAlibSTATE.COLD_START:
                     self.process_kroot_message(sf_nma_header, dsm_data)
             else:
                 self.process_pkr_message(dsm_data)
@@ -403,8 +406,7 @@ class ReceiverState:
     def process_mack_subframe(self, mack_subframe: List[Optional[BitArray]], gst_subframe: GST, satellite: 'Satellite', sf_nma_status: BitArray):
 
         if self.nma_status == NMAS.DONT_USE:
-            logger.warning(f"NMA Status: Don't Use. Subframe tags not processed.")
-            self.kroot_waiting_mack = []
+            logger.warning(f"NMA Status: Don't Use. Navigation data authentication not performed.")
             return
 
         if self.tesla_chain_force is None:
@@ -422,23 +424,23 @@ class ReceiverState:
             except MackParsingError as e:
                 # Unable to parse the message correctly
                 logger.error(f"Unable to parse the MACK message correctly.\n{e}")
-                if self.start_status == StartStates.HOT_START:
-                    self._fallback_to_warm_start()
+                if self.osnmalib_state == OSNMAlibSTATE.HOT_START:
+                    self._fallback_to_state(OSNMAlibSTATE.WARM_START)
                 else:
                     logger.warning("Deleting first mack message from waiting list")
                     self.kroot_waiting_mack = self.kroot_waiting_mack[1:]
             except TeslaKeyVerificationFailed as e:
                 # Unable to verify the TESLA key
                 logger.error(f"Failed authenticating a TESLA key.\n{e}")
-                if self.start_status == StartStates.HOT_START:
-                    self._fallback_to_warm_start()
+                if self.osnmalib_state == OSNMAlibSTATE.HOT_START:
+                    self._fallback_to_state(OSNMAlibSTATE.WARM_START)
                 else:
                     logger.warning("Deleting first mack message from waiting list")
                     self.kroot_waiting_mack = self.kroot_waiting_mack[1:]
             else:
-                if self.start_status == StartStates.HOT_START and tkey is not None:
-                    self.start_status = StartStates.STARTED
-                    logger.info(f"One TESLA key verified. Start Status: {self.start_status.name}")
+                if self.osnmalib_state == OSNMAlibSTATE.HOT_START and tkey is not None:
+                    self.osnmalib_state = OSNMAlibSTATE.STARTED
+                    logger.info(f"One TESLA key verified. Start Status: {self.osnmalib_state.name}")
 
     def load_nav_data_page(self, nav_bits: BitArray, gst_page: GST, satellite: 'Satellite'):
         self.nav_data_structure.load_page(nav_bits, gst_page, satellite)

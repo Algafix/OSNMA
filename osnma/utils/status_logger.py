@@ -25,7 +25,7 @@ import pprint
 import json
 from osnma.structures.maclt import mac_lookup_table
 from osnma.structures.fields_information import mf_lt, hf_lt, npkt_lt
-from osnma.osnma_core.receiver_state import StartStates
+from osnma.osnma_core.receiver_state import OSNMAlibSTATE
 from osnma.utils.config import Config
 
 ######## logger ########
@@ -35,7 +35,7 @@ logger = log_factory.get_logger(__name__)
 def _get_osnma_chain_dict(osnma_r: 'OSNMAReceiver') -> Dict:
     osnma_status_dict = {"Tesla Chain in Force": None, "Public Key in Force": None}
 
-    if osnma_r.receiver_state.start_status == StartStates.STARTED:
+    if osnma_r.receiver_state.osnmalib_state == OSNMAlibSTATE.STARTED:
         osnma_chain_dict = {}
         kroot_handler = osnma_r.receiver_state.tesla_chain_force.dsm_kroot
         osnma_chain_dict["NMAS"] = osnma_r.receiver_state.nma_status.name
@@ -110,7 +110,7 @@ def do_status_log(osnma_r: 'OSNMAReceiver'):
         "Metadata": {
             "GST Subframe": [osnma_r.current_gst_subframe.wn, osnma_r.current_gst_subframe.tow],
             "Input Module": osnma_r.nav_data_input.__class__.__name__,
-            "OSNMAlib Status": osnma_r.receiver_state.start_status.name,
+            "OSNMAlib Status": osnma_r.receiver_state.osnmalib_state.name,
         },
         "OSNMA Status": _get_osnma_chain_dict(osnma_r),
         "OSNMA Authenticated Data": _get_osnma_data_auth_dict(osnma_r),
@@ -125,7 +125,7 @@ def do_status_log(osnma_r: 'OSNMAReceiver'):
                      f"## OSNMA Data Received in the Subframe\n"
                      f"{pprint.pformat(status_dict['OSNMA Data'], sort_dicts=False, width=150)}\n\n"
                      f"## OSNMA Status\n"
-                     f"{pprint.pformat(status_dict['OSNMA Status'], sort_dicts=False, width=150)}\n\n"
+                     f"{pprint.pformat(status_dict['OSNMA Status'], sort_dicts=False, width=100, compact=True)}\n\n"
                      f"## OSNMA Authenticated Data\n"
                      f"{pprint.pformat(status_dict['OSNMA Authenticated Data'], sort_dicts=False, width=150)}\n")
     logger.info(string_object)
