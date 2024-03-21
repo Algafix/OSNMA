@@ -226,6 +226,9 @@ class ReceiverState:
                 elif cpks == CPKS.PKREV:
                     # The receiver connects at PKREV Step 1
                     self.next_tesla_chain = TESLAChain(self.nav_data_structure, dsm_kroot)
+                elif cpks == CPKS.AM:
+                    # The receiver connects at AM Step 1
+                    self._fallback_to_state(OSNMAlibSTATE.OSNMA_AM, CPKS.AM)
                 else:
                     raise ReceiverStatusError(f"CID {cid}, CIDK {cid_kroot} and CPKS {cpks.name} not possible in"
                                               f" {self.osnmalib_state.name} if stored CPKS is {self.chain_status.name}")
