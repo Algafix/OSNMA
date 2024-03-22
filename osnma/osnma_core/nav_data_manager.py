@@ -283,6 +283,18 @@ class ADKD0DataManager(ADKDDataManager):
 
         return iod
 
+    def update_gst_start_with_cop(self, tag: TagAndInfo):
+        """
+        Checks if there's data for that COP. If there is, update the GST Start to the max value cop indicates.
+        """
+        if len(self.adkd0_data_blocks) > 0:
+            last_data_block = self.adkd0_data_blocks[-1]
+            gst_cop_start = tag.gst_subframe - tag.cop.uint * 30
+            if gst_cop_start < last_data_block.gst_start < tag.gst_subframe:
+                logger.debug(f"SVID {self.svid} Updated gst start from {last_data_block.gst_start} to {gst_cop_start}"
+                             f" using{' FLX' if tag.is_flx else ''} {tag}. Data block: {last_data_block}")
+                last_data_block.gst_start = gst_cop_start
+
 
 class ADKD4WordData:
 
@@ -465,3 +477,11 @@ class NavigationDataManager:
                 auth_data.new_tags = False
                 self._calculate_TTFAF(auth_data, gst_subframe)
         self._clean_old_data()
+
+    def update_navdata_based_on_cop(self, tag: TagAndInfo):
+        """
+        Called every time a tag is extracted from the MACK message. Checks if the COP of the tag allows to change the
+        GST Start of the navigation data blocks.
+        """
+        if tag.cop.uint > 1 and tag.adkd.uint == 0:
+            self.adkd0_data_managers[tag.prn_d.uint].update_gst_start_with_cop(tag)
