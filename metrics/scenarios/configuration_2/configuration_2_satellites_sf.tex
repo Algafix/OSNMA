@@ -17,8 +17,9 @@ legend style={
 },
 tick align=outside,
 tick pos=left,
-title={Hot Start TTFAF - ICD Config 2},
+title={Satellites tracked and ADKD0 tags received - Hot Start TTFAF - ICD Config 2},
 x grid style={darkgray176},
+xlabel={Time of Week (s)},
 xmajorgrids,
 xmin=345543, xmax=347457,
 xtick style={color=black},
@@ -28,70 +29,7 @@ ymajorgrids,
 ymin=0, ymax=57,
 ytick style={color=black}
 ]
-\addplot [very thin, black, mark=asterisk, mark size=3, mark options={solid}]
-table {%
-345630 25
-345660 25
-345690 25
-345720 25
-345750 25
-345780 25
-345810 25
-345840 25
-345870 25
-345900 25
-345930 25
-345960 25
-345990 25
-346020 25
-346050 25
-346080 25
-346110 25
-346140 25
-346170 25
-346200 25
-346230 25
-346260 25
-346290 25
-346320 25
-346350 25
-346380 25
-346410 25
-346440 25
-346470 25
-346500 25
-346530 25
-346560 25
-346590 25
-346620 25
-346650 25
-346680 25
-346710 25
-346740 25
-346770 25
-346800 25
-346830 25
-346860 25
-346890 25
-346920 25
-346950 25
-346980 25
-347010 25
-347040 25
-347070 25
-347100 25
-347130 25
-347160 25
-347190 25
-347220 25
-347250 25
-347280 25
-347310 25
-347340 25
-347370 25
-};
-\addlegendentry{Tracked}
-\addplot [very thin, black, mark=triangle*, mark size=3, mark options={solid,rotate=180}]
+\addplot [very thin, green01270, mark=triangle*, mark size=3, mark options={solid,rotate=180}]
 table {%
 345630 17
 345660 17
@@ -153,7 +91,70 @@ table {%
 347340 17
 347370 17
 };
-\addlegendentry{OSNMA connected}
+\addlegendentry{Connected}
+\addplot [very thin, blue, mark=triangle*, mark size=3, mark options={solid,rotate=180}]
+table {%
+345630 8
+345660 8
+345690 8
+345720 10
+345750 10
+345780 12
+345810 12
+345840 13
+345870 11
+345900 11
+345930 10
+345960 10
+345990 9
+346020 10
+346050 10
+346080 10
+346110 10
+346140 10
+346170 9
+346200 9
+346230 9
+346260 9
+346290 9
+346320 9
+346350 9
+346380 9
+346410 9
+346440 9
+346470 9
+346500 9
+346530 9
+346560 10
+346590 10
+346620 10
+346650 9
+346680 9
+346710 8
+346740 8
+346770 8
+346800 8
+346830 8
+346860 8
+346890 8
+346920 8
+346950 8
+346980 8
+347010 8
+347040 8
+347070 8
+347100 8
+347130 8
+347160 8
+347190 8
+347220 8
+347250 8
+347280 8
+347310 8
+347340 8
+347370 8
+};
+\addlegendentry{Disconnected}
 \end{axis}
 
 \begin{axis}[
@@ -234,7 +235,7 @@ table {%
 347340 17
 347370 17
 };
-\addlegendentry{OSNMA connected}
+\addlegendentry{Connected}
 \addplot [semithick, blue]
 table {%
 345630 51
@@ -297,7 +298,7 @@ table {%
 347340 51
 347370 51
 };
-\addlegendentry{Not OSNMA connected}
+\addlegendentry{Disconnected}
 \end{axis}
 
 \end{tikzpicture}

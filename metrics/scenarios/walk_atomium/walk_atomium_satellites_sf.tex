@@ -17,8 +17,9 @@ legend style={
 },
 tick align=outside,
 tick pos=left,
-title={Hot Start TTFAF - Walk in Atomium},
+title={Satellites tracked and ADKD0 tags received - Hot Start TTFAF - Walk in Atomium},
 x grid style={darkgray176},
+xlabel={Time of Week (s)},
 xmajorgrids,
 xmin=39691.5, xmax=42298.5,
 xtick style={color=black},
@@ -28,91 +29,7 @@ ymajorgrids,
 ymin=0, ymax=14,
 ytick style={color=black}
 ]
-\addplot [very thin, black, mark=asterisk, mark size=3, mark options={solid}]
-table {%
-39810 7
-39840 7
-39870 7
-39900 7
-39930 7
-39960 7
-39990 8
-40020 7
-40050 7
-40080 7
-40110 8
-40140 8
-40170 8
-40200 7
-40230 7
-40260 7
-40290 7
-40320 7
-40350 7
-40380 6
-40410 6
-40440 6
-40470 6
-40500 6
-40530 6
-40560 6
-40590 6
-40620 6
-40650 8
-40680 8
-40710 8
-40740 8
-40770 7
-40800 6
-40830 5
-40860 5
-40890 6
-40920 7
-40950 7
-40980 5
-41010 7
-41040 6
-41070 7
-41100 8
-41130 8
-41160 8
-41190 8
-41220 8
-41250 8
-41280 8
-41310 7
-41340 7
-41370 7
-41400 9
-41430 7
-41460 7
-41490 9
-41520 7
-41550 8
-41580 7
-41610 7
-41640 6
-41670 6
-41700 6
-41730 7
-41760 7
-41790 7
-41820 8
-41850 7
-41880 7
-41910 8
-41940 6
-41970 6
-42000 7
-42030 6
-42060 5
-42090 5
-42120 5
-42150 5
-42180 6
-};
-\addlegendentry{Tracked}
-\addplot [very thin, black, mark=triangle*, mark size=3, mark options={solid,rotate=180}]
+\addplot [very thin, green01270, mark=triangle*, mark size=3, mark options={solid,rotate=180}]
 table {%
 39810 4
 39840 4
@@ -195,7 +112,91 @@ table {%
 42150 4
 42180 4
 };
-\addlegendentry{OSNMA connected}
+\addlegendentry{Connected}
+\addplot [very thin, blue, mark=triangle*, mark size=3, mark options={solid,rotate=180}]
+table {%
+39810 3
+39840 3
+39870 3
+39900 3
+39930 3
+39960 3
+39990 3
+40020 3
+40050 3
+40080 3
+40110 3
+40140 3
+40170 3
+40200 3
+40230 3
+40260 3
+40290 3
+40320 3
+40350 3
+40380 2
+40410 2
+40440 2
+40470 2
+40500 2
+40530 2
+40560 2
+40590 2
+40620 2
+40650 3
+40680 3
+40710 3
+40740 3
+40770 3
+40800 3
+40830 2
+40860 2
+40890 2
+40920 3
+40950 3
+40980 2
+41010 2
+41040 2
+41070 3
+41100 4
+41130 4
+41160 4
+41190 3
+41220 4
+41250 4
+41280 5
+41310 5
+41340 5
+41370 5
+41400 5
+41430 3
+41460 3
+41490 4
+41520 3
+41550 4
+41580 3
+41610 3
+41640 3
+41670 3
+41700 3
+41730 3
+41760 3
+41790 3
+41820 4
+41850 4
+41880 3
+41910 4
+41940 4
+41970 3
+42000 3
+42030 3
+42060 3
+42090 2
+42120 2
+42150 1
+42180 2
+};
+\addlegendentry{Disconnected}
 \end{axis}
 
 \begin{axis}[
@@ -297,7 +298,7 @@ table {%
 42150 4
 42180 2
 };
-\addlegendentry{OSNMA connected}
+\addlegendentry{Connected}
 \addplot [semithick, blue]
 table {%
 39810 7
@@ -381,7 +382,7 @@ table {%
 42150 1
 42180 3
 };
-\addlegendentry{Not OSNMA connected}
+\addlegendentry{Disconnected}
 \end{axis}
 
 \end{tikzpicture}

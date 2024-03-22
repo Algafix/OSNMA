@@ -93,13 +93,15 @@ def plot_satellites_sf(tow_sf_values, name, data_folder: Path):
     for svid in sats_dict.keys():
         if len(tow_list := sats_dict[svid]) > 0:
             sat_tick_map[i] = svid
-            plt.plot(tow_list, np.repeat(i, len(tow_list)), 'k.')
+            plt.plot(tow_list, np.repeat(i, len(tow_list)), '.', color='darkorange')
             if len(tow_list := osnma_sats_dict[svid]) > 0:
-                plt.plot(tow_list, np.repeat(i, len(tow_list)), 'kv')
+                plt.plot(tow_list, np.repeat(i, len(tow_list)), 'gv')
             i += 1
 
-    plt.plot([], [], 'k.', label='Tracked')
-    plt.plot([], [], 'kv', label='OSNMA connected')
+    plt.plot([], [], '.', label='Tracked', color='orange')
+    plt.plot([], [], 'gv', label='OSNMA connected')
+    plt.title(f"Satellite status - {name}")
+    plt.xlabel('Time of Week (s)')
     plt.grid()
     plt.yticks(list(sat_tick_map.keys()), list(sat_tick_map.values()))
     plt.ylabel('SVID')
@@ -112,10 +114,12 @@ def plot_satellites_sf(tow_sf_values, name, data_folder: Path):
     ### sf sats info ###
     fig, ax1 = plt.subplots(1, 1, figsize=(16, 9))
 
-    ax1.plot(tow_sf_values, satellites, 'k*-', linewidth=0.5, label='Tracked')
-    ax1.plot(tow_sf_values, osnma_satellites, 'kv-', linewidth=0.5, label='Connected')
+    #ax1.plot(tow_sf_values, satellites, 'k*-', linewidth=0.5, label='Tracked')
+    ax1.plot(tow_sf_values, osnma_satellites, 'gv-', linewidth=0.5, label='Connected')
+    ax1.plot(tow_sf_values, [s - os for s,os in zip(satellites, osnma_satellites)], 'bv-', linewidth=0.5, label='Disconnected')
     ax1.set_ylabel('Number of Galileo Satellites')
-    plt.title(name)
+    plt.title(f"Satellites tracked and ADKD0 tags received - {name}")
+    plt.xlabel('Time of Week (s)')
     ax1.grid()
     ax1.legend(loc='upper left')
 
@@ -130,7 +134,6 @@ def plot_satellites_sf(tow_sf_values, name, data_folder: Path):
     max_value = np.max(np.concatenate((ax1.get_yticks(), ax2.get_yticks()))) + 2
     ax1.set_ylim(0, max_value)
     ax2.set_ylim(0, max_value)
-
     tikzplotlib_fix_ncols(fig)
     tikzplotlib.save(f"{data_folder}/{data_folder.name}_satellites_sf.tex")
 
@@ -147,9 +150,9 @@ def plot_ttfaf_sf(tow_sf_values, ttfaf_sf_matrix, options, name, data_folder: Pa
         plt.plot(tow_sf_values, min_sf_vector, 'v', color=color)
         plt.plot(tow_sf_values, min_sf_vector, '-', label=config_name, color=color)
 
-    plt.ylabel('TTFAF [s]')
-    plt.xlabel('ToW [s]')
-    plt.title(name)
+    plt.ylabel('TTFAF (s)')
+    plt.xlabel('Time of Week (s)')
+    plt.title(f"Minimum TTFAF per Subframe - {name}")
     plt.grid()
     #plt.legend(loc='upper right')
 
@@ -194,8 +197,8 @@ def plot_cdf(plot_ttfaf_vectors: npt.NDArray, options, name, data_folder: Path):
 
     plt.tight_layout(pad=2.0)
     plt.ylabel('Percentage')
-    plt.xlabel('Seconds [s]')
-    plt.title(name)
+    plt.xlabel('TTFAF (s)')
+    plt.title(f"Cumulative Distribution Plot (CDF) - {name}")
     plt.grid()
     plt.legend(loc='upper left', bbox_to_anchor=(0, 1))
 

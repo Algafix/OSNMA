@@ -2,6 +2,8 @@
 \begin{tikzpicture}
 
 \definecolor{darkgray176}{RGB}{176,176,176}
+\definecolor{darkorange}{RGB}{255,140,0}
+\definecolor{green01270}{RGB}{0,127,0}
 \definecolor{lightgray204}{RGB}{204,204,204}
 
 \begin{axis}[
@@ -9,7 +11,9 @@ legend cell align={left},
 legend style={fill opacity=0.8, draw opacity=1, text opacity=1, draw=lightgray204},
 tick align=outside,
 tick pos=left,
+title={Satellite status - Hot Start TTFAF - Park and EU District},
 x grid style={darkgray176},
+xlabel={Time of Week (s)},
 xmajorgrids,
 xmin=35304, xmax=37416,
 xtick style={color=black},
@@ -21,7 +25,7 @@ ytick style={color=black},
 ytick={0,1,2,3,4,5,6,7},
 yticklabels={4,5,9,15,24,31,34,36}
 ]
-\addplot [semithick, black, mark=*, mark size=3, mark options={solid}, only marks, forget plot]
+\addplot [semithick, darkorange, mark=*, mark size=3, mark options={solid}, only marks, forget plot]
 table {%
 35460 0
 35490 0
@@ -68,7 +72,7 @@ table {%
 37290 0
 37320 0
 };
-\addplot [semithick, black, mark=triangle*, mark size=3, mark options={solid,rotate=180}, only marks, forget plot]
+\addplot [semithick, green01270, mark=triangle*, mark size=3, mark options={solid,rotate=180}, only marks, forget plot]
 table {%
 35460 0
 35490 0
@@ -115,7 +119,7 @@ table {%
 37290 0
 37320 0
 };
-\addplot [semithick, black, mark=*, mark size=3, mark options={solid}, only marks, forget plot]
+\addplot [semithick, darkorange, mark=*, mark size=3, mark options={solid}, only marks, forget plot]
 table {%
 35400 1
 35430 1
@@ -183,7 +187,7 @@ table {%
 37290 1
 37320 1
 };
-\addplot [semithick, black, mark=*, mark size=3, mark options={solid}, only marks, forget plot]
+\addplot [semithick, darkorange, mark=*, mark size=3, mark options={solid}, only marks, forget plot]
 table {%
 35400 2
 35430 2
@@ -249,7 +253,7 @@ table {%
 37290 2
 37320 2
 };
-\addplot [semithick, black, mark=triangle*, mark size=3, mark options={solid,rotate=180}, only marks, forget plot]
+\addplot [semithick, green01270, mark=triangle*, mark size=3, mark options={solid,rotate=180}, only marks, forget plot]
 table {%
 35400 2
 35430 2
@@ -315,7 +319,7 @@ table {%
 37290 2
 37320 2
 };
-\addplot [semithick, black, mark=*, mark size=3, mark options={solid}, only marks, forget plot]
+\addplot [semithick, darkorange, mark=*, mark size=3, mark options={solid}, only marks, forget plot]
 table {%
 35430 3
 35460 3
@@ -359,7 +363,7 @@ table {%
 37290 3
 37320 3
 };
-\addplot [semithick, black, mark=triangle*, mark size=3, mark options={solid,rotate=180}, only marks, forget plot]
+\addplot [semithick, green01270, mark=triangle*, mark size=3, mark options={solid,rotate=180}, only marks, forget plot]
 table {%
 35430 3
 35460 3
@@ -403,7 +407,7 @@ table {%
 37290 3
 37320 3
 };
-\addplot [semithick, black, mark=*, mark size=3, mark options={solid}, only marks, forget plot]
+\addplot [semithick, darkorange, mark=*, mark size=3, mark options={solid}, only marks, forget plot]
 table {%
 35400 4
 35520 4
@@ -440,7 +444,7 @@ table {%
 37290 4
 37320 4
 };
-\addplot [semithick, black, mark=triangle*, mark size=3, mark options={solid,rotate=180}, only marks, forget plot]
+\addplot [semithick, green01270, mark=triangle*, mark size=3, mark options={solid,rotate=180}, only marks, forget plot]
 table {%
 35400 4
 35520 4
@@ -477,7 +481,7 @@ table {%
 37290 4
 37320 4
 };
-\addplot [semithick, black, mark=*, mark size=3, mark options={solid}, only marks, forget plot]
+\addplot [semithick, darkorange, mark=*, mark size=3, mark options={solid}, only marks, forget plot]
 table {%
 35400 5
 35430 5
@@ -532,7 +536,7 @@ table {%
 37290 5
 37320 5
 };
-\addplot [semithick, black, mark=triangle*, mark size=3, mark options={solid,rotate=180}, only marks, forget plot]
+\addplot [semithick, green01270, mark=triangle*, mark size=3, mark options={solid,rotate=180}, only marks, forget plot]
 table {%
 36390 5
 36420 5
@@ -565,7 +569,7 @@ table {%
 37290 5
 37320 5
 };
-\addplot [semithick, black, mark=*, mark size=3, mark options={solid}, only marks, forget plot]
+\addplot [semithick, darkorange, mark=*, mark size=3, mark options={solid}, only marks, forget plot]
 table {%
 35400 6
 35430 6
@@ -622,7 +626,7 @@ table {%
 37290 6
 37320 6
 };
-\addplot [semithick, black, mark=triangle*, mark size=3, mark options={solid,rotate=180}, only marks, forget plot]
+\addplot [semithick, green01270, mark=triangle*, mark size=3, mark options={solid,rotate=180}, only marks, forget plot]
 table {%
 35400 6
 35430 6
@@ -678,7 +682,7 @@ table {%
 37230 6
 37290 6
 };
-\addplot [semithick, black, mark=*, mark size=3, mark options={solid}, only marks, forget plot]
+\addplot [semithick, darkorange, mark=*, mark size=3, mark options={solid}, only marks, forget plot]
 table {%
 35400 7
 35430 7
@@ -698,7 +702,7 @@ table {%
 37260 7
 37290 7
 };
-\addplot [semithick, black, mark=triangle*, mark size=3, mark options={solid,rotate=180}, only marks, forget plot]
+\addplot [semithick, green01270, mark=triangle*, mark size=3, mark options={solid,rotate=180}, only marks, forget plot]
 table {%
 35400 7
 35430 7

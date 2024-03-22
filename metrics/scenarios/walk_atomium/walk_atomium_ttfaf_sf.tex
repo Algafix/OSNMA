@@ -4,26 +4,24 @@
 \definecolor{darkgray176}{RGB}{176,176,176}
 \definecolor{darkorange25512714}{RGB}{255,127,14}
 \definecolor{forestgreen4416044}{RGB}{44,160,44}
-\definecolor{lightgray204}{RGB}{204,204,204}
 \definecolor{steelblue31119180}{RGB}{31,119,180}
 
 \begin{axis}[
-legend cell align={left},
-legend style={fill opacity=0.8, draw opacity=1, text opacity=1, draw=lightgray204},
 tick align=outside,
 tick pos=left,
-title={Hot Start TTFAF - Walk in Atomium},
+title={Minimum TTFAF per Subframe - Hot Start TTFAF - Walk in Atomium},
 x grid style={darkgray176},
+xlabel={Time of Week (s)},
 xmajorgrids,
 xmin=39691.5, xmax=42298.5,
 xtick style={color=black},
 y grid style={darkgray176},
-ylabel={Time [s]},
+ylabel={TTFAF (s)},
 ymajorgrids,
 ymin=42.8, ymax=289.2,
 ytick style={color=black}
 ]
-\addplot [semithick, steelblue31119180, mark=triangle*, mark size=3, mark options={solid,rotate=180}, only marks, forget plot]
+\addplot [semithick, steelblue31119180, mark=triangle*, mark size=3, mark options={solid,rotate=180}, only marks]
 table {%
 39810 70
 39840 70
@@ -189,8 +187,7 @@ table {%
 42150 182
 42180 152
 };
-\addlegendentry{IOD data link. TL 30s}
-\addplot [semithick, darkorange25512714, mark=triangle*, mark size=3, mark options={solid,rotate=180}, only marks, forget plot]
+\addplot [semithick, darkorange25512714, mark=triangle*, mark size=3, mark options={solid,rotate=180}, only marks]
 table {%
 39810 68
 39840 68
@@ -356,8 +353,7 @@ table {%
 42150 92
 42180 68
 };
-\addlegendentry{IOD data link and Page level processing. TL 25s}
-\addplot [semithick, forestgreen4416044, mark=triangle*, mark size=3, mark options={solid,rotate=180}, only marks, forget plot]
+\addplot [semithick, forestgreen4416044, mark=triangle*, mark size=3, mark options={solid,rotate=180}, only marks]
 table {%
 39810 60
 39840 60
@@ -523,7 +519,6 @@ table {%
 42150 92
 42180 62
 };
-\addlegendentry{IOD and COP data link and Page level processing. TL 17s}
 \end{axis}
 
 \end{tikzpicture}
