@@ -60,6 +60,23 @@ class _Config:
         self.STOP_AT_FAF = False
         self.FIRST_GST = None
 
+        self.CERT_FOLDER = ''
+
+        self.DOWNLOAD_PKI = False
+        self.DOWNLOAD_MERKLE = False
+
+        self.DOWNLOAD_SCA = False
+        self.DOWNLOAD_RCA = False
+
+        self.CERT_PKIEE = ''
+        self.CERT_MERKLE = ''
+        self.CRL_ICA = ''
+        self.CERT_SCA = ''
+        self.CRL_SCA = ''
+        self.CERT_RCA = ''
+        self.CRL_RCA = ''
+
+
     def load_configuration_parameters(self, param_dict: Dict[str, Any]):
         """
         Re-loads the default configuration and adds the configuration defined in `param_dict`.

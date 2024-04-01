@@ -27,6 +27,7 @@ from osnma.utils.exceptions import StoppedAtFAF
 from osnma.cryptographic.gst_class import GST
 from osnma.utils.status_logger import do_status_log
 from osnma.utils.bits_logger import BitsLogger
+from osnma.utils.idd import IDD
 
 from bitstring import BitArray
 
@@ -47,6 +48,7 @@ class OSNMAReceiver:
         for svid in range(Config.NS):
             self.satellites[svid + 1] = Satellite(svid + 1)
 
+        self.idd = IDD()
         self.nav_data_input = input_module
         self.receiver_state = ReceiverState()
         self.subframe_regenerator = SubFrameRegenerator()
