@@ -34,8 +34,10 @@ class IDD:
             self.download_SCA()
 
         if Config.DOWNLOAD_PKI or Config.DOWNLOAD_MERKLE:
-            self.username = input("usuario:")
-            self.password = input("contraseña:")
+            #self.username = input("usuario:")
+            #self.password = input("contraseña:")
+            self.username = "AlexGP"
+            self.password = "AlexGonzalez_29"
 
             try:
                 self.connect()
@@ -171,11 +173,11 @@ class IDD:
                 
                 with open(Config.CERT_FOLDER + "rca.crt", 'wb') as f:
                     f.write(crt_response.content)
-                logger.info(f"Download certificate RCA done")
+                logger.info(f"Download RCA certificate done")
 
                 Config.CERT_RCA = Config.CERT_FOLDER + "rca.crt"
             else:
-                logger.warning(f"Download certificate RCA failed")
+                logger.warning(f"Download RCA certificate failed")
             
 
             href = sorted(filter(lambda x: x[-4:] == ".crl" and os.path.basename(x)[:3] == "rca",hrefs))[-1]
@@ -186,11 +188,11 @@ class IDD:
                 
                 with open(Config.CERT_FOLDER + "rca.crl", 'wb') as f:
                     f.write(crt_response.content)
-                logger.info(f"Download CRL RCA done")
+                logger.info(f"Download RCA CRL done")
 
                 Config.CRL_RCA = Config.CERT_FOLDER + "rca.crl"
             else:
-                logger.warning(f"Download CRL RCA failed")
+                logger.warning(f"Download RCA CRL failed")
 
         else:
             logger.warning(f"Error accessing the website")
@@ -218,11 +220,11 @@ class IDD:
                
                 with open(Config.CERT_FOLDER + "sca.crt", 'wb') as f:
                     f.write(crt_response.content)
-                logger.info(f"Download certificate SCA done")
+                logger.info(f"Download SCA certificate done")
                 
                 Config.CERT_SCA = Config.CERT_FOLDER + "sca.crt"
             else:
-                logger.warning(f"Download certificate SCA failed")
+                logger.warning(f"Download SCA certificate failed")
             
 
             href = sorted(filter(lambda x: x[-4:] == ".crl" and os.path.basename(x)[:3] == "sca",hrefs))[-1]
@@ -233,18 +235,18 @@ class IDD:
                
                 with open(Config.CERT_FOLDER + "sca.crl", 'wb') as f:
                     f.write(crt_response.content)
-                logger.info(f"Download CRL SCA done")
+                logger.info(f"Download SCA CRL done")
 
                 Config.CRL_SCA = Config.CERT_FOLDER + "sca.crl"
             else:
-                logger.warning(f"Download CRL SCA failed")
+                logger.warning(f"Download SCA CRL failed")
 
         else:
             logger.warning(f"Error accessing the website")
 
 
     def authenticateCRT(self,cert_subject, cert_emisor, crl):
-        # Verificar la validez en el tiempo
+        
         now = datetime.datetime.now()
         if now < cert_subject.not_valid_before or now > cert_subject.not_valid_after:
             logger.warning(f"The certificate is not within its validity period.")
@@ -256,12 +258,12 @@ class IDD:
                 logger.warning(f"The certificate has been revoked")
                 return 0
             
-        #Verifica si el emisor del certificado es igual al sujeto del certificado emisor
+        
         if cert_subject.issuer != cert_emisor.subject:
             logger.warning(f"The certificate issuer is incorrect")
             return 0
         
-        # Verificar la firma del certificado
+        
         try:
             cert_emisor.public_key().verify(
                 cert_subject.signature,
@@ -275,7 +277,7 @@ class IDD:
         
 
     def authenticateCRL(self,crl, cert):
-        # Verificar la validez en el tiempo
+        
         now = datetime.datetime.now()
         if now < crl.last_update or now > crl.next_update:
             logger.warning(f"The CRL is not within its validity period.")
@@ -285,7 +287,7 @@ class IDD:
             logger.warning(f"The CRL issuer is incorrect.")
             return 0
         
-        # Verificar la firma del certificado
+        
         try:
             crl.is_signature_valid(cert.public_key())
             cert.public_key().verify(
@@ -312,7 +314,6 @@ class IDD:
             
             else:
                 logger.warning(f"Two certificates not found in .crt file")
-                return
             
         if os.path.exists(Config.CERT_PKIEE):
             with open(Config.CERT_PKIEE, 'rb') as cert_file:
@@ -327,72 +328,104 @@ class IDD:
             
             else:
                 logger.warning(f"Two certificates not found in .crt file")
-                return
             
         if os.path.exists(Config.CRL_ICA):
             with open(Config.CRL_ICA, 'rb') as crl_file:
                 crl_data = crl_file.read()
             crlICA = x509.load_pem_x509_crl(crl_data, default_backend())
-
+        else:
+            logger.warning(f"ICA CRL file don't found")
 
         if os.path.exists(Config.CERT_SCA):
             with open(Config.CERT_SCA, 'rb') as cert_file:
                 cert_data = cert_file.read()
             certSCA = x509.load_pem_x509_certificate(cert_data, default_backend())
+        else:
+            logger.warning(f"SCA certificate file don't found")
 
         if os.path.exists(Config.CRL_SCA):
             with open(Config.CRL_SCA, 'rb') as crl_file:
                 crl_data = crl_file.read()
             crlSCA = x509.load_pem_x509_crl(crl_data, default_backend())
-        
+        else:
+            logger.warning(f"SCA CRL file don't found")
+
         if os.path.exists(Config.CERT_RCA):
             with open(Config.CERT_RCA, 'rb') as cert_file:
                 cert_data = cert_file.read()
             certRCA = x509.load_pem_x509_certificate(cert_data, default_backend())
-
+        else:
+            logger.warning(f"RCA certificate file don't found")
+        
         if os.path.exists(Config.CRL_RCA):
             with open(Config.CRL_RCA, 'rb') as crl_file:
                 crl_data = crl_file.read()
             crlRCA = x509.load_pem_x509_crl(crl_data, default_backend())
-
-        if self.authenticateCRT(certEEMerkleTree, certICA, crlICA):
-            logger.info(f"Authenticate certificate Merkle Tree done")
         else:
-            logger.warning(f"Authenticate certificate Merkle Tree is failed")
+            logger.warning(f"RCA CRL file don't found")
 
-        if self.authenticateCRT(certEEPKR, certICA, crlICA):
-            logger.info(f"Authenticate certificate EE done")
-        else:
-            logger.warning(f"Authenticate certificate EE is failed")
 
-        if self.authenticateCRT(certICA, certSCA, crlSCA):
-            logger.info(f"Authenticate certificate ICA done")
-        else:
-            logger.warning(f"Authenticate certificate ICA is failed")
+        try:
+            if self.authenticateCRT(certEEMerkleTree, certICA, crlICA):
+                logger.info(f"Authenticate Merkle Tree certificate done")
+            else:
+                logger.warning(f"Authenticate Merkle Tree certificate is failed")
+        except:
+            logger.warning(f"Authenticate Merkle Tree certificate is failed")
 
-        if self.authenticateCRL(crlICA, certICA):
-            logger.info(f"Authenticate CRL ICA done")
-        else:
-            logger.warning(f"Authenticate CRL ICA is failed")
+        try:
+            if self.authenticateCRT(certEEPKR, certICA, crlICA):
+                logger.info(f"Authenticate EE certificate done")
+            else:
+                logger.warning(f"Authenticate EE certificate is failed")
+        except:
+            logger.warning(f"Authenticate EE certificate is failed")
 
-        if self.authenticateCRT(certSCA, certRCA, crlRCA):
-            logger.info(f"Authenticate certificate SCA done")
-        else:
-            logger.warning(f"Authenticate certificate SCA is failed")
+        try:    
+            if self.authenticateCRT(certICA, certSCA, crlSCA):
+                logger.info(f"Authenticate ICA certificate done")
+            else:
+                logger.warning(f"Authenticate ICA certificate is failed")
+        except:
+            logger.warning(f"Authenticate ICA certificate is failed")
 
-        if self.authenticateCRL(crlSCA, certSCA):
-            logger.info(f"Authenticate CRL SCA done")
-        else:
-            logger.warning(f"Authenticate CRL SCA is failed")
+        try:
+            if self.authenticateCRL(crlICA, certICA):
+                logger.info(f"Authenticate ICA CRL done")
+            else:
+                logger.warning(f"Authenticate ICA CRL is failed")
+        except:
+            logger.warning(f"Authenticate ICA CRL is failed")
 
-        if self.authenticateCRT(certRCA, certRCA, None):
-            logger.info(f"Authenticate certificate RCA done")
-        else:
-            logger.warning(f"Authenticate certificate RCA is failed")
+        try:
+            if self.authenticateCRT(certSCA, certRCA, crlRCA):
+                logger.info(f"Authenticate SCA certificate done")
+            else:
+                logger.warning(f"Authenticate SCA certificate is failed")
+        except:
+            logger.warning(f"Authenticate SCA certificate is failed")
 
-        if self.authenticateCRL(crlRCA, certRCA):
-            logger.info(f"Authenticate CRL RCA done")
-        else:
-            logger.warning(f"Authenticate CRL RCA is failed")
+        try:
+            if self.authenticateCRL(crlSCA, certSCA):
+                logger.info(f"Authenticate SCA CRL done")
+            else:
+                logger.warning(f"Authenticate SCA CRL is failed")
+        except:
+            logger.warning(f"Authenticate SCA CRL is failed")
 
+        try:
+            if self.authenticateCRT(certRCA, certRCA, None):
+                logger.info(f"Authenticate RCA certificate done")
+            else:
+                logger.warning(f"Authenticate RCA certificate is failed")
+        except:
+            logger.warning(f"Authenticate RCA certificate is failed")
+
+        try:
+            if self.authenticateCRL(crlRCA, certRCA):
+                logger.info(f"Authenticate RCA CRL done\n")
+            else:
+                logger.warning(f"Authenticate RCA CRL is failed\n")
+        except:
+            logger.warning(f"Authenticate RCA CRL is failed\n")
 
