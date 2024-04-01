@@ -34,10 +34,8 @@ class IDD:
             self.download_SCA()
 
         if Config.DOWNLOAD_PKI or Config.DOWNLOAD_MERKLE:
-            #self.username = input("usuario:")
-            #self.password = input("contraseña:")
-            self.username = "AlexGP"
-            self.password = "AlexGonzalez_29"
+            self.username = input("usuario:")
+            self.password = input("contraseña:")
 
             try:
                 self.connect()
