@@ -31,8 +31,7 @@ from osnma.cryptographic.gst_class import GST
 from osnma.osnma_core.tesla_chain import TESLAChain
 from osnma.osnma_core.nav_data_manager import NavigationDataManager
 from osnma.utils.iohandler import IOHandler
-from osnma.utils.exceptions import PublicKeyObjectError, TeslaKeyVerificationFailed, MackParsingError, \
-    ReceiverStatusError
+from osnma.utils.exceptions import PublicKeyObjectError, TeslaKeyVerificationFailed, MackParsingError
 from osnma.utils.config import Config
 
 ######## logger ########
@@ -106,6 +105,7 @@ class ReceiverState:
         self.pkr_dict: Dict[int, DSMPKR] = {}
         self.current_pkid: Optional[int] = None
         self.merkle_root: Optional[BitArray] = None
+        self.new_merkle_root: Optional[BitArray] = None
 
         self.tesla_chain_force: Optional[TESLAChain] = None
         self.next_tesla_chain: Optional[TESLAChain] = None
@@ -194,138 +194,96 @@ class ReceiverState:
             self.merkle_root = None
             self.nma_status = NMAS.DONT_USE
 
-    def _store_next_tesla_chain(self, cid_kroot: int, dsm_kroot: DSMKroot):
-        if cid_kroot != self.tesla_chain_force.chain_id and self.next_tesla_chain is None:
-            self.next_tesla_chain = TESLAChain(self.nav_data_structure, dsm_kroot)
-            logger.info(f"Saved as next chain. In force at {self.next_tesla_chain.GST0}")
+    def _kroot_is_cid(self, nma_header: BitArray, dsm_kroot: DSMKroot, cid_kroot: int):
+        """
+        This function is called when the KROOT received is the KROOT in force as per CID.
+        It is only called after a KROOT is first successfully verified.
+        """
+
+        self.io_handler.store_kroot(dsm_kroot, nma_header)
+
+        if self.osnmalib_state != OSNMAlibSTATE.STARTED:
+            self.tesla_chain_force = TESLAChain(self.nav_data_structure, dsm_kroot)
+            self.current_pkid = dsm_kroot.get_value('PKID').uint
+            logger.info(f"Start status from {self.osnmalib_state.name} to {OSNMAlibSTATE.STARTED.name}.")
+            self.osnmalib_state = OSNMAlibSTATE.STARTED
+        else:
+            if cid_kroot == self.tesla_chain_force.chain_id:
+                logger.info(f"KROOT with CID {cid_kroot} already read and in use.")
+                self.tesla_chain_force.update_kroot(dsm_kroot)
+            else:
+                self.tesla_chain_force = TESLAChain(self.nav_data_structure, dsm_kroot)
+                self.current_pkid = dsm_kroot.get_value('PKID').uint
+                self.next_tesla_chain = None
+                logger.warning(f"Chain changed during downtime. Set to CID {cid_kroot}.")
 
     def _chain_status_handler(self, nma_header: BitArray, dsm_kroot: DSMKroot):
 
-        nmas, cid, cpks = self._nma_header_parser(nma_header)
+        new_nmas, cid, new_cpks = self._nma_header_parser(nma_header)
+        self.nma_status = new_nmas
+        self.chain_status = new_cpks
         self.nma_header = nma_header
-        self.nma_status = nmas
         cid_kroot = dsm_kroot.get_value('CIDKR').uint
-        logger.info(f"NMAS is {nmas.name}.")
+
+        logger.info(f"NMAS is {new_nmas.name}.")
         logger.info(f"Chain in force is {cid}.")
-        logger.info(f"CPKS is {cpks.name}.\n")
+        logger.info(f"CPKS is {new_cpks.name}.\n")
 
-        if self.osnmalib_state != OSNMAlibSTATE.STARTED:
-            # Haven't received the kroot in force
-            if self.chain_status == CPKS.NOMINAL:
-                self.chain_status = cpks
-                if cid_kroot == cid and nmas != NMAS.DONT_USE:
-                    # The key received is in force, the cpks doesn't matter
-                    self.tesla_chain_force = TESLAChain(self.nav_data_structure, dsm_kroot)
-                    self.io_handler.store_kroot(dsm_kroot, nma_header)
-                    self.current_pkid = dsm_kroot.get_value('PKID').uint
-                    logger.info(f"Start status from {self.osnmalib_state.name} to {OSNMAlibSTATE.STARTED.name}.")
-                    self.osnmalib_state = OSNMAlibSTATE.STARTED
-                elif cpks == CPKS.EOC:
-                    # The key received is not in force and EOC
-                    self.next_tesla_chain = TESLAChain(self.nav_data_structure, dsm_kroot)
-                elif cpks == CPKS.PKREV:
-                    # The receiver connects at PKREV Step 1
-                    self.next_tesla_chain = TESLAChain(self.nav_data_structure, dsm_kroot)
-                elif cpks == CPKS.AM:
-                    # The receiver connects at AM Step 1
-                    self._fallback_to_state(OSNMAlibSTATE.OSNMA_AM, CPKS.AM)
-                else:
-                    raise ReceiverStatusError(f"CID {cid}, CIDK {cid_kroot} and CPKS {cpks.name} not possible in"
-                                              f" {self.osnmalib_state.name} if stored CPKS is {self.chain_status.name}")
-            elif self.chain_status == CPKS.EOC:
-                # The key read was not the one in force
-                self.chain_status = cpks
-                if cid_kroot == cid:
-                    self.tesla_chain_force = TESLAChain(self.nav_data_structure, dsm_kroot)
-                    self.io_handler.store_kroot(dsm_kroot, nma_header)
-                    self.current_pkid = dsm_kroot.get_value('PKID').uint
-                    logger.info(f"Start status from {self.osnmalib_state.name} to {OSNMAlibSTATE.STARTED.name}.")
-                    self.osnmalib_state = OSNMAlibSTATE.STARTED
-            elif self.chain_status == CPKS.PKREV:
-                self.chain_status = cpks
-                if cid == self.next_tesla_chain.chain_id:
-                    # PKREV has changed from Step1 to Step2
-                    self.tesla_chain_force = self.next_tesla_chain
-                    self.next_tesla_chain = None
-                    new_dsm_kroot = self.tesla_chain_force.dsm_kroot
-                    self.io_handler.store_kroot(new_dsm_kroot, new_dsm_kroot.get_value('NMA_H'))
-                    logger.info(f"Start status from {self.osnmalib_state.name} to {OSNMAlibSTATE.STARTED.name}.")
-                    self.osnmalib_state = OSNMAlibSTATE.STARTED
+        if new_cpks == CPKS.NOMINAL:
+            self._kroot_is_cid(nma_header, dsm_kroot, cid_kroot)
+
+        elif new_cpks == CPKS.EOC:
+            if cid == cid_kroot:
+                self._kroot_is_cid(nma_header, dsm_kroot, cid_kroot)
             else:
-                raise ReceiverStatusError(f"Saved chain status {self.chain_status.name} not possible in"
-                                          f" {self.osnmalib_state.name} state.")
+                self.next_tesla_chain = TESLAChain(self.nav_data_structure, dsm_kroot)
+                logger.info(f"Stored as next TESLA Chain. In force at {self.next_tesla_chain.GST0}.")
 
-        elif self.osnmalib_state == OSNMAlibSTATE.STARTED:
-            # The receiver has the KROOT in force
-            if nmas == NMAS.DONT_USE:
-                if cpks == CPKS.PKREV:
-                    logger.info(f"Public Key {self.current_pkid} revoked.")
-                    self._fallback_to_state(OSNMAlibSTATE.COLD_START)
-                elif cpks == CPKS.CREV:
-                    logger.info(f"TESLA Chain {self.tesla_chain_force.chain_id} revoked")
-                    self._fallback_to_state(OSNMAlibSTATE.WARM_START)
-                elif cpks == CPKS.AM:
-                    logger.warning(f"OSNMA in Alert Message. Connect to GSC OSNMA Server for further updates.")
-                    self._fallback_to_state(OSNMAlibSTATE.OSNMA_AM, CPKS.AM)
-                else:
-                    raise ReceiverStatusError(f"NMA Status set to {nmas.name} and CPKS to {cpks.name}. Invalid.")
+        elif new_cpks == CPKS.CREV:
+            if new_nmas == NMAS.DONT_USE:
+                if self.osnmalib_state == OSNMAlibSTATE.STARTED and cid == self.tesla_chain_force.chain_id:
+                    logger.warning("TESLA Chain revocation process detected. TESLA Chain in use discarded.")
+                    self._fallback_to_state(OSNMAlibSTATE.WARM_START, new_cpks)
+            else:
+                self._kroot_is_cid(nma_header, dsm_kroot, cid_kroot)
 
-            elif self.chain_status == CPKS.NOMINAL or self.chain_status == CPKS.CREV or self.chain_status == CPKS.PKREV:
-                if cpks == CPKS.NOMINAL or cpks == CPKS.CREV or cpks == CPKS.PKREV:
-                    if cid_kroot == self.tesla_chain_force.chain_id:
-                        logger.info(f"KROOT with CID {cid_kroot} already read and in use.\n")
-                        self.tesla_chain_force.update_kroot(dsm_kroot)
-                        self.io_handler.store_kroot(dsm_kroot, nma_header)
-                    elif cid_kroot == cid:
-                        self.tesla_chain_force = TESLAChain(self.nav_data_structure, dsm_kroot)
-                        self.io_handler.store_kroot(dsm_kroot, nma_header)
-                        self.next_tesla_chain = None
-                        logger.warning(f"Chain changed during downtime. Set to CID {cid_kroot}.\n")
-                    else:
-                        raise ReceiverStatusError(f"CPKS to {cpks.name} and the CIDKR {cid_kroot} is not the "
-                                                  f"one stored nor the current CID.")
-                elif cpks == CPKS.EOC:
-                    # TESLA Chain renewal, stores the new chain if necessary
-                    self.chain_status = CPKS.EOC
-                    self._store_next_tesla_chain(cid_kroot, dsm_kroot)
-                elif cpks == CPKS.NPK:
-                    # Public key is being renewed
-                    self.chain_status = CPKS.NPK
-                else:
-                    raise ReceiverStatusError(f"CPKS status not recognized: {cpks.name}")
+        elif new_cpks == CPKS.NPK:
+            pkid = dsm_kroot.get_value('PKID').uint
+            self._kroot_is_cid(nma_header, dsm_kroot, cid_kroot)
+            if pkid != self.current_pkid:
+                logger.info(f"Public Key in force changed from {self.current_pkid} to {pkid}.")
+                self.pkr_dict.pop(self.current_pkid)
+                self.current_pkid = pkid
 
-            elif self.chain_status == CPKS.EOC:
-                if cpks == CPKS.EOC:
-                    # TESLA Chain renewal, stores the new chain if necessary
-                    self._store_next_tesla_chain(cid_kroot, dsm_kroot)
-                elif cpks == CPKS.NOMINAL:
-                    # The EOC has ended, the next TESLA Chain should be in force
-                    self.chain_status = CPKS.NOMINAL
-                    if cid != self.tesla_chain_force.chain_id:
-                        logger.info("A different kroot should be in force.")
-                        if cid == cid_kroot:
-                            self.tesla_chain_force = TESLAChain(self.nav_data_structure, dsm_kroot)
-                            self.next_tesla_chain = None
-                            self.io_handler.store_kroot(dsm_kroot, nma_header)
-                            logger.info("The KROOT in force is the one read.")
-                        elif self.next_tesla_chain and cid == self.next_tesla_chain.chain_id:
-                            self.tesla_chain_force = self.next_tesla_chain
-                            self.next_tesla_chain = None
-                            new_dsm_kroot = self.tesla_chain_force.dsm_kroot
-                            self.io_handler.store_kroot(new_dsm_kroot, new_dsm_kroot.get_value('NMA_H'))
-                            logger.info("The KROOT in force is the saved one.")
-                        else:
-                            raise ReceiverStatusError(f"CID {cid} in CPKS {cpks.name} after CPKS {CPKS.EOC.name} is not"
-                                                      f" the one saved in force, nor the one read, nor the next tesla.")
-                else:
-                    raise ReceiverStatusError(f"CPKS status {cpks.name} not possible after {self.chain_status.name}.")
+        elif new_cpks == CPKS.PKREV:
+            if new_nmas == NMAS.DONT_USE:
+                if self.osnmalib_state == OSNMAlibSTATE.STARTED:
+                    logger.warning("Public Key revocation process detected. Public Key and TESLA Chain in use discarded.")
+                    self._fallback_to_state(OSNMAlibSTATE.COLD_START, new_cpks)
+            else:
+                self._kroot_is_cid(nma_header, dsm_kroot, cid_kroot)
 
-            elif self.chain_status == CPKS.NPK:
-                pkid = dsm_kroot.get_value('PKID').uint
-                if pkid != self.current_pkid:
-                    logger.info(f"PK in force changed from {self.current_pkid} to {pkid}")
+        elif new_cpks == CPKS.NMT:
+            self._kroot_is_cid(nma_header, dsm_kroot, cid_kroot)
+            pkid = dsm_kroot.get_value('PKID').uint
+
+            if self.new_merkle_root is None and pkid != 1:
+                logger.warning(f"Reading new Merkle Tree root: {Config.NEW_MERKLE_NAME}")
+                self.new_merkle_root = self.io_handler.read_merkle_root("new_OSNMA_MerkleTree.xml")
+
+            if self.current_pkid != pkid:
+                    logger.info(f"Public Key in force changed from {self.current_pkid} to {pkid}.")
+                    logger.info(f"Deleting previous Merkle Root.")
+                    self.merkle_root = self.new_merkle_root
                     self.pkr_dict.pop(self.current_pkid)
                     self.current_pkid = pkid
+
+        elif new_cpks == CPKS.AM:
+            logger.warning("OAM Detected - Please connect to the GSC OSNMA Server")
+            self._fallback_to_state(OSNMAlibSTATE.OSNMA_AM, CPKS.AM)
+
+        else:
+            logger.error(f"CPKS {new_cpks} not valid")
 
     def process_kroot_message(self, nma_header: BitArray, kroot: BitArray):
         """
@@ -356,9 +314,15 @@ class ReceiverState:
                     self._fallback_to_state(OSNMAlibSTATE.COLD_START)
 
     def process_pkr_message(self, pkr: BitArray):
-        dsm_pkr = DSMPKR(pkr_message=pkr, merkle_root=self.merkle_root)
 
+        dsm_pkr = DSMPKR(pkr_message=pkr)
         npkid = dsm_pkr.get_value('NPKID').uint
+
+        if self.chain_status == CPKS.NMT and npkid < self.current_pkid:
+            dsm_pkr.merkle_root = self.new_merkle_root
+        else:
+            dsm_pkr.merkle_root = self.merkle_root
+
         if dsm_pkr.pkr_verification():
             logger.info(f"PKR with NPKID {npkid} verified.")
 
@@ -407,6 +371,7 @@ class ReceiverState:
 
         if self.nma_status == NMAS.DONT_USE:
             logger.warning(f"NMA Status: Don't Use. Navigation data authentication not performed.")
+            self.kroot_waiting_mack = []
             return
 
         if self.tesla_chain_force is None:

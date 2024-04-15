@@ -30,6 +30,7 @@ class _Config:
         self.MERKLE_NAME = 'OSNMA_MerkleTree.xml'
         self.PUBK_NAME = ''
         self.KROOT_NAME = ''
+        self.NEW_MERKLE_NAME = 'new_OSNMA_MerkleTree.xml'
 
         self.FILE_LOG_LEVEL = logging.INFO
         self.CONSOLE_LOG_LEVEL = logging.INFO
