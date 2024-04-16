@@ -30,6 +30,7 @@ class _Config:
         self.MERKLE_NAME = 'OSNMA_MerkleTree.xml'
         self.PUBK_NAME = ''
         self.KROOT_NAME = ''
+        self.NEW_MERKLE_NAME = 'new_OSNMA_MerkleTree.xml'
 
         self.FILE_LOG_LEVEL = logging.INFO
         self.CONSOLE_LOG_LEVEL = logging.INFO
@@ -56,6 +57,7 @@ class _Config:
         self.DO_HKROOT_REGEN = True
         self.DO_CRC_FAILED_EXTRACTION = True
         self.DO_TESLA_KEY_REGEN = True
+        self.DO_COP_LINK_OPTIMIZATION = False
 
         self.STOP_AT_FAF = False
         self.FIRST_GST = None

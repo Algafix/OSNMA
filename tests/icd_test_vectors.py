@@ -80,7 +80,8 @@ def test_vectors_icd_configuration_1(log_level=logging.INFO):
         'logs_path': LOGS_PATH,
         'scenario_path': Path(__file__).parent / 'icd_test_vectors/configuration_1/16_AUG_2023_GST_05_00_01_fixed.csv',
         'exec_path': Path(__file__).parent / 'icd_test_vectors/configuration_1/',
-        'pubk_name': 'OSNMA_PublicKey.xml'
+        'pubk_name': 'OSNMA_PublicKey.xml',
+        'do_status_log': False,
     }
 
     expected_results = {
@@ -101,7 +102,8 @@ def test_vectors_icd_configuration_2(log_level=logging.INFO):
         'console_log_level': log_level,
         'logs_path': LOGS_PATH,
         'scenario_path': Path(__file__).parent / 'icd_test_vectors/configuration_2/27_JUL_2023_GST_00_00_01_fixed.csv',
-        'exec_path': Path(__file__).parent / 'icd_test_vectors/configuration_2/'
+        'exec_path': Path(__file__).parent / 'icd_test_vectors/configuration_2/',
+        'do_status_log': False,
     }
 
     expected_results = {
@@ -124,7 +126,8 @@ def test_vectors_icd_configuration_2_pubk_kroot(log_level=logging.INFO):
         'scenario_path': Path(__file__).parent / 'icd_test_vectors/configuration_2_pubk_kroot/27_JUL_2023_GST_00_00_01_fixed.csv',
         'exec_path': Path(__file__).parent / 'icd_test_vectors/configuration_2_pubk_kroot/',
         'pubk_name': 'OSNMA_PublicKey_2.xml',
-        'kroot_name': 'OSNMA_start_KROOT.txt'
+        'kroot_name': 'OSNMA_start_KROOT.txt',
+        'do_status_log': False,
     }
 
     expected_results = {
@@ -140,13 +143,336 @@ def test_vectors_icd_configuration_2_pubk_kroot(log_level=logging.INFO):
     input_module = ICDTestVectors(config_dict['scenario_path'])
     run(input_module, config_dict, expected_results)
 
-def test_vectors_oam_step_1(log_level=logging.INFO):
+def test_vectors_eoc_step1(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/eoc_step1/06_OCT_2023_GST_16_45_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'icd_test_vectors/eoc_step1/',
+        'pubk_name': 'OSNMA_PublicKey_PKID_7.xml',
+        'do_status_log': False,
+    }
+
+    expected_results = {
+        "tags_auth": 13638,
+        "data_auth": 6504,
+        "kroot_auth": 183,
+        "broken_kroot": 0,
+        "crc_failed": 0,
+        "warnings": 0,
+        "errors": 0
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
+def test_vectors_eoc_step2(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/eoc_step2/06_OCT_2023_GST_18_30_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'icd_test_vectors/eoc_step2/',
+        'pubk_name': 'OSNMA_PublicKey_PKID_7.xml',
+        'do_status_log': False,
+    }
+
+    expected_results = {
+        "tags_auth": 13200,
+        "data_auth": 6237,
+        "kroot_auth": 230,
+        "broken_kroot": 0,
+        "crc_failed": 0,
+        "warnings": 0,
+        "errors": 0
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
+def test_vectors_crev_step1(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/crev_step1/06_OCT_2023_GST_21_45_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'icd_test_vectors/crev_step1/',
+        'pubk_name': 'OSNMA_PublicKey_PKID_7.xml',
+        'do_status_log': False,
+    }
+
+    expected_results = {
+        "tags_auth": 6600,
+        "data_auth": 3120,
+        "kroot_auth": 233,
+        "broken_kroot": 0,
+        "crc_failed": 0,
+        "warnings": 1187,
+        "errors": 0
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
+def test_vectors_crev_step2(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/crev_step2/06_OCT_2023_GST_23_30_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'icd_test_vectors/crev_step2/',
+        'pubk_name': 'OSNMA_PublicKey_PKID_7.xml',
+        'do_status_log': False,
+    }
+
+    expected_results = {
+        "tags_auth": 6547,
+        "data_auth": 3095,
+        "kroot_auth": 123,
+        "broken_kroot": 0,
+        "crc_failed": 0,
+        "warnings": 1187,
+        "errors": 0
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
+def test_vectors_crev_step3(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/crev_step3/07_OCT_2023_GST_00_30_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'icd_test_vectors/crev_step3/',
+        'pubk_name': 'OSNMA_PublicKey_PKID_7.xml',
+        'do_status_log': False,
+    }
+
+    expected_results = {
+        "tags_auth": 13601,
+        "data_auth": 6514,
+        "kroot_auth": 198,
+        "broken_kroot": 0,
+        "crc_failed": 0,
+        "warnings": 0,
+        "errors": 0
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
+def test_vectors_npk_step1(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/npk_step1/07_OCT_2023_GST_02_45_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'icd_test_vectors/npk_step1/',
+        'pubk_name': 'OSNMA_PublicKey_PKID_7.xml',
+        'do_status_log': False,
+    }
+
+    expected_results = {
+        "tags_auth": 12852,
+        "data_auth": 6337,
+        "kroot_auth": 146,
+        "broken_kroot": 0,
+        "crc_failed": 0,
+        "warnings": 0,
+        "errors": 0
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
+def test_vectors_npk_step2(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/npk_step2/07_OCT_2023_GST_03_45_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'icd_test_vectors/npk_step2/',
+        'pubk_name': 'OSNMA_PublicKey_PKID_7.xml',
+        'do_status_log': False,
+    }
+
+    expected_results = {
+        "tags_auth": 13566,
+        "data_auth": 6487,
+        "kroot_auth": 101,
+        "broken_kroot": 0,
+        "crc_failed": 0,
+        "warnings": 0,
+        "errors": 0
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
+def test_vectors_npk_step3(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/npk_step3/07_OCT_2023_GST_04_45_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'icd_test_vectors/npk_step3/',
+        'pubk_name': 'OSNMA_PublicKey_PKID_8.xml',
+        'do_status_log': False,
+    }
+
+    expected_results = {
+        "tags_auth": 13475,
+        "data_auth": 6472,
+        "kroot_auth": 160,
+        "broken_kroot": 0,
+        "crc_failed": 0,
+        "warnings": 0,
+        "errors": 0
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
+def test_vectors_pkrev_step1(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/pkrev_step1/07_OCT_2023_GST_07_45_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'icd_test_vectors/pkrev_step1/',
+        'pubk_name': 'OSNMA_PublicKey_PKID_8.xml',
+        'do_status_log': False,
+    }
+
+    expected_results = {
+        "tags_auth": 8605,
+        "data_auth": 4034,
+        "kroot_auth": 117,
+        "broken_kroot": 0,
+        "crc_failed": 0,
+        "warnings": 834,
+        "errors": 0
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
+def test_vectors_pkrev_step2(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/pkrev_step2/07_OCT_2023_GST_09_30_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'icd_test_vectors/pkrev_step2/',
+        'pubk_name': 'OSNMA_PublicKey_PKID_9.xml',
+        'do_status_log': False,
+    }
+
+    expected_results = {
+        "tags_auth": 4644,
+        "data_auth": 2155,
+        "kroot_auth": 56,
+        "broken_kroot": 0,
+        "crc_failed": 0,
+        "warnings": 1281,
+        "errors": 0
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
+def test_vectors_pkrev_step3(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/pkrev_step3/07_OCT_2023_GST_10_30_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'icd_test_vectors/pkrev_step3/',
+        'pubk_name': 'OSNMA_PublicKey_PKID_9.xml',
+        'do_status_log': False,
+    }
+
+    expected_results = {
+        "tags_auth": 13670,
+        "data_auth": 6521,
+        "kroot_auth": 86,
+        "broken_kroot": 0,
+        "crc_failed": 0,
+        "warnings": 0,
+        "errors": 0
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
+def test_vectors_nmt_step1(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/nmt_step1/07_OCT_2023_GST_12_45_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'icd_test_vectors/nmt_step1/',
+        'pubk_name': 'OSNMA_PublicKey_PKID_9.xml',
+        'do_status_log': False,
+    }
+
+    expected_results = {
+        "tags_auth": 13680,
+        "data_auth": 6523,
+        "kroot_auth": 92,
+        "broken_kroot": 0,
+        "crc_failed": 0,
+        "warnings": 1,
+        "errors": 0
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
+def test_vectors_nmt_step2(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/nmt_step2/07_OCT_2023_GST_13_45_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'icd_test_vectors/nmt_step2/',
+        'pubk_name': 'OSNMA_PublicKey_PKID_9.xml',
+        'do_status_log': False,
+    }
+
+    expected_results = {
+        "tags_auth": 13566,
+        "data_auth": 6487,
+        "kroot_auth": 68,
+        "broken_kroot": 0,
+        "crc_failed": 0,
+        "warnings": 1,
+        "errors": 0
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
+def test_vectors_nmt_step3(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/nmt_step3/07_OCT_2023_GST_14_45_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'icd_test_vectors/nmt_step3/',
+        'pubk_name': 'OSNMA_PublicKey_PKID_1.xml',
+        'do_status_log': False,
+    }
+
+    expected_results = {
+        "tags_auth": 13050,
+        "data_auth": 6405,
+        "kroot_auth": 140,
+        "broken_kroot": 0,
+        "crc_failed": 0,
+        "warnings": 0,
+        "errors": 0
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
+def test_vectors_oam_step1(log_level=logging.INFO):
     config_dict = {
         'console_log_level': log_level,
         'logs_path': LOGS_PATH,
         'scenario_path': Path(__file__).parent / 'icd_test_vectors/oam_step1/07_OCT_2023_GST_18_45_01_fixed.csv',
         'exec_path': Path(__file__).parent / 'icd_test_vectors/oam_step1/',
-        'pubk_name': 'OSNMA_PublicKey_1.xml'
+        'pubk_name': 'OSNMA_PublicKey_1.xml',
+        'do_status_log': False,
     }
 
     expected_results = {
@@ -162,13 +488,14 @@ def test_vectors_oam_step_1(log_level=logging.INFO):
     input_module = ICDTestVectors(config_dict['scenario_path'])
     run(input_module, config_dict, expected_results)
 
-def test_vectors_oam_step_2(log_level=logging.INFO):
+def test_vectors_oam_step2(log_level=logging.INFO):
     config_dict = {
         'console_log_level': log_level,
         'logs_path': LOGS_PATH,
         'scenario_path': Path(__file__).parent / 'icd_test_vectors/oam_step2/07_OCT_2023_GST_19_45_01_fixed.csv',
         'exec_path': Path(__file__).parent / 'icd_test_vectors/oam_step2/',
-        'pubk_name': 'OSNMA_PublicKey_1.xml'
+        'pubk_name': 'OSNMA_PublicKey_1.xml',
+        'do_status_log': False,
     }
 
     expected_results = {
@@ -177,12 +504,13 @@ def test_vectors_oam_step_2(log_level=logging.INFO):
         "kroot_auth": 1,
         "broken_kroot": 20,
         "crc_failed": 0,
-        "warnings": 2289,
+        "warnings": 2290,
         "errors": 0
     }
 
     input_module = ICDTestVectors(config_dict['scenario_path'])
     run(input_module, config_dict, expected_results)
+
 
 if __name__ == "__main__":
 
@@ -223,9 +551,9 @@ if __name__ == "__main__":
     finally:
         test_done += 1
 
-    print(f"\nOSNMA Alert Message Step 1")
+    print(f"\nEnd Of Chain - Step 1")
     try:
-        test_vectors_oam_step_1(general_log_level)
+        test_vectors_eoc_step1(general_log_level)
     except AssertionError:
         print(f"\tFAILED")
     else:
@@ -234,9 +562,163 @@ if __name__ == "__main__":
     finally:
         test_done += 1
 
-    print(f"\nOSNMA Alert Message Step 2")
+    print(f"\nEnd Of Chain - Step 2")
     try:
-        test_vectors_oam_step_2(general_log_level)
+        test_vectors_eoc_step2(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
+    print(f"\nChain Revocation - Step 1")
+    try:
+        test_vectors_crev_step1(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
+    print(f"\nChain Revocation - Step 2")
+    try:
+        test_vectors_crev_step2(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
+    print(f"\nChain Revocation - Step 3")
+    try:
+        test_vectors_crev_step3(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
+    print(f"\nPublic Key Renewal - Step 1")
+    try:
+        test_vectors_npk_step1(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
+    print(f"\nPublic Key Renewal - Step 2")
+    try:
+        test_vectors_npk_step2(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
+    print(f"\nPublic Key Renewal - Step 3")
+    try:
+        test_vectors_npk_step3(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
+    print(f"\nPublic Key Revocation - Step 1")
+    try:
+        test_vectors_pkrev_step1(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
+    print(f"\nPublic Key Revocation - Step 2")
+    try:
+        test_vectors_pkrev_step2(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
+    print(f"\nPublic Key Revocation - Step 3")
+    try:
+        test_vectors_pkrev_step3(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
+    print(f"\nMerkle Tree Renewal - Step 1")
+    try:
+        test_vectors_nmt_step1(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
+    print(f"\nMerkle Tree Renewal - Step 2")
+    try:
+        test_vectors_nmt_step2(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
+    print(f"\nMerkle Tree Renewal - Step 3")
+    try:
+        test_vectors_nmt_step3(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
+    print(f"\nOSNMA Alert Message - Step 1")
+    try:
+        test_vectors_oam_step1(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
+    print(f"\nOSNMA Alert Message - Step 2")
+    try:
+        test_vectors_oam_step2(general_log_level)
     except AssertionError:
         print(f"\tFAILED")
     else:

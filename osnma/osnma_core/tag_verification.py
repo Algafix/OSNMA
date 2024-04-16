@@ -57,6 +57,8 @@ class TagStateStructure:
         self.maclt_dict = mac_lookup_table[tesla_chain.maclt]
         self.macseq_awaiting_key: List[MACSeqObject] = []
         self.tags_awaiting_key: List[TagAndInfo] = []
+        self.tags_with_key_awaiting_data: List[TagAndInfo] = []
+        """ This list contains tags only for a subframe for the COP optimization """
 
     def verify_tag(self, tag: TagAndInfo):
         if tag.authenticate(self.tesla_chain.mac_function):
@@ -65,7 +67,6 @@ class TagStateStructure:
                 self.nav_data_m.new_tag_verified(tag)
         else:
             logger.error(f"Tag FAILED\n\t{tag.get_log()}")
-        self.tags_awaiting_key.remove(tag)
 
     def verify_macseq(self, macseq: MACSeqObject):
         if macseq.authenticate(self.tesla_chain.mac_function):
@@ -126,6 +127,32 @@ class TagStateStructure:
         macseq_object = mack_message.get_macseq(flex_list)
         return tag_list, flex_list, macseq_object, is_flx_tag_missing, tags_log
 
+    def _update_tags_awaiting_data(self, tag_list: List[TagAndInfo], flx_list: List[TagAndInfo], gst_sf: GST):
+        """
+        This method is called every time new tags have been processed and the navigation data GST start might have
+        changed due to the COP data link optimization.
+        Clears the tags_with_key_awaiting_data if a subframe has elapsed or tries to authenticate them all. Tags are
+        added to this list while processing the subframe but the TESLA Key has already arrived.
+        """
+
+        # Update data based on COP from this subframe
+        for tag in list(tag_list+flx_list):
+            self.nav_data_m.update_navdata_based_on_cop(tag)
+
+        # Clear tags with key awaiting data if all satellites from the past subframe are processed
+        if len(self.tags_with_key_awaiting_data) > 0 and self.tags_with_key_awaiting_data[0].gst_subframe + 30 < gst_sf:
+            self.tags_with_key_awaiting_data = []
+            return
+
+        # Try to authenticate tags with a key received in the current subframe
+        for tag in list(self.tags_with_key_awaiting_data):
+            tag.nav_data = self.nav_data_m.get_data(tag)
+            if tag.nav_data is not None:
+                self.verify_tag(tag)
+                self.tags_with_key_awaiting_data.remove(tag)
+
+        self.nav_data_m.check_authenticated_data(gst_sf)
+
     def _add_tags_waiting_key(self, tag_list: List[TagAndInfo]):
         """
         Adds the tags to the waiting for key list if the tag has an active ADKD and authenticates data of one of the
@@ -154,8 +181,6 @@ class TagStateStructure:
 
     def update_tag_lists(self, gst_subframe: GST):
         """
-        Should be called every time a new TESLA key is provided.
-
         Authenticates the MACSEQ of that key and adds the tags to the list. Then authenticates all tags that have
         a valid TESLA key and for which data has been received. If no data has been received, delete the tag.
 
@@ -177,12 +202,14 @@ class TagStateStructure:
 
             if self.tesla_chain.key_check(tag):
                 # Has a verified key
-                tag.nav_data  = self.nav_data_m.get_data(tag)
+                tag.nav_data = self.nav_data_m.get_data(tag)
                 if tag.nav_data is not None:
                     self.verify_tag(tag)
                 else:
-                    # The key has arrived but no data: discard tag
-                    self.tags_awaiting_key.remove(tag)
+                    # The key has arrived but no data
+                    if Config.DO_COP_LINK_OPTIMIZATION:
+                        self.tags_with_key_awaiting_data.append(tag)
+                self.tags_awaiting_key.remove(tag)
 
         # Check if any data can be authenticated
         self.nav_data_m.check_authenticated_data(gst_subframe)
@@ -196,4 +223,6 @@ class TagStateStructure:
         logger.info(f"Non-FLX tags in MACK:\t{tag_list}\n")
         logger.info(f"FLX tags in MACK:\t{flex_list}\n")
         self._add_tags_waiting_key(tag_list)
+        if Config.DO_COP_LINK_OPTIMIZATION:
+            self._update_tags_awaiting_data(tag_list, flex_list, mack_message.gst_sf)
         return tags_log
