@@ -21,10 +21,9 @@ OSNMAlib implements several optimizations in the cryptographic material extracti
 None of these optimizations imply trial-and-error on the verification process, any authentication failure should be assumed as spoofing.
 If you see several authentication failures in a non-spoofing scenario, feel free to report it on the Issues page of GitHub.   
 
-A web visualization of OSNMAlib can be found at [OSNMAlib.eu](https://osnmalib.eu/).
-For now, this web view uses live aggregated data from [galmon](https://github.com/berthubert/galmon), 
-therefore it should not be seen as *a receiver* but more like a general state of OSNMA.
-Note that this web display is in beta and uses the new OSNMAlib [status logging feature](#osnmalib-logging-options).
+A live visualization of the output of OSNMAlib can be found at [OSNMAlib.eu](https://osnmalib.eu/).
+This web view uses a receiver located in KU Leuven, Belgium, and live aggregated data from [galmon](https://github.com/berthubert/galmon),
+to display the general state of OSNMA. It also provides the raw navigation bits received in json format.
 
 If you are using data from the OSNMA Test Phase (before 2023-08-03 11:00), use the [OSNMA_Test_Phase_ICD branch](https://github.com/Algafix/OSNMA/tree/OSNMA_Test_Phase_ICD).
 
@@ -46,8 +45,7 @@ Current OSNMA ICD **features supported**:
   * Authentication of the navigation data.
   * Support for custom TL values.
   * Support for Cold Start, Warm Start and Hot Start.
-  * Support for the following events: EOC, NPK, PKREV, OAM.
-    * Missing test vectors to validate the CREV and NMT events.
+  * Support for the following events: EOC, CREV, NPK, PKREV, NMT, and OAM.
   
 **Extra optimizations** for a faster TTFAF:
   * Reconstruct broken HKROOT messages.
@@ -55,7 +53,7 @@ Current OSNMA ICD **features supported**:
   * Extract valid tags from broken MACK messages.
   * Link data from multiple subframes using the IOD.
 
-Current data **format supported**:
+Current data [formats supported](https://github.com/Algafix/OSNMA/wiki/Input-Data):
 
   * Septentrio Binary Format (SBF) log files.
   * Septentrio receiver live connection through IP port.
@@ -68,7 +66,6 @@ Current data **format supported**:
 Future development:
 
   * Time synchronization options for live execution.
-  * Renew Merkle Tree procedure.
   * IDD ICD implementation for authentication of cryptographic materials.
 
 Documentation
@@ -146,10 +143,11 @@ $ live_septentrio_run/
 $ python run.py
 ```
 
-Custom data format
+Other input formats
 ---
 
-If you want to use a different data format, go to [Execution with Custom Data](#execution-with-custom-data). 
+The wiki page [Input Data](https://github.com/Algafix/OSNMA/wiki/Input-Data) contains useful information
+about all the input formats supported by OSNMAlib as well as documentation on how to develop a new one.
 
 Test Execution
 ===
@@ -157,9 +155,6 @@ Test Execution
 The software is provided with several test scenarios under the folder `tests/scenarios/`. The scenarios cover 
 different configurations and events of the OSNMA protocol.
 The data used by the tests comes from the official test vectors and also by the live recording of some corner cases.
-
-By default, all tests are executed with `info` logging level on the file handler. That is, the log files will
-contain the maximum amount of information. This log files are stored under the folder `tests/logs/`.
 
 The `pytest` framework is the easiest way to execute the OSNMA Open Implementation receiver tests. To do so, the 
 following shell commands are provided. Note that the users interpreter work directory is assumed to be the top
@@ -183,31 +178,6 @@ $ python3 icd_test_vectors.py
 # or
 $ python3 test_corner_cases.py 
 ```
-
-Execution with Custom Data
-===
-
-The OSNMA Open Implementation receiver can be used with custom data files. However, the receiver is only guaranteed to 
-work with data consistent with the OSNMA User ICD for the Test Phase version 1.0.
-
-Septentrio Binary Format (SBF)
----
-
-If the custom navigation data is available in Septentrio Binary Format (SBF), the receiver already includes the input 
-iterator `SBF` to handle it. The SBF file used needs to contain the block with the raw Galileo INAV bits (GALRawINAV)
-so OSNMAlib can process them.
-
-We are also including the iterator `SBFAscii` for the cases where the GALRawINAV
-data is in SBF ascii mode (converted from an SBF file using the official tools).
-
-Both can be found [here](https://github.com/Algafix/OSNMA/blob/master/osnma/input_formats/input_sbf.py).
-
-Custom format
----
-
-If the format of the custom data is not supported by OSNMAlib, a new input iterator should be developed following
-the instructions on the [Input Data wiki page](https://github.com/Algafix/OSNMA/wiki/Input-Data).
-
 
 OSNMAlib Configuration Options
 ===
