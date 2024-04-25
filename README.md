@@ -17,9 +17,9 @@ OSNMAlib assumes a TL of 30s: the maximum to process all tags.
 However, it can be configured for a different TL depending on what you receiver can guarantee.
 For more information about time synchronisation see the [OSNMA Receiver Guidelines](https://www.gsc-europa.eu/sites/default/files/sites/all/files/Galileo_OSNMA_Receiver_Guidelines_v1.1.pdf), and [Configuration Options](#osnmalib-configuration-options) to configure OSNMAlib.
 
-OSNMAlib implements several optimizations in the cryptographic material extraction and in the process of linking navigation data to tags.
-None of these optimizations imply trial-and-error on the verification process, any authentication failure should be assumed as spoofing.
-If you see several authentication failures in a non-spoofing scenario, feel free to report it on the Issues page of GitHub.   
+OSNMAlib implements several optimizations in the cryptographic material extraction and in the process of linking navigation data to tags [[link](https://arxiv.org/abs/2403.14739)].
+None of these optimizations imply trial-and-error on the verification process, so if you see authentication failures in 
+a non-spoofing scenario, feel free to report them. 
 
 A live visualization of the output of OSNMAlib can be found at [OSNMAlib.eu](https://osnmalib.eu/).
 This web view uses a receiver located in KU Leuven, Belgium, and live aggregated data from [galmon](https://github.com/berthubert/galmon),
@@ -35,7 +35,7 @@ Features
 Current OSNMA ICD **features supported**:
 
   * Verification of the public key retrieved from the DSM-PKR message.
-  * Verification of the TESLA root key retrieved from the DSM-KROOT message (all algorithms).
+  * Verification of the TESLA root key retrieved from the DSM-KROOT message.
   * Verification of a TESLA key against a root key or a previously authenticated key.
   * Verification of the MACK message structure:
     * ADKD sequence.
@@ -51,7 +51,9 @@ Current OSNMA ICD **features supported**:
   * Reconstruct broken HKROOT messages.
   * Reconstruct TESLA key from partial MACK messages.
   * Extract valid tags from broken MACK messages.
-  * Link data from multiple subframes using the IOD.
+  * Link and recover lost data using the IOD and the COP.
+    * Obtain TTFAF as low as 44 seconds in hot start.
+    * https://arxiv.org/abs/2403.14739
 
 Current data [formats supported](https://github.com/Algafix/OSNMA/wiki/Input-Data):
 
@@ -222,14 +224,24 @@ Research Notice
 ===
 
 This repository partially contains data, information and ideas regarding an ongoing PhD research.
-
-Please don't publish your own results based on OSNMA ideas and optimizations read on this repository until they have been scientifically disclosed. I will update this note once that happens.
+Please do not plagiarize OSNMA ideas and optimizations read on this repository until they have been scientifically 
+disclosed, so you can reference them.
 
 I strongly believe in open-source software and free access to knowledge, and this whole project remains open to honour these ideals.
 
-However, this approach by my side requires the uttermost respect to the research integrity and ethics by anyone accessing this repository. 
+However, this approach by my side requires the uttermost respect to the research integrity and ethics by anyone accessing the repository. 
 
-In case of doubt, contact me at aleix.galan[@]kuleuven.be
+Publication list:
+* "OSNMAlib: An Open Python Library for Galileo OSNMA," _NAVITEC_, Noordwijk, Netherlands, 2022. [[link](https://ieeexplore.ieee.org/document/9847548)]
+  * Some sections are a bit outdated.
+* "Improving Galileo OSNMA Time To First Authenticated Fix." _arXiv preprint_ arXiv:2403.14739, 2024. [[link](https://arxiv.org/abs/2403.14739)]
+  * This work has been submitted to the IEEE for possible publication.
+* "GNSS Recordings for Galileo OSNMA Evaluation", _IEEE Dataport_, 2024. [[link](https://dx.doi.org/10.21227/a0nm-kn45)]
+  * Dataset used for the "Improving Galileo OSNMA Time To First Authenticated Fix" manuscript.
+* "OSNMAlib Improvements and Real-Time Monitoring of Galileo OSNMA," _ICL-GNSS_, 2024.
+  * Will be linked after the conference takes place.
+
+In case of any doubt, contact me at aleix.galan[@]kuleuven.be
 
 Thank you.
 
@@ -254,7 +266,9 @@ The project is licensed under the EUPL-1.2 license.
 About
 ===
 
-The research leading to this work has been supported by European Commission contract SI2.823546/9 and by the Spanish Ministry of Science and Innovation project PID2020-118984GB-I00. 
+The research leading to this work was supported by European Commission contract SI2.823546/9 and by the Spanish Ministry of Science and Innovation project PID2020-118984GB-I00. 
+
+This research is partially funded by the Research Foundation Flanders (FWO) Frank de Winne PhD Fellowship, project number 1SH9424N.
 
 Disclaimer
 ===
