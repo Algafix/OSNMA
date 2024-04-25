@@ -27,7 +27,7 @@ class _Config:
     def __init__(self):
         self.SCENARIO_PATH = ''  # Not needed, may be used for debug
         self.EXEC_PATH = ''
-        self.MERKLE_NAME = 'OSNMA_MerkleTree.xml'
+        self.MERKLE_NAME = ''
         self.PUBK_NAME = ''
         self.KROOT_NAME = ''
 
@@ -73,6 +73,7 @@ class _Config:
         self.IDD_CERT = {
             "CERT_PKIEE" : '',
             "CERT_MERKLE" : '',
+            "CERT_ICA" : '',
             "CERT_SCA" : '',
             "CERT_RCA" : ''
         }

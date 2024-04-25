@@ -20,8 +20,21 @@ def sbf_current_config():
         'exec_path': '.',
         'download_pki': True,
         'download_merkle': True,
-        'download_sca': True,
-        'download_rca': True
+        'download_sca': False,
+        'download_rca': False,
+        'IDD_CERT' : {
+            "CERT_PKIEE" : "Cert/pki_1.crt",
+            "CERT_MERKLE" : "Cert/mk_1.crt",
+            "CERT_ICA" : "Cert/ica_1.crt",
+            "CERT_SCA" : "Cert/sca_1.crt",
+            "CERT_RCA" : "Cert/rca_1.crt"
+        },
+
+        'IDD_CRL' : {
+            "CRL_ICA" : 'Cert/OSNMA_PublicKeyCRL_20240115100000_newPKID_1.crl',
+            "CRL_SCA" : 'Cert/sca_001_01.crl',
+            "CRL_RCA" : 'Cert/rca_001_01.crl'
+        }
         
     }
 

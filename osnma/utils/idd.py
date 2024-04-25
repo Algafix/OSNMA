@@ -35,10 +35,8 @@ class IDD:
             self.web_download("sca")
 
         if Config.DOWNLOAD_PKI or Config.DOWNLOAD_MERKLE:
-            #self.username = input("usuario:")
-            #self.password = input("contraseña:")
-            self.username = "AlexGP"
-            self.password = "AlexGonzalez_29"
+            self.username = input("usuario:")
+            self.password = input("contraseña:")
 
             try:
                 self.connect()
@@ -202,7 +200,7 @@ class IDD:
             
         
         if cert_subject.issuer != cert_emisor.subject:
-            raise IssuerException(f"The certificate {cert_subject.subject} has been revoked")
+            raise IssuerException(f"The issuer and the subject of the certificate {cert_subject.subject} have not matched.")
         
         try:
             cert_emisor.public_key().verify(
@@ -221,7 +219,7 @@ class IDD:
             raise DateException(f"The CRL {crl.issuer} is not within its validity period.")
         
         if crl.issuer != cert.subject:
-            raise IssuerException(f"The CRL {crl.issuer} is not within its validity period.")
+            raise IssuerException(f"The issuer and the subject of the CRL {crl.issuer} have not matched.")
         
         
         try:
@@ -239,6 +237,7 @@ class IDD:
         cert = [0,0,0,0,0]
         crl = [0,0,0]
         count = 0
+        check = 0
         for name,value in Config.IDD_CERT.items():
             
             if os.path.exists(value):
@@ -251,22 +250,46 @@ class IDD:
                 if second_cert_start != -1:
                     cert[count] = x509.load_pem_x509_certificate(cert_data[:second_cert_start], default_backend())
                     cert[2] = x509.load_pem_x509_certificate(cert_data[second_cert_start:], default_backend())
-                
-                else:
-                    logger.warning(f"Two certificates not found in {name} file")
+                    check = count + 1
+                    
+            
             count = count + 1
             if count > 1: break      
 
-        count = 0
+        count2 = 0
         for name,value in Config.IDD_CERT.items():
-            if count > 1:
+            if check == 0:
                 if os.path.exists(value):
                     with open(value, 'rb') as cert_file:
                         cert_data = cert_file.read()
-                    cert[count+1] = x509.load_pem_x509_certificate(cert_data, default_backend())
+                    cert[count2] = x509.load_pem_x509_certificate(cert_data, default_backend())
                 else:
                     logger.warning(f"{name} file don't found")
-            count = count + 1
+            if check == 1:
+                if count2 > 2 or count2 == 1:
+                    if os.path.exists(value):
+                        with open(value, 'rb') as cert_file:
+                            cert_data = cert_file.read()
+                        cert[count2] = x509.load_pem_x509_certificate(cert_data, default_backend())
+                    else:
+                        logger.warning(f"{name} file don't found")
+            if check == 2:
+                if count2 > 2 or count2 == 0:
+                    if os.path.exists(value):
+                        with open(value, 'rb') as cert_file:
+                            cert_data = cert_file.read()
+                        cert[count2] = x509.load_pem_x509_certificate(cert_data, default_backend())
+                    else:
+                        logger.warning(f"{name} file don't found")
+            if check == 3:
+                if count2 > 2:
+                    if os.path.exists(value):
+                        with open(value, 'rb') as cert_file:
+                            cert_data = cert_file.read()
+                        cert[count2] = x509.load_pem_x509_certificate(cert_data, default_backend())
+                    else:
+                        logger.warning(f"{name} file don't found")
+            count2 = count2 + 1
 
         count = 0
         for name,value in Config.IDD_CRL.items():
