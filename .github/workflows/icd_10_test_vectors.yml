@@ -3,6 +3,8 @@
 name: ICD 1.0 Test Vectors
 
 on:
+  schedule:
+    - cron: '20 4 * * *'
   push:
     branches: [ master, general-dev ]
     paths-ignore:
