@@ -144,6 +144,7 @@ tests/scenarios/pkrev_2/OSNMA_PublicKey_5.xml
 tests/scenarios/pkrev_12/OSNMA_PublicKey_5.xml
 
 metrics/*logs/
+metrics/**/*.tex
 
 # Generated KROOT for Hot Start of the ICD Test Vectors
 tests/icd_test_vectors/*/OSNMA_last_KROOT.txt
