@@ -49,7 +49,7 @@ class SubFrameRegenerator:
         return NB_DK_lt if dsm_id < 12 else NB_DP_lt
 
     def _is_block_complete(self, block: List[BitArray]):
-        full_block = BitArray().join(block)
+        full_block = BitArray().join([array for array in block if array is not None])
         return full_block if len(full_block) == 120 else False
 
     def _save_block(self, new_block: List[BitArray], bid: int):
