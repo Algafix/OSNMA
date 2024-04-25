@@ -19,7 +19,10 @@ def sbf_current_config():
         'scenario_path': args.sbf_file,
         'exec_path': '.',
         'download_pki': True,
-        'download_merkle': True
+        'download_merkle': True,
+        'download_sca': True,
+        'download_rca': True
+        
     }
 
     input_module = SBF(config_dict['scenario_path'])

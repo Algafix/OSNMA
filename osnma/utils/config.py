@@ -68,13 +68,20 @@ class _Config:
         self.DOWNLOAD_SCA = False
         self.DOWNLOAD_RCA = False
 
-        self.CERT_PKIEE = ''
-        self.CERT_MERKLE = ''
-        self.CRL_ICA = ''
-        self.CERT_SCA = ''
-        self.CRL_SCA = ''
-        self.CERT_RCA = ''
-        self.CRL_RCA = ''
+        self.IDD_STRICT = False
+
+        self.IDD_CERT = {
+            "CERT_PKIEE" : '',
+            "CERT_MERKLE" : '',
+            "CERT_SCA" : '',
+            "CERT_RCA" : ''
+        }
+
+        self.IDD_CRL = {
+            "CRL_ICA" : '',
+            "CRL_SCA" : '',
+            "CRL_RCA" : ''
+        }
 
 
     def load_configuration_parameters(self, param_dict: Dict[str, Any]):

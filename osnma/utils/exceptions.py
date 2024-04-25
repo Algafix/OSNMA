@@ -47,3 +47,15 @@ class StoppedAtFAF(Exception):
         self.ttfaf = ttfaf
         self.first_tow = first_tow
         self.faf_tow = faf_tow
+
+class DateException(Exception):
+    pass
+
+class RevokedException(Exception):
+    pass
+
+class IssuerException(Exception):
+    pass
+
+class VerifyException(Exception):
+    pass
