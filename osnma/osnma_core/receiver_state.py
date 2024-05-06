@@ -24,12 +24,13 @@ from enum import IntEnum
 
 from bitstring import BitArray
 
-from osnma.structures.fields_information import NB_DK_lt, NB_DP_lt, CPKS, NMAS, cpks_lt, nmas_lt
+from osnma.structures.fields_information import CPKS, NMAS, cpks_lt, nmas_lt
 from osnma.cryptographic.dsm_kroot import DSMKroot
 from osnma.cryptographic.dsm_pkr import DSMPKR
 from osnma.cryptographic.gst_class import GST
 from osnma.osnma_core.tesla_chain import TESLAChain
 from osnma.osnma_core.nav_data_manager import NavigationDataManager
+from osnma.osnma_core.dsm_manager import DigitalSignatureMessageManager, DSMType
 from osnma.utils.iohandler import IOHandler
 from osnma.utils.exceptions import PublicKeyObjectError, TeslaKeyVerificationFailed, MackParsingError
 from osnma.utils.config import Config
@@ -38,59 +39,12 @@ from osnma.utils.config import Config
 import osnma.utils.logger_factory as log_factory
 logger = log_factory.get_logger(__name__)
 
-
-class HKROOT(IntEnum):
-    NMA_HEADER_END = 8
-    DSM_ID_START = 8
-    DSM_ID_END = 12
-    BID_START = 12
-    BID_END = 16
-    DATA_START = 16
-    NB_START = 16
-    NB_END = 20
-
-
 class OSNMAlibSTATE(IntEnum):
     COLD_START = 0
     WARM_START = 1
     HOT_START = 2
     STARTED = 6
     OSNMA_AM = 7
-
-
-class DigitalSignatureMessage:
-
-    def __init__(self, dsm_id: int):
-        self.blocks_received: Dict[int, BitArray] = {}
-        self.total_of_blocks: Optional[int] = None
-        self.dsm_id = dsm_id
-        self.translate_blocks = NB_DK_lt if self.dsm_id < 12 else NB_DP_lt
-
-    def load_dsm_subframe(self, dsm_subframe: BitArray):
-
-        bid = dsm_subframe[HKROOT.BID_START:HKROOT.BID_END].uint
-        self.blocks_received[bid] = dsm_subframe[HKROOT.DATA_START:]
-        logger.info(f"Received block {bid} from DSM ID {self.dsm_id}.")
-        logger.info(f"\tDSM ID {self.dsm_id} blocks: {self.blocks_received.keys()}\n")
-
-        if bid == 0:
-            number_of_blocks_field = dsm_subframe[HKROOT.NB_START:HKROOT.NB_END].uint
-            self.total_of_blocks = self.translate_blocks[number_of_blocks_field]
-            logger.info(f"DSM ID {self.dsm_id} number of blocks: {self.total_of_blocks}\n")
-            if self.total_of_blocks == "Reserved":
-                logger.warning(f'The Number of Blocks field is {number_of_blocks_field} with value "Reserved"\n')
-
-    def is_complete(self) -> bool:
-        return len(self.blocks_received) == self.total_of_blocks
-
-    def get_data(self) -> BitArray:
-        hkroot_data = BitArray()
-        for i in range(self.total_of_blocks):
-            hkroot_data += self.blocks_received[i]
-        self.blocks_received = {}
-        self.total_of_blocks = None
-        return hkroot_data
-
 
 class ReceiverState:
 
@@ -113,9 +67,7 @@ class ReceiverState:
         self.nav_data_structure = NavigationDataManager()
         self.io_handler = IOHandler(Config.EXEC_PATH)
 
-        self.dsm_messages: List[DigitalSignatureMessage] = []
-        for i in range(16):
-            self.dsm_messages.append(DigitalSignatureMessage(i))
+        self.dsm_manager = DigitalSignatureMessageManager()
 
         self.kroot_waiting_mack: List[Tuple[List[Optional[BitArray]], GST, int, BitArray]] = []
 
@@ -291,6 +243,9 @@ class ReceiverState:
         create a TESLAChain object with this key and a MACKMessageParser. Also stores the key by its CID in the
         receivers list.
         """
+        if self.osnmalib_state == OSNMAlibSTATE.COLD_START:
+            return
+
         try:
             dsm_kroot = DSMKroot(self.pkr_dict)
             dsm_kroot.set_value('NMA_H', nma_header)
@@ -349,23 +304,18 @@ class ReceiverState:
             logger.warning(f"OSNMA Alert Message. Not processing OSNMA data. Connect to the GSC OSNMA sever.")
             return BitArray(uint=NMAS.DONT_USE.value, length=2)
 
-        sf_nma_header = hkroot_sf[:HKROOT.NMA_HEADER_END]
+        nma_header, dsm = self.dsm_manager.new_dsm_subframe(hkroot_sf)
+
         if is_consecutive_hkroot:
-            self._subframe_actions(sf_nma_header)
-        dsm_id = hkroot_sf[HKROOT.DSM_ID_START:HKROOT.DSM_ID_END].uint
-        dsm_message = self.dsm_messages[dsm_id]
-        dsm_message.load_dsm_subframe(hkroot_sf)
+            self._subframe_actions(nma_header)
 
-        # If we have all the blocks
-        if dsm_message.is_complete():
-            dsm_data = dsm_message.get_data()
-            if dsm_id <= 11:
-                if self.osnmalib_state != OSNMAlibSTATE.COLD_START:
-                    self.process_kroot_message(sf_nma_header, dsm_data)
+        if dsm.is_complete():
+            if dsm.dsm_type == DSMType.DSM_KROOT:
+                self.process_kroot_message(nma_header, dsm.get_message())
             else:
-                self.process_pkr_message(dsm_data)
+                self.process_pkr_message(dsm.get_message())
 
-        return sf_nma_header[:2]
+        return nma_header[:2]
 
     def process_mack_subframe(self, mack_subframe: List[Optional[BitArray]], gst_subframe: GST, satellite: 'Satellite', sf_nma_status: BitArray):
 
