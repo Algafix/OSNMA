@@ -225,7 +225,7 @@ class TESLAChain:
         if key_verified:
             new_tesla_key.set_verified(True)
             self.last_tesla_key = new_tesla_key
-            logger.info(f"Tesla Key Authenticated {new_tesla_key.gst_sf}{' - Regenerated' if new_tesla_key.reconstructed else ''}\n")
+            logger.info(f"Tesla Key {new_tesla_key.index} Authenticated at {new_tesla_key.gst_sf}{' - Regenerated' if new_tesla_key.reconstructed else ''}\n")
 
         return key_verified, is_new_key
 
