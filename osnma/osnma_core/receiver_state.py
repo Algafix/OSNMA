@@ -269,7 +269,7 @@ class ReceiverState:
 
             if self.new_merkle_root is None and pkid != 1:
                 logger.warning(f"Reading new Merkle Tree root: {Config.NEW_MERKLE_NAME}")
-                self.new_merkle_root = self.io_handler.read_merkle_root("new_OSNMA_MerkleTree.xml")
+                self.new_merkle_root = self.io_handler.read_merkle_root(Config.NEW_MERKLE_NAME)
 
             if self.current_pkid != pkid:
                     logger.info(f"Public Key in force changed from {self.current_pkid} to {pkid}.")
