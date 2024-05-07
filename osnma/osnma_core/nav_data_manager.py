@@ -242,13 +242,11 @@ class ADKD0DataManager(ADKDDataManager):
         gst_start_tesla_key = tag.tesla_key.gst_start
 
         for nav_data in self.adkd0_data_blocks:
+            if not nav_data.gst_completed:
+                break
             if tag_data_gst_sf_limit <= nav_data.gst_start < tag.gst_subframe:
                 # Data received inside COP range, check TL and proceed
-                if not nav_data.gst_completed:
-                    # We are missing some data
-                    data = None
-                    break
-                if nav_data.gst_completed and nav_data.gst_completed >= gst_start_tesla_key - Config.TL:
+                if nav_data.gst_completed >= gst_start_tesla_key - Config.TL:
                     # Completed after TL, do not use. The leading edge of both key and the data is used.
                     # [WT1][WT3][WT5]..|........[Tesla Key 128bits]
                     # 29   27   25              0                   TL value to use previous subframe if possible
