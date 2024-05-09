@@ -325,15 +325,13 @@ class ADKD4DataManager(ADKDDataManager):
         new_adkd_data = self._get_adkd_data_from_word(full_page, word_type)
         saved_words = self.words_per_type[word_type]
 
-        if len(saved_words) == 0:
+        if saved_words and new_adkd_data == saved_words[-1].data:
+            saved_words[-1].last_gst_updated = gst_page
+        else:
             saved_words.append(ADKD4SingleWord(gst_page, new_adkd_data))
-            return
-
-        for word in saved_words:
-            if new_adkd_data == word.data:
-                word.last_gst_updated = gst_page
-            else:
-                saved_words.append(ADKD4SingleWord(gst_page, new_adkd_data))
+            if len(saved_words) > 2:
+                # Arbitrary number, since these WT change very slowly having 2 of each in memory is enough
+                saved_words.pop(0)
 
     def get_nav_data(self, tag: TagAndInfo):
 
