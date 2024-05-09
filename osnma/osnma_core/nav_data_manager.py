@@ -36,12 +36,10 @@ logger = log_factory.get_logger(__name__)
 ADKD0 = 0
 ADKD4 = 4
 ADKD12 = 12
-ADKD5 = 5
 
 WORDS_PER_ADKD = {0: [1, 2, 3, 4, 5],
                   12: [1, 2, 3, 4, 5],
-                  4: [6, 10],
-                  5: []}
+                  4: [6, 10]}
 
 
 class AuthenticatedData:
@@ -175,7 +173,7 @@ class ADKD0DataManager(ADKDDataManager):
         self.adkd0_data_blocks must not be empty
         """
         last_adkd0_block = self.adkd0_data_blocks[-1]
-        if last_adkd0_block.last_gst_updated - gst_page < 30:
+        if gst_page - last_adkd0_block.last_gst_updated < 30:
             return True
         return False
 
@@ -242,13 +240,11 @@ class ADKD0DataManager(ADKDDataManager):
         gst_start_tesla_key = tag.tesla_key.gst_start
 
         for nav_data in self.adkd0_data_blocks:
+            if not nav_data.gst_completed:
+                break
             if tag_data_gst_sf_limit <= nav_data.gst_start < tag.gst_subframe:
                 # Data received inside COP range, check TL and proceed
-                if not nav_data.gst_completed:
-                    # We are missing some data
-                    data = None
-                    break
-                if nav_data.gst_completed and nav_data.gst_completed >= gst_start_tesla_key - Config.TL:
+                if nav_data.gst_completed >= gst_start_tesla_key - Config.TL:
                     # Completed after TL, do not use. The leading edge of both key and the data is used.
                     # [WT1][WT3][WT5]..|........[Tesla Key 128bits]
                     # 29   27   25              0                   TL value to use previous subframe if possible
@@ -296,62 +292,63 @@ class ADKD0DataManager(ADKDDataManager):
                 last_data_block.gst_start = gst_cop_start
 
 
-class ADKD4WordData:
-
-    def __init__(self, gst_start: GST, data: BitArray):
-        self.gst_start = gst_start
-        self.data = data
-
-    def __repr__(self):
-        return f"GST {self.gst_start}"
-
-    def get_nav_data(self):
-        return self.data
-
-
 class ADKD4DataBlock:
     def __init__(self, gst_start: GST, nav_data_stream: BitArray):
         self.gst_start = gst_start
         self.nav_data_stream = nav_data_stream
+
+class ADKD4SingleWord:
+
+    def __init__(self, gst_start: GST, data: BitArray):
+        self.gst_start = gst_start
+        self.last_gst_updated = gst_start
+        self.data = data
+
+    def __repr__(self):
+        return f"{{gst_start: {self.gst_start}, last_gst_updated: {self.last_gst_updated}}}"
+
+    def get_nav_data(self):
+        return self.data
 
 
 class ADKD4DataManager(ADKDDataManager):
 
     def __init__(self, svid: int):
         super().__init__(ADKD4, svid)
-        self.word_lists: Dict[int, List[ADKD4WordData]] = {6: [], 10: []}
+        self.words_per_type: Dict[int, List[ADKD4SingleWord]] = {6: [], 10: []}
 
     def __repr__(self):
-        return f"{self.word_lists}"
-
-    def _is_new_data(self, word_list: List[ADKD4WordData], data: BitArray):
-        for word in word_list:
-            if word.data == data:
-                return False
-        return True
+        return f"{self.words_per_type}"
 
     def add_word(self, word_type: int, full_page: BitArray, gst_page: GST):
 
-        adkd_data = self._get_adkd_data_from_word(full_page, word_type)
-        word_list = self.word_lists[word_type]
+        new_adkd_data = self._get_adkd_data_from_word(full_page, word_type)
+        saved_words = self.words_per_type[word_type]
 
-        if not word_list or self._is_new_data(word_list, adkd_data):
-            word_data = ADKD4WordData(gst_page, adkd_data)
-            word_list.append(word_data)
+        if saved_words and new_adkd_data == saved_words[-1].data:
+            saved_words[-1].last_gst_updated = gst_page
+        else:
+            saved_words.append(ADKD4SingleWord(gst_page, new_adkd_data))
+            if len(saved_words) > 2:
+                # Arbitrary number, since these WT change very slowly having 2 of each in memory is enough
+                saved_words.pop(0)
 
     def get_nav_data(self, tag: TagAndInfo):
 
         nav_data = {6: False, 10: False}
-        gst_tag = tag.gst_subframe
+        tag_data_gst_sf_limit = tag.gst_subframe-30*tag.cop.uint
 
         # Search for the newest word6 and word10 when the tag was received
-        for word_type, word_list in self.word_lists.items():
+        for word_type, word_list in self.words_per_type.items():
             for word in word_list:
-                if word.gst_start < gst_tag:
+                if tag_data_gst_sf_limit <= word.gst_start < tag.gst_subframe:
                     nav_data[word_type] = BitArray(word.data)
+                elif word.gst_start < tag_data_gst_sf_limit < word.last_gst_updated:
+                    nav_data[word_type] = BitArray(word.data)
+                    break
 
         if nav_data[6] and nav_data[10]:
-            return ADKD4DataBlock(gst_tag, nav_data[6] + nav_data[10])
+            return ADKD4DataBlock(tag.gst_subframe, nav_data[6] + nav_data[10])
         else:
             return None
 

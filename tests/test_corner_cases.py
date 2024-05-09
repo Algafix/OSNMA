@@ -169,10 +169,55 @@ def test_osnma_after_outage(log_level=logging.INFO):
     input_module = SBF(config_dict['scenario_path'])
     run(input_module, config_dict, expected_results)
 
+def test_6_hours(log_level=logging.INFO):
+
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'test_corner_cases/6_hours/6_hours.sbf',
+        'exec_path': Path(__file__).parent / 'test_corner_cases/6_hours/',
+        'pubk_name': 'OSNMA_PublicKey_1.xml'
+    }
+
+    expected_results = {
+        "tags_auth": 14600,
+        "data_auth": 10982,
+        "kroot_auth": 198,
+        "broken_kroot": 61,
+        "crc_failed": 2619,
+        "warnings": 2680,
+        "errors": 0
+    }
+
+    input_module = SBF(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
+def test_24_hours(log_level=logging.INFO):
+
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'test_corner_cases/24_hours/24_hours.sbf',
+        'exec_path': Path(__file__).parent / 'test_corner_cases/24_hours/',
+        'pubk_name': 'OSNMA_PublicKey_1.xml'
+    }
+
+    expected_results = {
+        "tags_auth": 60983,
+        "data_auth": 45247,
+        "kroot_auth": 804,
+        "broken_kroot": 200,
+        "crc_failed": 3730,
+        "warnings": 3930,
+        "errors": 0
+    }
+
+    input_module = SBF(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
 
 if __name__ == "__main__":
 
-    general_log_level = logging.CRITICAL
+    general_log_level = logging.ERROR
     test_passed = 0
     test_done = 0
 
@@ -212,6 +257,17 @@ if __name__ == "__main__":
     print(f"\nOSNMA after outage")
     try:
         test_osnma_after_outage(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
+    print(f"\n6 hours")
+    try:
+        test_6_hours(general_log_level)
     except AssertionError:
         print(f"\tFAILED")
     else:
