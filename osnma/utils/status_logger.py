@@ -131,5 +131,6 @@ def do_status_log(osnma_r: 'OSNMAReceiver'):
     logger.info(string_object)
 
     if Config.DO_JSON_STATUS:
-        with open(Config.JSON_STATUS_PATH, 'w') as f:
+        with open(Config.JSON_STATUS_PATH, 'a') as f:
             json.dump(status_dict, f)
+            f.write(',')
