@@ -1,5 +1,6 @@
 import json
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
 import numpy as np
 import numpy.typing as npt
 import tikzplotlib
@@ -8,14 +9,18 @@ from pathlib import Path
 
 def plot_tags_per_sf(case):
 
-    fig, ax1 = plt.subplots(1, 1, figsize=(16, 9))
+    fig, ax1 = plt.subplots(1, 1, figsize=(10, 7))
 
-    plt.stairs(case["cross_tags"][:-1], case["subframe_tow"], fill=True, label="Cross Tags")
-    plt.stairs(case["cross_tags_in_view"][:-1], case["subframe_tow"], fill=True, label="Cross Tags in View")
+    plt.stairs(case["cross_tags"][:-1], case["subframe_tow"], fill=True, label="All cross-auth tags")
+    plt.stairs(case["cross_tags_in_view"][:-1], case["subframe_tow"], fill=True, label="Cross-auth tags for satellites in view")
 
-    plt.ylabel('Time [s]')
-    plt.title(f"{case['name']} - Cross auth tags per subframe")
-    plt.legend(loc='upper right')
+    plt.ylabel('Number of tags', fontsize=14)
+    plt.xlabel('Time [s]', fontsize=14)
+    plt.title(f"{case['name']} - Cross-auth tags per subframe", fontsize=16)
+    plt.yticks(fontsize=12)
+    plt.xticks(fontsize=12)
+    plt.legend(loc='upper right', fontsize=11)
+    plt.tight_layout(pad=2.0)
 
 
 def set_ratio_of_tags(case):
@@ -66,15 +71,20 @@ def plot_tags_for_sats(cases_to_plot):
     # all cases subplot
 
     fig, axes_list = plt.subplots(2, 2, figsize=(16, 9))
+    plt.tight_layout(pad=2.0)
+    plt.subplots_adjust(hspace=0.25)
 
     for ax, case in zip(axes_list.ravel(), cases_to_plot):
         plt.sca(ax)
         plt.bar(["All Subframes","First Subframe","Second Subframe"],
                 [case["ratio_all"], case["ratio_first_subframe"], case["ratio_second_subframe"]],
-                color = ['aqua', 'yellowgreen', 'orangered']
+                color = ['#1f77b4', '#ff7f0e', '#2ca02c']
                 )
-        plt.title(f"{case['name']}")
+        plt.title(f"{case['name']}", fontsize=16)
+        plt.yticks(fontsize=12)
+        plt.xticks(fontsize=12)
         plt.ylim(0,1)
+        ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.0))
 
         print(f"{case['name']} - Total percentage tags in view {case['ratio_all']:.02f}")
         print(f"{case['name']} - Percentage tags in view first subframe {case['ratio_first_subframe']:.02f}")
@@ -86,13 +96,13 @@ def plot_tags_for_sats(cases_to_plot):
 if __name__ == '__main__':
 
     cases_to_plot = [
-        {"name": "Prev Config EU District",
-         "file_name": "prev_config_eu_district/osnma_state_eu.json"},
-        {"name": "Prev Config Old Town",
-         "file_name": "prev_config_old_town/osnma_state_old_town.json"},
-        {"name": "Current Config EU District",
+        {"name": "Sequence 1: First Recording",
+         "file_name": "prev_config_eu_district/osnma_state_eu_short.json"},
+        {"name": "Sequence 1: Second Recording",
+         "file_name": "prev_config_old_town/osnma_state_old_town_short.json"},
+        {"name": "Sequence 2: First Recording",
          "file_name": "current_eu_district/osnma_state_eu_district.json"},
-        {"name": "Current Config Old Town",
+        {"name": "Sequence 2: Second Recording",
          "file_name": "current_old_town/osnma_state_old_town.json"}
     ]
 

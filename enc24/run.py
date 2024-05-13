@@ -12,6 +12,15 @@ def run_osnma(config_dict, start_at):
     osnma_r.start(start_at_gst=start_at)
 
 
+open_sky_before = {
+    'scenario_path': 'open_sky_before/AJ03329M.23_',
+    'exec_path': 'open_sky_before/',
+    'pubk_name': 'OSNMA_PublicKey.xml',
+    'merkle_name': 'OSNMA_MerkleTree.xml',
+    'kroot_name': 'OSNMA_start_KROOT.txt',
+    'do_json_status': True
+}
+
 prev_conf_p1 = {
     'scenario_path': 'prev_config_p1/previous_config_part1_inav.sbf',
     'exec_path': 'prev_config_p1/',
@@ -50,9 +59,10 @@ current_conf_old_town = {
 
 if __name__ == "__main__":
 
-    run_osnma(prev_conf_p1, (1266,390800))
+    #run_osnma(prev_conf_p1, (1266,390800))
     #run_osnma(prev_conf_p2, (1266,405655))
     #run_osnma(current_conf_eu, (1267, 35400))
     #run_osnma(current_conf_old_town, (1267, 48230))
+    run_osnma(open_sky_before, None)
 
 
