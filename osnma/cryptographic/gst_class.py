@@ -126,7 +126,7 @@ class GST:
         return GST(tow=tow, wn=wn)
 
     def __floordiv__(self, other: int) -> int:
-        return self.int // other
+        return self.total_seconds // other
 
     def __mod__(self, other: int) -> int:
         return self.tow % other
@@ -148,6 +148,10 @@ class GST:
     @property
     def int(self):
         return self.wn << LEN_TOW | self.tow
+
+    @property
+    def total_seconds(self):
+        return (self.wn * (MAX_TOW+1)) + self.tow
 
 
 if __name__ == '__main__':
