@@ -35,6 +35,33 @@ def set_ratio_of_tags(case):
     case["ratio_second_subframe"] = tags_in_view_second_subframe/tags_second_subframe
 
 
+def plot_auth_disconnected_sats(case):
+
+    tow_cross_tags_for_sat = case["tow_cross_tags_for_sat"]
+
+    # Filter for sats in view in the subframe
+    fig, ax1 = plt.subplots(1, 1, figsize=(10, 7))
+    for svid, tow_list in tow_cross_tags_for_sat.items():
+        if len(tow_list) > 0:
+            plt.plot(tow_list, np.repeat(svid, len(tow_list)), 'bx')
+
+    plt.ylabel('SVID', fontsize=14)
+    plt.xlabel('ToW [s]', fontsize=14)
+    plt.title(f"{case['name']} - Auth for disconnected sats in view", fontsize=16)
+    plt.yticks(fontsize=12)
+    plt.xticks(fontsize=12)
+    plt.tight_layout(pad=2.0)
+
+
+def calculate_tba(tow_cross_tags_for_sat):
+    all_tba = []
+    for svid, tow_list in tow_cross_tags_for_sat.items():
+        if len(tow_list) > 0:
+            all_tba.extend([n - p for p, n in zip(tow_list[:-1], tow_list[1:])])
+    all_tba = [tba for tba in all_tba if tba <= 120]
+    return all_tba
+
+
 def plot_tags_for_sats(cases_to_plot):
 
     for case in cases_to_plot:
@@ -45,10 +72,15 @@ def plot_tags_for_sats(cases_to_plot):
         subframe_tow = []
         cross_tags = []
         cross_tags_in_view = []
+        tow_cross_tags_for_sat = {i: [] for i in range(1, 37)}
+        cummulative_disconnected_sats = set()
 
         for idx, subframe in enumerate(osnma_state):
-            subframe_tow.append(subframe["Metadata"]["GST Subframe"][1])
-            sats_in_view = [int(svid) for svid in subframe["Nav Data Received"].keys()]
+            tow = subframe["Metadata"]["GST Subframe"][1]
+            subframe_tow.append(tow)
+            sats_in_view = {int(svid) for svid in subframe["Nav Data Received"].keys()}
+            osnma_sats = {int(svid) for svid in subframe["OSNMA Data"].keys()}
+            cummulative_disconnected_sats.update(sats_in_view.difference(osnma_sats))
 
             cross_tags_in_subframe = 0
             cross_tags_in_view_subframe = 0
@@ -58,14 +90,22 @@ def plot_tags_for_sats(cases_to_plot):
                     if prn_d in sats_in_view:
                         cross_tags_in_view_subframe += 1
 
+                    if len(tow_cross_tags_for_sat[prn_d]) > 0 and tow_cross_tags_for_sat[prn_d][-1] == tow:
+                        continue
+                    if prn_d in cummulative_disconnected_sats:
+                        tow_cross_tags_for_sat[prn_d].append(tow)
+
             cross_tags.append(cross_tags_in_subframe)
             cross_tags_in_view.append(cross_tags_in_view_subframe)
 
+        case["tow_cross_tags_for_sat"] = tow_cross_tags_for_sat
+        case["all_cross_tba"] = calculate_tba(tow_cross_tags_for_sat)
         case["subframe_tow"] = subframe_tow
         case["cross_tags"] = cross_tags
         case["cross_tags_in_view"] = cross_tags_in_view
 
         plot_tags_per_sf(case)
+        plot_auth_disconnected_sats(case)
         set_ratio_of_tags(case)
 
     # all cases subplot
@@ -89,6 +129,40 @@ def plot_tags_for_sats(cases_to_plot):
         print(f"{case['name']} - Total percentage tags in view {case['ratio_all']:.02f}")
         print(f"{case['name']} - Percentage tags in view first subframe {case['ratio_first_subframe']:.02f}")
         print(f"{case['name']} - Percentage tags in view second subframe {case['ratio_second_subframe']:.02f}")
+
+    # TBA plot
+    fig, axes_list = plt.subplots(2, 2, figsize=(16, 9))
+    fig.suptitle("TBA for disconnected satellites in view", fontsize=16)
+    plt.tight_layout(pad=2.0)
+    plt.subplots_adjust(hspace=0.25, top=0.88)
+    plt_ticks = [1,2,3,4]
+    plt_labels = [30,60,90,120]
+
+    for ax, case in zip(axes_list.ravel(), cases_to_plot):
+        plt.sca(ax)
+
+        # Get data and filter
+        labels, counts = np.unique(case["all_cross_tba"], return_counts=True)
+        counts = [count/sum(counts) for count in counts]
+
+        # Add missing bins to have the same in all plots
+        missing_bins = len(plt_ticks)-len(labels)
+        if missing_bins != 0:
+            labels = np.append(labels, plt_labels[-missing_bins:])
+            counts = np.append(counts, np.zeros(missing_bins))
+        labels_sf = [label // 30 for label in labels]
+
+        # Plot options
+        plt.bar(labels_sf, counts, align='center')
+        plt.xticks(ticks=plt_ticks, labels=plt_labels)
+        plt.yticks(fontsize=12)
+        plt.xticks(fontsize=12)
+        plt.title(f"{case['name']}", fontsize=16)
+        plt.ylim(0, 1)
+        ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.0))
+
+        plt.text(3.8, 0.8, f"TBA mean\n{np.mean(case['all_cross_tba']):.02f}", fontsize=13, fontweight='bold')
+        print(f"{case['name']} - TBA mean: {np.mean(case['all_cross_tba']):.02f}")
 
     plt.show()
 
