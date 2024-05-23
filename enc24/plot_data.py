@@ -90,10 +90,13 @@ def plot_tags_for_sats(cases_to_plot):
                     if prn_d in sats_in_view:
                         cross_tags_in_view_subframe += 1
 
-                    if len(tow_cross_tags_for_sat[prn_d]) > 0 and tow_cross_tags_for_sat[prn_d][-1] == tow:
+            for svid_s, auth_block in subframe["OSNMA Authenticated Data"]["ADKD0"].items():
+                svid = int(svid_s)
+                tow = auth_block["last_gst"][1]
+                if svid not in osnma_sats:
+                    if tow_cross_tags_for_sat[svid] and tow_cross_tags_for_sat[svid][-1] == tow:
                         continue
-                    if prn_d in cummulative_disconnected_sats:
-                        tow_cross_tags_for_sat[prn_d].append(tow)
+                    tow_cross_tags_for_sat[svid].append(tow)
 
             cross_tags.append(cross_tags_in_subframe)
             cross_tags_in_view.append(cross_tags_in_view_subframe)
@@ -132,9 +135,10 @@ def plot_tags_for_sats(cases_to_plot):
 
     # TBA plot
     fig, axes_list = plt.subplots(2, 2, figsize=(16, 9))
-    fig.suptitle("TBA for disconnected satellites in view", fontsize=16)
     plt.tight_layout(pad=2.0)
+    fig.suptitle("TBA for disconnected satellites in view", fontsize=16)
     plt.subplots_adjust(hspace=0.25, top=0.88)
+    #plt.subplots_adjust(hspace=0.25)
     plt_ticks = [1,2,3,4]
     plt_labels = [30,60,90,120]
 
