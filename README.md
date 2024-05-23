@@ -4,17 +4,13 @@
 OSNMAlib
 ========
 
-OSNMAlib is an open-source Python library that can be integrated into existing receivers and applications to incorporate 
-navigation message authentication to the positioning process. It can read the Galileo I/NAV pages from an input, store 
-the navigation and authentication data, perform the verification operations, and report the status.
+OSNMAlib is an open-source Python library that can be used for research purposes or be integrated into existing receivers and applications to incorporate navigation message authentication to the positioning process.
+It can read the Galileo I/NAV pages from an input, store the navigation and authentication data, perform the verification operations, and report the status.
 
-The software has been successfully tested using part of the official ICD test vectors and should work in the nominal cases.
-However, the vectors to validate all corner cases have not yet been released.
-It has also been tested with real live data recorded by me.
+The software has been successfully tested using the official ICD test vectors and data from corner cases recorded by me. To our knowledge, it has also been used to verify other third-party OSNMA implementations and in research. 
 
 Note that the security of the OSNMA protocol can only be guaranteed if the receiver providing the navigation data is synchronized with TL seconds of error with the Galileo System Time.
-OSNMAlib assumes a TL of 30s: the maximum to process all tags.
-However, it can be configured for a different TL depending on what you receiver can guarantee.
+By default, OSNMAlib assumes a TL of 30s: the maximum to process all tags. However, it can be configured for a different TL depending on what your receiver can guarantee.
 For more information about time synchronisation see the [OSNMA Receiver Guidelines](https://www.gsc-europa.eu/sites/default/files/sites/all/files/Galileo_OSNMA_Receiver_Guidelines_v1.1.pdf), and [Configuration Options](#osnmalib-configuration-options) to configure OSNMAlib.
 
 OSNMAlib implements several optimizations in the cryptographic material extraction and in the process of linking navigation data to tags [[link](https://arxiv.org/abs/2403.14739)].
@@ -27,7 +23,7 @@ to display the general state of OSNMA. It also provides the raw navigation bits 
 
 If you are using data from the OSNMA Test Phase (before 2023-08-03 11:00), use the [OSNMA_Test_Phase_ICD branch](https://github.com/Algafix/OSNMA/tree/OSNMA_Test_Phase_ICD).
 
-Supports Python 3.8, 3.9, 3.10 and 3.11. Tested on Linux and Windows.
+Supports Python 3.8, 3.9, 3.10, and 3.11. Tested on Linux and Windows.
 
 Features
 ---
@@ -67,15 +63,19 @@ Current data [formats supported](https://github.com/Algafix/OSNMA/wiki/Input-Dat
 
 Future development:
 
+  * Standard JSON output for monitoring
   * Time synchronization options for live execution.
   * IDD ICD implementation for authentication of cryptographic materials.
 
 Documentation
 ---
 
-NAVITEC Conference on OSNMAlib
-  * [OSNMAlib Paper](OSNMAlib_NAVITEC2022.pdf)
-  * [YouTube Presentation](https://www.youtube.com/watch?v=IVPzVM5GdKs)
+OSNMAlib
+  * This README file.
+  * [Wiki](https://github.com/Algafix/OSNMA/wiki)
+  * [OSNMAlib Paper ICL-GNSS 2024](OSNMAlib_ICL_GNSS_2024.pdf)
+  * [OSNMAlib Paper NAVITEC 2022 (old)](OSNMAlib_NAVITEC2022.pdf)
+  * See later in the README for a list of publications using OSNMAlib.
 
 General OSNMA documentation
   * [GSC website with the reference documents](https://www.gsc-europa.eu/electronic-library/programme-reference-documents)
@@ -113,10 +113,10 @@ $ cd custom_run/
 $ python run.py [filename]
 ```
 
-Real time execution with data from Galmon
+Real-time execution with data from Galmon
 ---
 
-If you want to see the library process data in real time but don't have a receiver, I've integrated OSNMAlib with the [galmon](https://github.com/berthubert/galmon) project. You can find it under the folder `live_galmon_run/` and run it with:
+If you want to see the library process data in real-time but don't have a receiver, I've integrated OSNMAlib with the [galmon](https://github.com/berthubert/galmon) project. You can find it under the folder `live_galmon_run/` and run it with:
 
 ```
 $ live_galmon_run/
@@ -128,10 +128,10 @@ There may be some problems with the data received from galmon due to the P2P nat
 
 The IP and Port are defaulted to `86.82.68.237:10000`. You can specify your own in the Galmon input class constructor.
 
-Real time execution with a Septentrio receiver
+Real-time execution with a Septentrio receiver
 ---
 
-If you have access to a Septentrio receiver SBF log output, I have implemented a real time input module for that. To tell the receiver to output the required navigation data send the following commands to it. Mind that `Stream2` or port `20000` may be in use. 
+If you have access to a Septentrio receiver SBF log output, I have implemented a real-time input module for that. To tell the receiver to output the required navigation data send the following commands to it. Mind that `Stream2` or port `20000` may be in use. 
 
 ```
 setSBFOutput, Stream2, IPS1, GALRawINAV, sec1
@@ -154,9 +154,9 @@ about all the input formats supported by OSNMAlib as well as documentation on ho
 Test Execution
 ===
 
-The software is provided with several test scenarios under the folder `tests/scenarios/`. The scenarios cover 
-different configurations and events of the OSNMA protocol.
-The data used by the tests comes from the official test vectors and also by the live recording of some corner cases.
+The software is provided with several test scenarios under the folder `tests/scenarios/`.
+The scenarios cover different configurations and events of the OSNMA protocol.
+The test files come from the Official Test Vectors and also from the live recording of some corner cases.
 
 The `pytest` framework is the easiest way to execute the OSNMA Open Implementation receiver tests. To do so, the 
 following shell commands are provided. Note that the users interpreter work directory is assumed to be the top
@@ -216,16 +216,15 @@ to see the current state of OSNMAlib without having to scroll and get overwhelme
 
 When enabling the console as logging destination, both logging modalities are merged in the console output.
 However, if you enable the file logging, a file is created for each modality.
-Finally, there is a beta logging mode that outputs always the last subframe status in JSON format to a file.
+Finally, there is a beta logging mode that always outputs the last subframe status in JSON format to a file.
 
-For more information on how to set this logging options, see the wiki page [OSNMAlib Configuration Options](https://github.com/Algafix/OSNMA/wiki/OSNMAlib-Configuration-Options).
+For more information on how to set these logging options, see the wiki page [OSNMAlib Configuration Options](https://github.com/Algafix/OSNMA/wiki/OSNMAlib-Configuration-Options).
 
 Research Notice
 ===
 
-This repository partially contains data, information and ideas regarding an ongoing PhD research.
-Please do not plagiarize OSNMA ideas and optimizations read on this repository until they have been scientifically 
-disclosed, so you can reference them.
+This repository partially contains data, information, and ideas regarding an ongoing PhD research.
+Please do not plagiarize OSNMA ideas and optimizations read on this repository until they have been scientifically disclosed, so you can reference them.
 
 I strongly believe in open-source software and free access to knowledge, and this whole project remains open to honour these ideals.
 
