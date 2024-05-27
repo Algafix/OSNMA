@@ -177,8 +177,14 @@ class ADKD0DataManager(ADKDDataManager):
             return True
         return False
 
-    def _is_new_adkd0_data_block(self, iod: BitArray) -> bool:
-        return len(self.adkd0_data_blocks) == 0 or self.adkd0_data_blocks[-1].iod != iod
+    def _is_new_adkd0_data_block(self, iod: BitArray, gst_page: GST) -> bool:
+        if len(self.adkd0_data_blocks) == 0:
+            return True
+        if self.adkd0_data_blocks[-1].iod != iod:
+            return True
+        if gst_page - self.adkd0_data_blocks[-1].last_gst_updated > GST(tow=4*60*60):
+            # The IOD may be the same after 4 hours of data due to rotation of nav messages
+            return True
 
     def _clean_old_data(self):
         """
@@ -223,7 +229,7 @@ class ADKD0DataManager(ADKDDataManager):
 
         if word_type != 5:
             iod = adkd_data[:10]
-            if self._is_new_adkd0_data_block(iod):
+            if self._is_new_adkd0_data_block(iod, gst_page):
                 new_adkd0 = ADKD0DataBlock(gst_page)
                 new_adkd0.add_word(word_type, adkd_data, gst_page)
                 self.adkd0_data_blocks.append(new_adkd0)

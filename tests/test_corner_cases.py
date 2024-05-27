@@ -169,6 +169,30 @@ def test_osnma_after_outage(log_level=logging.INFO):
     input_module = SBF(config_dict['scenario_path'])
     run(input_module, config_dict, expected_results)
 
+def test_svid_12_repeats_iod(log_level=logging.INFO):
+
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'test_corner_cases/svid_12_repeats_iod/tag_error_12.sbf',
+        'exec_path': Path(__file__).parent / 'test_corner_cases/svid_12_repeats_iod/',
+        'pubk_name': 'OSNMA_PublicKey_1.xml',
+        'kroot_name': 'OSNMA_start_KROOT.txt'
+    }
+
+    expected_results = {
+        "tags_auth": 1359,
+        "data_auth": 1297,
+        "kroot_auth": 56,
+        "broken_kroot": 11,
+        "crc_failed": 123,
+        "warnings": 134,
+        "errors": 0
+    }
+
+    input_module = SBF(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
 def test_6_hours(log_level=logging.INFO):
 
     config_dict = {
@@ -265,9 +289,31 @@ if __name__ == "__main__":
     finally:
         test_done += 1
 
+    print(f"\nSVID 12 repeats IOD")
+    try:
+        test_svid_12_repeats_iod(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
     print(f"\n6 hours")
     try:
         test_6_hours(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
+    print(f"\n24 hours")
+    try:
+        test_24_hours(general_log_level)
     except AssertionError:
         print(f"\tFAILED")
     else:
