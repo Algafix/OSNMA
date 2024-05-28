@@ -48,14 +48,25 @@ class StoppedAtFAF(Exception):
         self.first_tow = first_tow
         self.faf_tow = faf_tow
 
-class DateException(Exception):
+class IDDException(Exception):
     pass
 
-class RevokedException(Exception):
-    pass
+class DateException(IDDException):
+    template_message = "The {message} is not within its validity period."
+    def __init__(self, message):
+        super().__init__(self.template_message.format(message = message))
 
-class IssuerException(Exception):
-    pass
+class RevokedException(IDDException):
+    template_message = "The {message} has been revoked."
+    def __init__(self, message):
+        super().__init__(self.template_message.format(message = message))
 
-class VerifyException(Exception):
-    pass
+class IssuerException(IDDException):
+    template_message = "The issuer and the subject of the {message} have not matched."
+    def __init__(self, message):
+        super().__init__(self.template_message.format(message = message))
+
+class VerifyException(IDDException):
+    template_message = "The {message} signature is invalid."
+    def __init__(self, message):
+        super().__init__(self.template_message.format(message = message))
