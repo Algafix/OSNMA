@@ -42,7 +42,7 @@ def get_base_logger_and_file_handler():
 
     return base_logger, file_handler, log_filename
 
-def run(input_module, config_dict, expected_results_dict):
+def run(input_module, config_dict, expected_results_dict, num):
 
     Config.load_configuration_parameters(config_dict)
     logger_factory.configure_loggers()
@@ -52,31 +52,21 @@ def run(input_module, config_dict, expected_results_dict):
 
     base_logger, file_handler, log_filename = get_base_logger_and_file_handler()
     base_logger.removeHandler(file_handler)
+    
+    
 
     with open(log_filename, 'r') as log_file:
         log_text = log_file.read()
 
-        tags_auth = len(re.findall(r'Tag AUTHENTICATED', log_text))
-        data_auth = len(re.findall(r'INFO .* AUTHENTICATED: ADKD', log_text))
-        kroot_auth = len(re.findall(r'INFO .*KROOT.*\n\tAUTHENTICATED\n', log_text))
-        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
-        crc_failed = len(re.findall('WARNING.*CRC', log_text))
         warnings = len(re.findall('WARNING', log_text))
         errors = len(re.findall('ERROR', log_text))
 
-    #print(f'{tags_auth} vs {expected_results_dict["tags_auth"]}')
-    #print(f'{data_auth} vs {expected_results_dict["data_auth"]}')
-    #print(f'{kroot_auth} vs {expected_results_dict["kroot_auth"]}')
-    #print(f'{broken_kroot} vs {expected_results_dict["broken_kroot"]}')
-    #print(f'{crc_failed} vs {expected_results_dict["crc_failed"]}')
-    #print(f'{warnings} vs {expected_results_dict["warnings"]}')
-    #print(f'{errors} vs {expected_results_dict["errors"]}')
+    log_filename_correct = f"{Path(__file__).parent}" + '/idd_test_vectors/log/logs_' + f"{num}" +".log"
 
-    assert tags_auth == expected_results_dict["tags_auth"]
-    assert data_auth == expected_results_dict["data_auth"]
-    assert kroot_auth == expected_results_dict["kroot_auth"]
-    assert broken_kroot == expected_results_dict["broken_kroot"]
-    assert crc_failed == expected_results_dict["crc_failed"]
+    with open(log_filename_correct, 'r') as log_file:
+        log_text_correct = log_file.read()
+
+    assert log_text == log_text_correct
     assert warnings == expected_results_dict["warnings"]
     assert errors == expected_results_dict["errors"]
 
@@ -94,17 +84,12 @@ def test_vectors_idd_configuration(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 0,
-        "data_auth": 0,
-        "kroot_auth": 0,
-        "broken_kroot": 0,
-        "crc_failed": 0,
         "warnings": 0,
         "errors": 0
     }
 
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    run(input_module, config_dict, expected_results)
+    run(input_module, config_dict, expected_results,1)
 
 def test_vectors_idd_configuration_Good(log_level=logging.INFO):
     config_dict = {
@@ -134,17 +119,12 @@ def test_vectors_idd_configuration_Good(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 0,
-        "data_auth": 0,
-        "kroot_auth": 0,
-        "broken_kroot": 0,  # The first page for all satellites has no OSNMA data
-        "crc_failed": 0,
         "warnings": 0,
         "errors": 0
     }
 
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    run(input_module, config_dict, expected_results)
+    run(input_module, config_dict, expected_results,2)
 
 def test_vectors_idd_configuration_cert_1_time(log_level=logging.INFO):
     config_dict = {
@@ -174,17 +154,12 @@ def test_vectors_idd_configuration_cert_1_time(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 0,
-        "data_auth": 0,
-        "kroot_auth": 0,
-        "broken_kroot": 0,  # The first page for all satellites has no OSNMA data
-        "crc_failed": 0,
         "warnings": 1,
         "errors": 0
     }
 
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    run(input_module, config_dict, expected_results)
+    run(input_module, config_dict, expected_results,3)
 
 def test_vectors_idd_configuration_cert_1_issuer(log_level=logging.INFO):
     config_dict = {
@@ -214,17 +189,47 @@ def test_vectors_idd_configuration_cert_1_issuer(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 0,
-        "data_auth": 0,
-        "kroot_auth": 0,
-        "broken_kroot": 0,  # The first page for all satellites has no OSNMA data
-        "crc_failed": 0,
         "warnings": 1,
         "errors": 0
     }
 
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    run(input_module, config_dict, expected_results)
+    run(input_module, config_dict, expected_results,4)
+
+def test_vectors_idd_configuration_cert_1_signature(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/configuration_1/16_AUG_2023_GST_05_00_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'idd_test_vectors/',
+        'download_pki': False,
+        'download_merkle': False,
+        'download_sca': False,
+        'download_rca': False,
+        'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
+        'IDD_CERT' : {
+            "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
+            "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
+            "CERT_ICA" : "Cert 3- ICA/ica.crt",
+            "CERT_SCA" : "Cert 2 - SCA/sca.crt",
+            "CERT_RCA" : "Cert 1 - RCA/rca_signature.crt"
+        },
+
+        'IDD_CRL' : {
+            "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
+            "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
+            "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
+        },
+        "MERKLE_NAME" : Path(__file__).parent / "idd_test_vectors/Cert/OSNMA_MerkleTree_20240115100000_newPKID_1.xml"
+    }
+
+    expected_results = {
+        "warnings": 1,
+        "errors": 0
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results,5)
 
 def test_vectors_idd_configuration_cert_2_time(log_level=logging.INFO):
     config_dict = {
@@ -254,17 +259,12 @@ def test_vectors_idd_configuration_cert_2_time(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 0,
-        "data_auth": 0,
-        "kroot_auth": 0,
-        "broken_kroot": 0,  # The first page for all satellites has no OSNMA data
-        "crc_failed": 0,
         "warnings": 1,
         "errors": 0
     }
 
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    run(input_module, config_dict, expected_results)
+    run(input_module, config_dict, expected_results,6)
 
 def test_vectors_idd_configuration_cert_2_issuer(log_level=logging.INFO):
     config_dict = {
@@ -294,17 +294,47 @@ def test_vectors_idd_configuration_cert_2_issuer(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 0,
-        "data_auth": 0,
-        "kroot_auth": 0,
-        "broken_kroot": 0,  # The first page for all satellites has no OSNMA data
-        "crc_failed": 0,
         "warnings": 1,
         "errors": 0
     }
 
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    run(input_module, config_dict, expected_results)
+    run(input_module, config_dict, expected_results,7)
+
+def test_vectors_idd_configuration_cert_2_signature(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/configuration_1/16_AUG_2023_GST_05_00_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'idd_test_vectors/',
+        'download_pki': False,
+        'download_merkle': False,
+        'download_sca': False,
+        'download_rca': False,
+        'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
+        'IDD_CERT' : {
+            "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
+            "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
+            "CERT_ICA" : "Cert 3- ICA/ica.crt",
+            "CERT_SCA" : "Cert 2 - SCA/sca_signature.crt",
+            "CERT_RCA" : "Cert 1 - RCA/rca.crt"
+        },
+
+        'IDD_CRL' : {
+            "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
+            "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
+            "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
+        },
+        "MERKLE_NAME" : Path(__file__).parent / "idd_test_vectors/Cert/OSNMA_MerkleTree_20240115100000_newPKID_1.xml"
+    }
+
+    expected_results = {
+        "warnings": 1,
+        "errors": 0
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results,8)
 
 def test_vectors_idd_configuration_cert_2_revokated(log_level=logging.INFO):
     config_dict = {
@@ -334,17 +364,12 @@ def test_vectors_idd_configuration_cert_2_revokated(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 0,
-        "data_auth": 0,
-        "kroot_auth": 0,
-        "broken_kroot": 0,  # The first page for all satellites has no OSNMA data
-        "crc_failed": 0,
         "warnings": 1,
         "errors": 0
     }
 
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    run(input_module, config_dict, expected_results)
+    run(input_module, config_dict, expected_results,9)
 
 def test_vectors_idd_configuration_cert_3_time(log_level=logging.INFO):
     config_dict = {
@@ -374,17 +399,12 @@ def test_vectors_idd_configuration_cert_3_time(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 0,
-        "data_auth": 0,
-        "kroot_auth": 0,
-        "broken_kroot": 0,  # The first page for all satellites has no OSNMA data
-        "crc_failed": 0,
         "warnings": 1,
         "errors": 0
     }
 
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    run(input_module, config_dict, expected_results)
+    run(input_module, config_dict, expected_results,10)
 
 def test_vectors_idd_configuration_cert_3_issuer(log_level=logging.INFO):
     config_dict = {
@@ -414,17 +434,47 @@ def test_vectors_idd_configuration_cert_3_issuer(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 0,
-        "data_auth": 0,
-        "kroot_auth": 0,
-        "broken_kroot": 0,  # The first page for all satellites has no OSNMA data
-        "crc_failed": 0,
         "warnings": 1,
         "errors": 0
     }
 
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    run(input_module, config_dict, expected_results)
+    run(input_module, config_dict, expected_results,11)
+
+def test_vectors_idd_configuration_cert_3_signature(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/configuration_1/16_AUG_2023_GST_05_00_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'idd_test_vectors/',
+        'download_pki': False,
+        'download_merkle': False,
+        'download_sca': False,
+        'download_rca': False,
+        'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
+        'IDD_CERT' : {
+            "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
+            "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
+            "CERT_ICA" : "Cert 3- ICA/ica_signature.crt",
+            "CERT_SCA" : "Cert 2 - SCA/sca.crt",
+            "CERT_RCA" : "Cert 1 - RCA/rca.crt"
+        },
+
+        'IDD_CRL' : {
+            "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
+            "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
+            "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
+        },
+        "MERKLE_NAME" : Path(__file__).parent / "idd_test_vectors/Cert/OSNMA_MerkleTree_20240115100000_newPKID_1.xml"
+    }
+
+    expected_results = {
+        "warnings": 1,
+        "errors": 0
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results,12)
 
 def test_vectors_idd_configuration_cert_3_revokated(log_level=logging.INFO):
     config_dict = {
@@ -454,17 +504,12 @@ def test_vectors_idd_configuration_cert_3_revokated(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 0,
-        "data_auth": 0,
-        "kroot_auth": 0,
-        "broken_kroot": 0,  # The first page for all satellites has no OSNMA data
-        "crc_failed": 0,
         "warnings": 1,
         "errors": 0
     }
 
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    run(input_module, config_dict, expected_results)
+    run(input_module, config_dict, expected_results,13)
 
 def test_vectors_idd_configuration_cert_4_MK_time(log_level=logging.INFO):
     config_dict = {
@@ -494,17 +539,12 @@ def test_vectors_idd_configuration_cert_4_MK_time(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 0,
-        "data_auth": 0,
-        "kroot_auth": 0,
-        "broken_kroot": 0,  # The first page for all satellites has no OSNMA data
-        "crc_failed": 0,
         "warnings": 1,
         "errors": 0
     }
 
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    run(input_module, config_dict, expected_results)
+    run(input_module, config_dict, expected_results,14)
 
 def test_vectors_idd_configuration_cert_4_MK_issuer(log_level=logging.INFO):
     config_dict = {
@@ -534,17 +574,47 @@ def test_vectors_idd_configuration_cert_4_MK_issuer(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 0,
-        "data_auth": 0,
-        "kroot_auth": 0,
-        "broken_kroot": 0,  # The first page for all satellites has no OSNMA data
-        "crc_failed": 0,
         "warnings": 1,
         "errors": 0
     }
 
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    run(input_module, config_dict, expected_results)
+    run(input_module, config_dict, expected_results,15)
+
+def test_vectors_idd_configuration_cert_4_MK_signature(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/configuration_1/16_AUG_2023_GST_05_00_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'idd_test_vectors/',
+        'download_pki': False,
+        'download_merkle': False,
+        'download_sca': False,
+        'download_rca': False,
+        'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
+        'IDD_CERT' : {
+            "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
+            "CERT_MERKLE" : "Cert 4 - MK/mk_signature.crt",
+            "CERT_ICA" : "Cert 3- ICA/ica.crt",
+            "CERT_SCA" : "Cert 2 - SCA/sca.crt",
+            "CERT_RCA" : "Cert 1 - RCA/rca.crt"
+        },
+
+        'IDD_CRL' : {
+            "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
+            "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
+            "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
+        },
+        "MERKLE_NAME" : Path(__file__).parent / "idd_test_vectors/Cert/OSNMA_MerkleTree_20240115100000_newPKID_1.xml"
+    }
+
+    expected_results = {
+        "warnings": 1,
+        "errors": 0
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results,16)
 
 def test_vectors_idd_configuration_cert_4_MK_revokated(log_level=logging.INFO):
     config_dict = {
@@ -574,17 +644,12 @@ def test_vectors_idd_configuration_cert_4_MK_revokated(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 0,
-        "data_auth": 0,
-        "kroot_auth": 0,
-        "broken_kroot": 0,  # The first page for all satellites has no OSNMA data
-        "crc_failed": 0,
         "warnings": 1,
         "errors": 0
     }
 
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    run(input_module, config_dict, expected_results)
+    run(input_module, config_dict, expected_results,17)
 
 def test_vectors_idd_configuration_cert_4_PKI_time(log_level=logging.INFO):
     config_dict = {
@@ -614,17 +679,12 @@ def test_vectors_idd_configuration_cert_4_PKI_time(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 0,
-        "data_auth": 0,
-        "kroot_auth": 0,
-        "broken_kroot": 0,  # The first page for all satellites has no OSNMA data
-        "crc_failed": 0,
         "warnings": 1,
         "errors": 0
     }
 
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    run(input_module, config_dict, expected_results)
+    run(input_module, config_dict, expected_results,18)
 
 def test_vectors_idd_configuration_cert_4_PKI_issuer(log_level=logging.INFO):
     config_dict = {
@@ -654,17 +714,47 @@ def test_vectors_idd_configuration_cert_4_PKI_issuer(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 0,
-        "data_auth": 0,
-        "kroot_auth": 0,
-        "broken_kroot": 0,  # The first page for all satellites has no OSNMA data
-        "crc_failed": 0,
         "warnings": 1,
         "errors": 0
     }
 
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    run(input_module, config_dict, expected_results)
+    run(input_module, config_dict, expected_results,19)
+
+def test_vectors_idd_configuration_cert_4_PKI_signature(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/configuration_1/16_AUG_2023_GST_05_00_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'idd_test_vectors/',
+        'download_pki': False,
+        'download_merkle': False,
+        'download_sca': False,
+        'download_rca': False,
+        'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
+        'IDD_CERT' : {
+            "CERT_PKIEE" : "Cert 4 - PKI/pki_signature.crt",
+            "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
+            "CERT_ICA" : "Cert 3- ICA/ica.crt",
+            "CERT_SCA" : "Cert 2 - SCA/sca.crt",
+            "CERT_RCA" : "Cert 1 - RCA/rca.crt"
+        },
+
+        'IDD_CRL' : {
+            "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
+            "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
+            "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
+        },
+        "MERKLE_NAME" : Path(__file__).parent / "idd_test_vectors/Cert/OSNMA_MerkleTree_20240115100000_newPKID_1.xml"
+    }
+
+    expected_results = {
+        "warnings": 1,
+        "errors": 0
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results,20)
 
 def test_vectors_idd_configuration_cert_4_PKI_revokated(log_level=logging.INFO):
     config_dict = {
@@ -694,17 +784,12 @@ def test_vectors_idd_configuration_cert_4_PKI_revokated(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 0,
-        "data_auth": 0,
-        "kroot_auth": 0,
-        "broken_kroot": 0,  # The first page for all satellites has no OSNMA data
-        "crc_failed": 0,
         "warnings": 1,
         "errors": 0
     }
 
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    run(input_module, config_dict, expected_results)
+    run(input_module, config_dict, expected_results,21)
 
 def test_vectors_idd_configuration_crl_1_time(log_level=logging.INFO):
     config_dict = {
@@ -734,17 +819,12 @@ def test_vectors_idd_configuration_crl_1_time(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 0,
-        "data_auth": 0,
-        "kroot_auth": 0,
-        "broken_kroot": 0,  # The first page for all satellites has no OSNMA data
-        "crc_failed": 0,
         "warnings": 1,
         "errors": 0
     }
 
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    run(input_module, config_dict, expected_results)
+    run(input_module, config_dict, expected_results,22)
 
 def test_vectors_idd_configuration_crl_1_issuer(log_level=logging.INFO):
     config_dict = {
@@ -774,17 +854,47 @@ def test_vectors_idd_configuration_crl_1_issuer(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 0,
-        "data_auth": 0,
-        "kroot_auth": 0,
-        "broken_kroot": 0,  # The first page for all satellites has no OSNMA data
-        "crc_failed": 0,
         "warnings": 1,
         "errors": 0
     }
 
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    run(input_module, config_dict, expected_results)
+    run(input_module, config_dict, expected_results,23)
+
+def test_vectors_idd_configuration_crl_1_signature(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/configuration_1/16_AUG_2023_GST_05_00_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'idd_test_vectors/',
+        'download_pki': False,
+        'download_merkle': False,
+        'download_sca': False,
+        'download_rca': False,
+        'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
+        'IDD_CERT' : {
+            "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
+            "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
+            "CERT_ICA" : "Cert 3- ICA/ica.crt",
+            "CERT_SCA" : "Cert 2 - SCA/sca.crt",
+            "CERT_RCA" : "Cert 1 - RCA/rca.crt"
+        },
+
+        'IDD_CRL' : {
+            "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
+            "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
+            "CRL_RCA" : 'CRL 1 - RCA/rca_signature.crl'
+        },
+        "MERKLE_NAME" : Path(__file__).parent / "idd_test_vectors/Cert/OSNMA_MerkleTree_20240115100000_newPKID_1.xml"
+    }
+
+    expected_results = {
+        "warnings": 1,
+        "errors": 0
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results,24)
 
 def test_vectors_idd_configuration_crl_2_time(log_level=logging.INFO):
     config_dict = {
@@ -814,17 +924,12 @@ def test_vectors_idd_configuration_crl_2_time(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 0,
-        "data_auth": 0,
-        "kroot_auth": 0,
-        "broken_kroot": 0,  # The first page for all satellites has no OSNMA data
-        "crc_failed": 0,
         "warnings": 1,
         "errors": 0
     }
 
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    run(input_module, config_dict, expected_results)
+    run(input_module, config_dict, expected_results,25)
 
 def test_vectors_idd_configuration_crl_2_issuer(log_level=logging.INFO):
     config_dict = {
@@ -854,17 +959,47 @@ def test_vectors_idd_configuration_crl_2_issuer(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 0,
-        "data_auth": 0,
-        "kroot_auth": 0,
-        "broken_kroot": 0,  # The first page for all satellites has no OSNMA data
-        "crc_failed": 0,
         "warnings": 1,
         "errors": 0
     }
 
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    run(input_module, config_dict, expected_results)
+    run(input_module, config_dict, expected_results,26)
+
+def test_vectors_idd_configuration_crl_2_signature(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/configuration_1/16_AUG_2023_GST_05_00_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'idd_test_vectors/',
+        'download_pki': False,
+        'download_merkle': False,
+        'download_sca': False,
+        'download_rca': False,
+        'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
+        'IDD_CERT' : {
+            "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
+            "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
+            "CERT_ICA" : "Cert 3- ICA/ica.crt",
+            "CERT_SCA" : "Cert 2 - SCA/sca.crt",
+            "CERT_RCA" : "Cert 1 - RCA/rca.crt"
+        },
+
+        'IDD_CRL' : {
+            "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
+            "CRL_SCA" : 'CRL 2 - SCA/sca_signature.crl',
+            "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
+        },
+        "MERKLE_NAME" : Path(__file__).parent / "idd_test_vectors/Cert/OSNMA_MerkleTree_20240115100000_newPKID_1.xml"
+    }
+
+    expected_results = {
+        "warnings": 1,
+        "errors": 0
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results,27)
 
 def test_vectors_idd_configuration_crl_3_time(log_level=logging.INFO):
     config_dict = {
@@ -894,17 +1029,12 @@ def test_vectors_idd_configuration_crl_3_time(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 0,
-        "data_auth": 0,
-        "kroot_auth": 0,
-        "broken_kroot": 0,  # The first page for all satellites has no OSNMA data
-        "crc_failed": 0,
         "warnings": 1,
         "errors": 0
     }
 
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    run(input_module, config_dict, expected_results)
+    run(input_module, config_dict, expected_results,28)
 
 def test_vectors_idd_configuration_crl_3_issuer(log_level=logging.INFO):
     config_dict = {
@@ -934,17 +1064,47 @@ def test_vectors_idd_configuration_crl_3_issuer(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 0,
-        "data_auth": 0,
-        "kroot_auth": 0,
-        "broken_kroot": 0,  # The first page for all satellites has no OSNMA data
-        "crc_failed": 0,
         "warnings": 1,
         "errors": 0
     }
 
     input_module = ICDTestVectors(config_dict['scenario_path'])
-    run(input_module, config_dict, expected_results)
+    run(input_module, config_dict, expected_results,29)
+
+def test_vectors_idd_configuration_crl_3_signature(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'icd_test_vectors/configuration_1/16_AUG_2023_GST_05_00_01_fixed.csv',
+        'exec_path': Path(__file__).parent / 'idd_test_vectors/',
+        'download_pki': False,
+        'download_merkle': False,
+        'download_sca': False,
+        'download_rca': False,
+        'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
+        'IDD_CERT' : {
+            "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
+            "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
+            "CERT_ICA" : "Cert 3- ICA/ica.crt",
+            "CERT_SCA" : "Cert 2 - SCA/sca.crt",
+            "CERT_RCA" : "Cert 1 - RCA/rca.crt"
+        },
+
+        'IDD_CRL' : {
+            "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
+            "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
+            "CRL_RCA" : 'CRL 1 - RCA/rca_signature.crl'
+        },
+        "MERKLE_NAME" : Path(__file__).parent / "idd_test_vectors/Cert/OSNMA_MerkleTree_20240115100000_newPKID_1.xml"
+    }
+
+    expected_results = {
+        "warnings": 1,
+        "errors": 0
+    }
+
+    input_module = ICDTestVectors(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results,30)
 
 
 
@@ -957,7 +1117,7 @@ if __name__ == "__main__":
     print(f"\nDownlaod all Cert and CRL")
     try:
         test_vectors_idd_configuration(general_log_level)
-    except Exception:
+    except AssertionError:
         print(f"\tFAILED")
     else:
         test_passed += 1
@@ -1000,6 +1160,17 @@ if __name__ == "__main__":
     finally:
         test_done += 1
 
+    print(f"\nCert RCA Signature Fail")
+    try:
+        test_vectors_idd_configuration_cert_1_signature(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
     #------------------------------------------------------------------------------------
 
     print(f"\nCert SCA Time Fail")
@@ -1024,6 +1195,17 @@ if __name__ == "__main__":
     finally:
         test_done += 1
     
+    print(f"\nCert SCA Signature Fail")
+    try:
+        test_vectors_idd_configuration_cert_2_signature(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
     print(f"\nCert SCA Revokated Fail")
     try:
         test_vectors_idd_configuration_cert_2_revokated(general_log_level)
@@ -1051,6 +1233,17 @@ if __name__ == "__main__":
     print(f"\nCert ICA Issuer Fail")
     try:
         test_vectors_idd_configuration_cert_3_issuer(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+    
+    print(f"\nCert ICA Signature Fail")
+    try:
+        test_vectors_idd_configuration_cert_3_signature(general_log_level)
     except AssertionError:
         print(f"\tFAILED")
     else:
@@ -1094,6 +1287,17 @@ if __name__ == "__main__":
     finally:
         test_done += 1
     
+    print(f"\nCert MK EE Signature Fail")
+    try:
+        test_vectors_idd_configuration_cert_4_MK_signature(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+    
     print(f"\nCert MK EE Revokated Fail")
     try:
         test_vectors_idd_configuration_cert_4_MK_revokated(general_log_level)
@@ -1104,7 +1308,7 @@ if __name__ == "__main__":
         print(f"\tCORRECT")
     finally:
         test_done += 1
-    
+
     #------------------------------------------------------------------------------------
 
         print(f"\nCert PKI Time Fail")
@@ -1129,6 +1333,17 @@ if __name__ == "__main__":
     finally:
         test_done += 1
     
+    print(f"\nCert PKI Signature Fail")
+    try:
+        test_vectors_idd_configuration_cert_4_PKI_signature(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
     print(f"\nCert PKI Revokated Fail")
     try:
         test_vectors_idd_configuration_cert_4_PKI_revokated(general_log_level)
@@ -1164,6 +1379,17 @@ if __name__ == "__main__":
     finally:
         test_done += 1
 
+    print(f"\nCRL RCA Signature Fail")
+    try:
+        test_vectors_idd_configuration_crl_1_signature(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
     #------------------------------------------------------------------------------------
 
     print(f"\nCRL SCA Time Fail")
@@ -1180,6 +1406,17 @@ if __name__ == "__main__":
     print(f"\nCRL SCA Issuer Fail")
     try:
         test_vectors_idd_configuration_crl_2_issuer(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+    
+    print(f"\nCRL SCA Signature Fail")
+    try:
+        test_vectors_idd_configuration_crl_2_signature(general_log_level)
     except AssertionError:
         print(f"\tFAILED")
     else:
@@ -1212,6 +1449,16 @@ if __name__ == "__main__":
     finally:
         test_done += 1
 
+    print(f"\nCRL ICA Verify Fail")
+    try:
+        test_vectors_idd_configuration_crl_3_signature(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
     #------------------------------------------------------------------------------------
 
 

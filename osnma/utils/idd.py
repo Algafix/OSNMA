@@ -33,8 +33,8 @@ class IDD:
         if Config.DOWNLOAD_PKI or Config.DOWNLOAD_MERKLE:
             #self.username = input("usuario:")
             #self.password = input("contraseña:")
-            self.username = "AleGP"
-            self.password = "AlexGonzalez_29"
+            self.username = "AlexGP"
+            self.password = "Alex1564382!"
 
             try:
                 self.connect()
