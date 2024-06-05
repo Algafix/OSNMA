@@ -60,7 +60,6 @@ class ReceiverState:
         self.current_pkid: Optional[int] = None
         self.merkle_root: Optional[BitArray] = None
         self.new_merkle_root: Optional[BitArray] = None
-
         self.tesla_chain_force: Optional[TESLAChain] = None
         self.next_tesla_chain: Optional[TESLAChain] = None
 
@@ -70,6 +69,9 @@ class ReceiverState:
         self.dsm_manager = DigitalSignatureMessageManager()
 
         self.kroot_waiting_mack: List[Tuple[List[Optional[BitArray]], GST, int, BitArray]] = []
+
+        self.log_last_kroot_auth: Optional[DSMKroot] = None
+        self.log_last_pkr_auth: Optional[DSMPKR] = None
 
         self._initialize_status()
 
@@ -121,7 +123,7 @@ class ReceiverState:
         if self.chain_status == CPKS.EOC and self.next_tesla_chain is not None:
             current_chain_in_force = nma_header[2:4].uint
             if current_chain_in_force == self.next_tesla_chain.chain_id:
-                logger.info(f"New chain in force: CID {current_chain_in_force} GST0"
+                logger.info(f"New chain in force: CID {current_chain_in_force} GST0 "
                             f"{self.next_tesla_chain.GST0}")
                 self.tesla_chain_force = self.next_tesla_chain
                 self.next_tesla_chain = None
@@ -259,6 +261,7 @@ class ReceiverState:
                 logger.info(f"KROOT with CID: {dsm_kroot.get_value('CIDKR').uint} - PKID: "
                             f"{dsm_kroot.get_value('PKID').uint} - GST0: WN {dsm_kroot.get_value('WN_K').uint} TOW "
                             f"{dsm_kroot.get_value('TOWH_K').uint*3600}\n\tAUTHENTICATED\n")
+                self.log_last_kroot_auth = dsm_kroot
                 self._chain_status_handler(nma_header, dsm_kroot)
             else:
                 logger.error(
@@ -280,6 +283,7 @@ class ReceiverState:
 
         if dsm_pkr.pkr_verification():
             logger.info(f"PKR with NPKID {npkid} verified.")
+            self.log_last_pkr_auth = dsm_pkr
 
             if dsm_pkr.is_OAM:
                 logger.warning("OAM Detected - Please connect to the GSC OSNMA Server")
