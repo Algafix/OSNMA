@@ -193,6 +193,29 @@ def test_svid_12_repeats_iod(log_level=logging.INFO):
     input_module = SBF(config_dict['scenario_path'])
     run(input_module, config_dict, expected_results)
 
+def test_real_eoc(log_level=logging.INFO):
+
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'test_corner_cases/real_eoc/real_eoc.sbf',
+        'exec_path': Path(__file__).parent / 'test_corner_cases/real_eoc/',
+        'pubk_name': 'OSNMA_PublicKey_1.xml'
+    }
+
+    expected_results = {
+        "tags_auth": 6339,
+        "data_auth": 4214,
+        "kroot_auth": 73,
+        "broken_kroot": 44,
+        "crc_failed": 477,
+        "warnings": 521,
+        "errors": 0
+    }
+
+    input_module = SBF(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
 def test_6_hours(log_level=logging.INFO):
 
     config_dict = {
