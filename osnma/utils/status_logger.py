@@ -25,7 +25,7 @@ import pprint
 import json
 from osnma.structures.maclt import mac_lookup_table
 from osnma.structures.fields_information import mf_lt, hf_lt, npkt_lt, KS_lt, TS_lt
-from osnma.osnma_core.receiver_state import OSNMAlibSTATE, NMAS
+from osnma.osnma_core.receiver_state import OSNMAlibSTATE, NMAS, CPKS
 from osnma.utils.config import Config
 
 ######## logger ########
@@ -38,9 +38,16 @@ def _get_pkr_dict(osnma_r: 'OSNMAReceiver'):
         # We know the current pkid is in force
         pubk_id = osnma_r.receiver_state.current_pkid
         pkr_handler = osnma_r.receiver_state.pkr_dict[pubk_id]
-    elif osnma_r.receiver_state.nma_status == NMAS.DONT_USE and osnma_r.receiver_state.log_last_pkr_auth is not None:
-        # Case of DNU with PKREV or AM
-        pkr_handler = osnma_r.receiver_state.log_last_pkr_auth
+    elif osnma_r.receiver_state.nma_status == NMAS.DONT_USE:
+        if osnma_r.receiver_state.chain_status == CPKS.CREV:
+            # The pubk is still valid
+            pubk_id = osnma_r.receiver_state.log_last_kroot_auth.get_value('PKID').uint
+            pkr_handler = osnma_r.receiver_state.pkr_dict[pubk_id]
+        elif osnma_r.receiver_state.log_last_pkr_auth is not None:
+            # Case of PKREV or OAM
+            pkr_handler = osnma_r.receiver_state.log_last_pkr_auth
+        else:
+            return None
     else:
         return None
 
