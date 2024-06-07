@@ -24,7 +24,7 @@ from enum import IntEnum
 
 from bitstring import BitArray
 
-from osnma.structures.fields_information import CPKS, NMAS, cpks_lt, nmas_lt
+from osnma.structures.fields_information import CPKS, NMAS, parse_nma_header
 from osnma.cryptographic.dsm_kroot import DSMKroot
 from osnma.cryptographic.dsm_pkr import DSMPKR
 from osnma.cryptographic.gst_class import GST
@@ -32,7 +32,7 @@ from osnma.osnma_core.tesla_chain import TESLAChain
 from osnma.osnma_core.nav_data_manager import NavigationDataManager
 from osnma.osnma_core.dsm_manager import DigitalSignatureMessageManager, DSMType
 from osnma.utils.iohandler import IOHandler
-from osnma.utils.exceptions import PublicKeyObjectError, TeslaKeyVerificationFailed, MackParsingError
+from osnma.utils.exceptions import PublicKeyObjectError, TeslaKeyVerificationFailed, MackParsingError, NMAStatusDontUseFromTag
 from osnma.utils.config import Config
 
 ######## logger ########
@@ -53,6 +53,7 @@ class ReceiverState:
         self.osnmalib_state = OSNMAlibSTATE.COLD_START
         self.chain_status = CPKS.NOMINAL
         self.nma_status = NMAS.TEST
+        self.last_received_nmas = BitArray(uint=NMAS.TEST.value, length=2)
 
         self.nma_header: Optional[BitArray] = None
 
@@ -100,7 +101,8 @@ class ReceiverState:
                         dsm_kroot.process_data(kroot_bits)
                         if dsm_kroot.kroot_verification():
                             # self._chain_status_handler(nmah_bits, dsm_kroot)
-                            self.nma_status, _, self.chain_status = self._nma_header_parser(nmah_bits)
+                            self.nma_status, _, self.chain_status = parse_nma_header(nmah_bits)
+                            self.last_received_nmas = nmah_bits[:2]
                             self.nma_header = nmah_bits
                             self.tesla_chain_force = TESLAChain(self.nav_data_structure, dsm_kroot)
                             self.current_pkid = dsm_kroot.get_value('PKID').uint
@@ -112,12 +114,6 @@ class ReceiverState:
                         logger.warning(e)
                     except PublicKeyObjectError:
                         logger.warning('Saved Key Root PKID is not consistent with the stored Public Key. Not used.')
-
-    def _nma_header_parser(self, nma_header: BitArray) -> (NMAS, int, CPKS):
-        nma_status = nmas_lt[nma_header[:2].uint]
-        cid = nma_header[2:4].uint
-        cpks = cpks_lt[nma_header[4:7].uint]
-        return nma_status, cid, cpks
 
     def _subframe_actions(self, nma_header: BitArray):
         if self.chain_status == CPKS.EOC and self.next_tesla_chain is not None:
@@ -173,7 +169,7 @@ class ReceiverState:
 
     def _chain_status_handler(self, nma_header: BitArray, dsm_kroot: DSMKroot):
 
-        new_nmas, cid, new_cpks = self._nma_header_parser(nma_header)
+        new_nmas, cid, new_cpks = parse_nma_header(nma_header)
         self.nma_status = new_nmas
         self.chain_status = new_cpks
         self.nma_header = nma_header
@@ -302,11 +298,11 @@ class ReceiverState:
         else:
             logger.error(f"PKR verification failed! PRK received: NPKID {npkid}, NPKT {dsm_pkr.get_value('NPKT').uint}, MID {dsm_pkr.get_value('MID').uint}.")
 
-    def process_hkroot_subframe(self, hkroot_sf: BitArray, is_consecutive_hkroot=False) -> BitArray:
+    def process_hkroot_subframe(self, hkroot_sf: BitArray, is_consecutive_hkroot=False):
 
         if self.osnmalib_state == OSNMAlibSTATE.OSNMA_AM:
             logger.warning(f"OSNMA Alert Message. Not processing OSNMA data. Connect to the GSC OSNMA sever.")
-            return BitArray(uint=NMAS.DONT_USE.value, length=2)
+            return
 
         nma_header, dsm = self.dsm_manager.new_dsm_subframe(hkroot_sf)
 
@@ -319,9 +315,7 @@ class ReceiverState:
             else:
                 self.process_pkr_message(dsm.get_message())
 
-        return nma_header[:2]
-
-    def process_mack_subframe(self, mack_subframe: List[Optional[BitArray]], gst_subframe: GST, satellite: 'Satellite', sf_nma_status: BitArray):
+    def process_mack_subframe(self, mack_subframe: List[Optional[BitArray]], gst_subframe: GST, satellite: 'Satellite'):
 
         if self.nma_status == NMAS.DONT_USE:
             logger.warning(f"NMA Status: Don't Use. Navigation data authentication not performed.")
@@ -329,17 +323,19 @@ class ReceiverState:
             return
 
         if self.tesla_chain_force is None:
-            self.kroot_waiting_mack.append((mack_subframe, gst_subframe, satellite.svid, sf_nma_status))
+            self.kroot_waiting_mack.append((mack_subframe, gst_subframe, satellite.svid, self.last_received_nmas))
         else:
             try:
                 if self.kroot_waiting_mack:
                     for w_mack in self.kroot_waiting_mack:
                         self.tesla_chain_force.parse_mack_message(w_mack[0], w_mack[1], w_mack[2], w_mack[3])
                     self.kroot_waiting_mack = []
-                tags_log, tkey = self.tesla_chain_force.parse_mack_message(mack_subframe, gst_subframe, satellite.svid, sf_nma_status)
+                tags_log, tkey = self.tesla_chain_force.parse_mack_message(mack_subframe, gst_subframe, satellite.svid, self.last_received_nmas)
                 satellite.osnma_tags_log = tags_log
                 satellite.osnma_tesla_key_log = tkey
-
+            except NMAStatusDontUseFromTag as e:
+                logger.warning(f"Tag authenticated with NMA Status to Dont Use. Stopping navigation data processing.")
+                self.nma_status = NMAS.DONT_USE
             except MackParsingError as e:
                 # Unable to parse the message correctly
                 logger.error(f"Unable to parse the MACK message correctly.\n{e}")
@@ -360,6 +356,10 @@ class ReceiverState:
                 if self.osnmalib_state == OSNMAlibSTATE.HOT_START and tkey is not None:
                     self.osnmalib_state = OSNMAlibSTATE.STARTED
                     logger.info(f"One TESLA key verified. Start Status: {self.osnmalib_state.name}")
+
+    def load_last_nma_status(self, nma_status: BitArray):
+        if nma_status is not None:
+            self.last_received_nmas = nma_status
 
     def load_nav_data_page(self, nav_bits: BitArray, gst_page: GST, satellite: 'Satellite'):
         self.nav_data_structure.load_page(nav_bits, gst_page, satellite)

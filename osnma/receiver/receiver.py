@@ -119,12 +119,13 @@ class OSNMAReceiver:
 
         if satellite.subframe_with_osnma():
             raw_hkroot_sf = satellite.get_hkroot_subframe()
-            hkroot_sf = self.subframe_regenerator.load_dsm_block(raw_hkroot_sf, gst_sf, satellite.svid)
+            hkroot_sf, nma_status = self.subframe_regenerator.load_dsm_block(raw_hkroot_sf, gst_sf, satellite.svid)
+            self.receiver_state.load_last_nma_status(nma_status)
             if hkroot_sf:
                 # The full subframe has been received consecutively.
-                nma_status = self.receiver_state.process_hkroot_subframe(hkroot_sf, is_consecutive_hkroot=True)
+                self.receiver_state.process_hkroot_subframe(hkroot_sf, is_consecutive_hkroot=True)
                 mack_sf = satellite.get_mack_subframe()
-                self.receiver_state.process_mack_subframe(mack_sf, gst_sf, satellite, nma_status)
+                self.receiver_state.process_mack_subframe(mack_sf, gst_sf, satellite)
             else:
                 # Broken subframe. Reconstruct if possible hkroot. Extract what is possible from MACK.
                 logger.warning('Broken HKROOT Subframe. Regenerating HKROOT and processing MACK if active.')
@@ -134,8 +135,7 @@ class OSNMAReceiver:
                         self.receiver_state.process_hkroot_subframe(regen_hkroot_sf)
                 if Config.DO_CRC_FAILED_EXTRACTION:
                     mack_sf = satellite.get_mack_subframe()
-                    self.receiver_state.process_mack_subframe(
-                        mack_sf, gst_sf, satellite, BitArray(uint=self.receiver_state.nma_status.value, length=2))
+                    self.receiver_state.process_mack_subframe(mack_sf, gst_sf, satellite)
         else:
             logger.info(f"No OSNMA data.")
 

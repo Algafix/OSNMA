@@ -27,6 +27,7 @@ import osnma.utils.logger_factory as log_factory
 logger = log_factory.get_logger(__name__)
 
 
+NMA_HEADER = 0
 DSM_HEADER = 1
 DSM_NUMBER_OF_BLOCKS_PAGE = 2
 DSM_NUMBER_OF_BLOCKS_FIELD = slice(0, 4)
@@ -78,7 +79,8 @@ class SubFrameRegenerator:
                 self.block_dict.pop(bid)
         return complete_blocks
 
-    def load_dsm_block(self, hkroot_subframe: List[Optional[BitArray]], gst_subframe: GST, svid: int) -> Union[BitArray, bool]:
+    def load_dsm_block(self, hkroot_subframe: List[Optional[BitArray]], gst_subframe: GST, svid: int) \
+            -> (Union[BitArray, bool], Optional[BitArray]):
 
         block_id: Optional[int] = None
         # Get block_id from DSM Header
@@ -101,4 +103,9 @@ class SubFrameRegenerator:
         if not complete_block and block_id is not None:
             self._save_block(hkroot_subframe, block_id)
 
-        return complete_block
+        # Get NMA Status
+        nma_status = None
+        if nma_header := hkroot_subframe[NMA_HEADER]:
+            nma_status = nma_header[:2]
+
+        return complete_block, nma_status

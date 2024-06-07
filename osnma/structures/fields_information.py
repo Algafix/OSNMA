@@ -15,6 +15,7 @@
 #
 
 from enum import Enum, IntEnum
+from bitstring import BitArray
 
 
 class Field:
@@ -103,6 +104,13 @@ class CPKS(IntEnum):
     PKREV = 5
     NMT = 6
     AM = 7
+
+
+def parse_nma_header(nma_header: BitArray) -> (NMAS, int, CPKS):
+    nma_status = nmas_lt[nma_header[:2].uint]
+    cid = nma_header[2:4].uint
+    cpks = cpks_lt[nma_header[4:7].uint]
+    return nma_status, cid, cpks
 
 
 class HF(IntEnum):
