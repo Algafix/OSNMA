@@ -216,6 +216,29 @@ def test_real_eoc(log_level=logging.INFO):
     input_module = SBF(config_dict['scenario_path'])
     run(input_module, config_dict, expected_results)
 
+def test_real_crev(log_level=logging.INFO):
+
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'test_corner_cases/real_crev/real_crev.sbf',
+        'exec_path': Path(__file__).parent / 'test_corner_cases/real_crev/',
+        'pubk_name': 'OSNMA_PublicKey_1.xml'
+    }
+
+    expected_results = {
+        "tags_auth": 12289,
+        "data_auth": 8235,
+        "kroot_auth": 210,
+        "broken_kroot": 108,
+        "crc_failed": 1802,
+        "warnings": 3302,
+        "errors": 0
+    }
+
+    input_module = SBF(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
 def test_6_hours(log_level=logging.INFO):
 
     config_dict = {
