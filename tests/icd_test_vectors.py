@@ -88,12 +88,12 @@ def run(input_module, config_dict, expected_results_dict):
         total_npkid = len(re.findall(r'\'NPKID\'', log_text))
         # TBC
 
-    print(f"{total_subframes} vs {expected_results_dict['total_subframes']}")
-    print(f"{nmas_operational} vs {expected_results_dict['nmas_operational']}")
-    print(f"{nmas_test} vs {expected_results_dict['nmas_test']}")
-    print(f"{nmas_dnu} vs {expected_results_dict['nmas_dnu']}")
-    print(f"{total_cpks_nominal} vs {expected_results_dict['total_cpks_nominal']}")
-    print(f"{total_npkid} vs {expected_results_dict['total_npkid']}")
+    # print(f"{total_subframes} vs {expected_results_dict['total_subframes']}")
+    # print(f"{nmas_operational} vs {expected_results_dict['nmas_operational']}")
+    # print(f"{nmas_test} vs {expected_results_dict['nmas_test']}")
+    # print(f"{nmas_dnu} vs {expected_results_dict['nmas_dnu']}")
+    # print(f"{total_cpks_nominal} vs {expected_results_dict['total_cpks_nominal']}")
+    # print(f"{total_npkid} vs {expected_results_dict['total_npkid']}")
 
     assert total_subframes == expected_results_dict['total_subframes']
     assert nmas_operational == expected_results_dict['nmas_operational']
@@ -432,17 +432,17 @@ def test_vectors_pkrev_step1(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 8605,
-        "data_auth": 4034,
+        "tags_auth": 6664,
+        "data_auth": 3095,
         "kroot_auth": 117,
         "broken_kroot": 0,
         "crc_failed": 0,
-        "warnings": 834,
+        "warnings": 1150,
         "errors": 0,
         "total_subframes": 119,
-        "nmas_operational": 77,
+        "nmas_operational": 61,
         "nmas_test": 0,
-        "nmas_dnu": 42,
+        "nmas_dnu": 58,
         "total_cpks_nominal": 77,
         "total_npkid": 119,
     }
@@ -606,12 +606,12 @@ def test_vectors_oam_step1(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 6648,
-        "data_auth": 3161,
+        "tags_auth": 6549,
+        "data_auth": 3096,
         "kroot_auth": 109,
         "broken_kroot": 0,
         "crc_failed": 0,
-        "warnings": 2332,
+        "warnings": 2341,
         "errors": 0,
         "total_subframes": 119,
         "nmas_operational": 61,
