@@ -151,3 +151,16 @@ tests/icd_test_vectors/*/OSNMA_last_KROOT.txt
 tests/test_corner_cases/*/OSNMA_last_KROOT.txt
 !tests/icd_test_vectors/configuration_X/OSNMA_last_KROOT.txt
 /tests/icd_test_vectors/configuration_2/OSNMA_PublicKey_2.xml
+
+# pycharm runs
+.run/
+
+# Test vectors extracted keys
+/tests/icd_test_vectors/nmt_step1/OSNMA_PublicKey_1.xml
+/tests/icd_test_vectors/nmt_step2/OSNMA_PublicKey_1.xml
+/tests/icd_test_vectors/npk_step1/OSNMA_PublicKey_8.xml
+/tests/icd_test_vectors/npk_step2/OSNMA_PublicKey_8.xml
+/tests/icd_test_vectors/pkrev_step1/OSNMA_PublicKey_9.xml
+
+/gnss_sdr_run/bladerf_8bit_4Msps.bin
+*_run/OSNMA_last_KROOT.txt

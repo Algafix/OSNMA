@@ -41,6 +41,11 @@ class MackParsingError(Exception):
 class ReceiverStatusError(Exception):
     pass
 
+
+class NMAStatusDontUseFromTag(Exception):
+    pass
+
+
 class StoppedAtFAF(Exception):
     def __init__(self, message, ttfaf: int, first_tow, faf_tow):
         super().__init__(message)

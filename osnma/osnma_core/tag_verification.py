@@ -23,8 +23,10 @@ from osnma.osnma_core.nav_data_manager import NavigationDataManager
 
 ######## imports ########
 from osnma.structures.maclt import mac_lookup_table
+from osnma.structures.fields_information import NMAS
 from osnma.cryptographic.gst_class import GST
 from osnma.utils.config import Config
+from osnma.utils.exceptions import NMAStatusDontUseFromTag
 
 ######## logger ########
 import osnma.utils.logger_factory as logger_factory
@@ -63,6 +65,8 @@ class TagStateStructure:
     def verify_tag(self, tag: TagAndInfo):
         if tag.authenticate(self.tesla_chain.mac_function):
             logger.info(f"Tag AUTHENTICATED\n\t{tag.get_log()}")
+            if NMAS(tag.nma_status.uint) == NMAS.DONT_USE:
+                raise NMAStatusDontUseFromTag(f"Tag authenticated with NMA Status to Dont Use. {tag.get_log()}")
             if not tag.is_dummy:
                 self.nav_data_m.new_tag_verified(tag)
         else:

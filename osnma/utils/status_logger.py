@@ -24,41 +24,65 @@ if TYPE_CHECKING:
 import pprint
 import json
 from osnma.structures.maclt import mac_lookup_table
-from osnma.structures.fields_information import mf_lt, hf_lt, npkt_lt
-from osnma.osnma_core.receiver_state import OSNMAlibSTATE
+from osnma.structures.fields_information import mf_lt, hf_lt, npkt_lt, KS_lt, TS_lt
+from osnma.osnma_core.receiver_state import OSNMAlibSTATE, NMAS, CPKS
 from osnma.utils.config import Config
 
 ######## logger ########
 import osnma.utils.logger_factory as log_factory
 logger = log_factory.get_logger(__name__)
 
-def _get_osnma_chain_dict(osnma_r: 'OSNMAReceiver') -> Dict:
-    osnma_status_dict = {"Tesla Chain in Force": None, "Public Key in Force": None}
+def _get_pkr_dict(osnma_r: 'OSNMAReceiver'):
 
     if osnma_r.receiver_state.osnmalib_state == OSNMAlibSTATE.STARTED:
-        osnma_chain_dict = {}
-        kroot_handler = osnma_r.receiver_state.tesla_chain_force.dsm_kroot
-        osnma_chain_dict["NMAS"] = osnma_r.receiver_state.nma_status.name
-        osnma_chain_dict["CID"] = osnma_r.receiver_state.tesla_chain_force.chain_id
-        osnma_chain_dict["CPKS"] = osnma_r.receiver_state.chain_status.name
-        osnma_chain_dict["PKID"] = osnma_r.receiver_state.current_pkid
-        osnma_chain_dict["HF"] = hf_lt[kroot_handler.get_value('HF').uint].name
-        osnma_chain_dict["MF"] = mf_lt[kroot_handler.get_value('MF').uint].name
-        osnma_chain_dict["KS"] = osnma_r.receiver_state.tesla_chain_force.key_size
-        osnma_chain_dict["TS"] = osnma_r.receiver_state.tesla_chain_force.tag_size
-        osnma_chain_dict["MACLT"] = osnma_r.receiver_state.tesla_chain_force.maclt
-        maclt_sequence = mac_lookup_table[osnma_chain_dict["MACLT"]]["sequence"]
-        osnma_chain_dict["MACLT Sequence"] = maclt_sequence
-        osnma_status_dict["Tesla Chain in Force"] = osnma_chain_dict
-
-        osnma_pubk_dict = {}
+        # We know the current pkid is in force
         pubk_id = osnma_r.receiver_state.current_pkid
-        pkr_in_force_handler = osnma_r.receiver_state.pkr_dict[pubk_id]
-        osnma_pubk_dict["NPKID"] = pkr_in_force_handler.get_value("NPKID").uint
-        osnma_pubk_dict["NPKT"] = npkt_lt[pkr_in_force_handler.get_value("NPKT").uint].name
-        osnma_pubk_dict["MID"] = pkr_in_force_handler.get_value("MID").uint
+        pkr_handler = osnma_r.receiver_state.pkr_dict[pubk_id]
+    elif osnma_r.receiver_state.nma_status == NMAS.DONT_USE:
+        if osnma_r.receiver_state.chain_status == CPKS.CREV:
+            # The pubk is still valid
+            pubk_id = osnma_r.receiver_state.log_last_kroot_auth.get_value('PKID').uint
+            pkr_handler = osnma_r.receiver_state.pkr_dict[pubk_id]
+        elif osnma_r.receiver_state.log_last_pkr_auth is not None:
+            # Case of PKREV or OAM
+            pkr_handler = osnma_r.receiver_state.log_last_pkr_auth
+        else:
+            return None
+    else:
+        return None
 
-        osnma_status_dict["Public Key in Force"] = osnma_pubk_dict
+    osnma_pubk_dict = {"NPKID": pkr_handler.get_value("NPKID").uint,
+                       "NPKT": npkt_lt[pkr_handler.get_value("NPKT").uint].name,
+                       "MID": pkr_handler.get_value("MID").uint}
+    return osnma_pubk_dict
+
+def _get_kroot_dict(osnma_r: 'OSNMAReceiver'):
+
+    if osnma_r.receiver_state.osnmalib_state == OSNMAlibSTATE.STARTED:
+        # We have a TESLA chain in force
+        kroot_handler = osnma_r.receiver_state.tesla_chain_force.dsm_kroot
+    elif osnma_r.receiver_state.nma_status == NMAS.DONT_USE and osnma_r.receiver_state.log_last_kroot_auth is not None:
+        # Case of DNU with CREV or AM
+        kroot_handler = osnma_r.receiver_state.log_last_kroot_auth
+    else:
+        return None
+
+    osnma_chain_dict = {"NMAS": osnma_r.receiver_state.nma_status.name,
+                        "CID": kroot_handler.get_value("CIDKR").uint,
+                        "CPKS": osnma_r.receiver_state.chain_status.name,
+                        "PKID": kroot_handler.get_value("PKID").uint,
+                        "HF": hf_lt[kroot_handler.get_value('HF').uint].name,
+                        "MF": mf_lt[kroot_handler.get_value('MF').uint].name,
+                        "KS": KS_lt[kroot_handler.get_value('KS').uint],
+                        "TS": TS_lt[kroot_handler.get_value('TS').uint],
+                        "MACLT": kroot_handler.get_value('MACLT').uint}
+    maclt_sequence = mac_lookup_table[osnma_chain_dict["MACLT"]]["sequence"]
+    osnma_chain_dict["MACLT Sequence"] = maclt_sequence
+    return osnma_chain_dict
+
+def _get_osnma_chain_dict(osnma_r: 'OSNMAReceiver') -> Dict:
+    osnma_status_dict = {"Tesla Chain in Force": _get_kroot_dict(osnma_r),
+                         "Public Key in Force": _get_pkr_dict(osnma_r)}
 
     return osnma_status_dict
 

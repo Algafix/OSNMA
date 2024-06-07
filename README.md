@@ -119,7 +119,7 @@ Real-time execution with data from Galmon
 If you want to see the library process data in real-time but don't have a receiver, I've integrated OSNMAlib with the [galmon](https://github.com/berthubert/galmon) project. You can find it under the folder `live_galmon_run/` and run it with:
 
 ```
-$ live_galmon_run/
+$ cd live_galmon_run/
 $ python run.py
 ```
 
@@ -141,7 +141,7 @@ setIPServerSettings, IPS1, 20000
 Then just execute the software. By default, it connects to `192.168.3.1:20000`.
 
 ```
-$ live_septentrio_run/
+$ cd live_septentrio_run/
 $ python run.py
 ```
 
