@@ -70,19 +70,9 @@ class _Config:
 
         self.IDD_STRICT = False
 
-        self.IDD_CERT = {
-            "CERT_PKIEE" : '',
-            "CERT_MERKLE" : '',
-            "CERT_ICA" : '',
-            "CERT_SCA" : '',
-            "CERT_RCA" : ''
-        }
+        self.USER_IDD_CERT = {}
 
-        self.IDD_CRL = {
-            "CRL_ICA" : '',
-            "CRL_SCA" : '',
-            "CRL_RCA" : ''
-        }
+        self.USER_IDD_CRL = {}
 
 
     def load_configuration_parameters(self, param_dict: Dict[str, Any]):

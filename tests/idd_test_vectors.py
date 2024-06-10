@@ -102,7 +102,7 @@ def test_vectors_idd_configuration_Good(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -110,7 +110,7 @@ def test_vectors_idd_configuration_Good(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
@@ -137,7 +137,7 @@ def test_vectors_idd_configuration_cert_1_time(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -145,7 +145,7 @@ def test_vectors_idd_configuration_cert_1_time(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca_time.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
@@ -172,7 +172,7 @@ def test_vectors_idd_configuration_cert_1_issuer(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -180,7 +180,7 @@ def test_vectors_idd_configuration_cert_1_issuer(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca_issuer.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
@@ -207,7 +207,7 @@ def test_vectors_idd_configuration_cert_1_signature(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -215,7 +215,7 @@ def test_vectors_idd_configuration_cert_1_signature(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca_signature.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
@@ -242,7 +242,7 @@ def test_vectors_idd_configuration_cert_2_time(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -250,7 +250,7 @@ def test_vectors_idd_configuration_cert_2_time(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
@@ -277,7 +277,7 @@ def test_vectors_idd_configuration_cert_2_issuer(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -285,7 +285,7 @@ def test_vectors_idd_configuration_cert_2_issuer(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
@@ -312,7 +312,7 @@ def test_vectors_idd_configuration_cert_2_signature(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -320,7 +320,7 @@ def test_vectors_idd_configuration_cert_2_signature(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
@@ -347,7 +347,7 @@ def test_vectors_idd_configuration_cert_2_revokated(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -355,7 +355,7 @@ def test_vectors_idd_configuration_cert_2_revokated(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca_revokated.crl'
@@ -382,7 +382,7 @@ def test_vectors_idd_configuration_cert_3_time(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica_time.crt",
@@ -390,7 +390,7 @@ def test_vectors_idd_configuration_cert_3_time(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
@@ -417,7 +417,7 @@ def test_vectors_idd_configuration_cert_3_issuer(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica_issuer.crt",
@@ -425,7 +425,7 @@ def test_vectors_idd_configuration_cert_3_issuer(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
@@ -452,7 +452,7 @@ def test_vectors_idd_configuration_cert_3_signature(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica_signature.crt",
@@ -460,7 +460,7 @@ def test_vectors_idd_configuration_cert_3_signature(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
@@ -487,7 +487,7 @@ def test_vectors_idd_configuration_cert_3_revokated(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -495,7 +495,7 @@ def test_vectors_idd_configuration_cert_3_revokated(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca_revokated.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
@@ -522,7 +522,7 @@ def test_vectors_idd_configuration_cert_4_MK_time(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk_time.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -530,7 +530,7 @@ def test_vectors_idd_configuration_cert_4_MK_time(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
@@ -557,7 +557,7 @@ def test_vectors_idd_configuration_cert_4_MK_issuer(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk_issuer.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -565,7 +565,7 @@ def test_vectors_idd_configuration_cert_4_MK_issuer(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
@@ -592,7 +592,7 @@ def test_vectors_idd_configuration_cert_4_MK_signature(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk_signature.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -600,7 +600,7 @@ def test_vectors_idd_configuration_cert_4_MK_signature(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
@@ -627,7 +627,7 @@ def test_vectors_idd_configuration_cert_4_MK_revokated(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -635,7 +635,7 @@ def test_vectors_idd_configuration_cert_4_MK_revokated(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica_revokatedMK.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
@@ -662,7 +662,7 @@ def test_vectors_idd_configuration_cert_4_PKI_time(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki_time.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -670,7 +670,7 @@ def test_vectors_idd_configuration_cert_4_PKI_time(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
@@ -697,7 +697,7 @@ def test_vectors_idd_configuration_cert_4_PKI_issuer(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki_issuer.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -705,7 +705,7 @@ def test_vectors_idd_configuration_cert_4_PKI_issuer(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
@@ -732,7 +732,7 @@ def test_vectors_idd_configuration_cert_4_PKI_signature(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki_signature.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -740,7 +740,7 @@ def test_vectors_idd_configuration_cert_4_PKI_signature(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
@@ -767,7 +767,7 @@ def test_vectors_idd_configuration_cert_4_PKI_revokated(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -775,7 +775,7 @@ def test_vectors_idd_configuration_cert_4_PKI_revokated(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica_revokatedPKI.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
@@ -802,7 +802,7 @@ def test_vectors_idd_configuration_crl_1_time(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -810,7 +810,7 @@ def test_vectors_idd_configuration_crl_1_time(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca_time.crl'
@@ -837,7 +837,7 @@ def test_vectors_idd_configuration_crl_1_issuer(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -845,7 +845,7 @@ def test_vectors_idd_configuration_crl_1_issuer(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca_issuer.crl'
@@ -872,7 +872,7 @@ def test_vectors_idd_configuration_crl_1_signature(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -880,7 +880,7 @@ def test_vectors_idd_configuration_crl_1_signature(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca_signature.crl'
@@ -907,7 +907,7 @@ def test_vectors_idd_configuration_crl_2_time(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -915,7 +915,7 @@ def test_vectors_idd_configuration_crl_2_time(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca_time.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
@@ -942,7 +942,7 @@ def test_vectors_idd_configuration_crl_2_issuer(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -950,7 +950,7 @@ def test_vectors_idd_configuration_crl_2_issuer(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca_issuer.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
@@ -977,7 +977,7 @@ def test_vectors_idd_configuration_crl_2_signature(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -985,7 +985,7 @@ def test_vectors_idd_configuration_crl_2_signature(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca_signature.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
@@ -1012,7 +1012,7 @@ def test_vectors_idd_configuration_crl_3_time(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -1020,7 +1020,7 @@ def test_vectors_idd_configuration_crl_3_time(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica_time.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
@@ -1047,7 +1047,7 @@ def test_vectors_idd_configuration_crl_3_issuer(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -1055,7 +1055,7 @@ def test_vectors_idd_configuration_crl_3_issuer(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica_issuer.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca.crl'
@@ -1082,7 +1082,7 @@ def test_vectors_idd_configuration_crl_3_signature(log_level=logging.INFO):
         'download_sca': False,
         'download_rca': False,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/',
-        'IDD_CERT' : {
+        'USER_IDD_CERT' : {
             "CERT_PKIEE" : "Cert 4 - PKI/pki.crt",
             "CERT_MERKLE" : "Cert 4 - MK/mk.crt",
             "CERT_ICA" : "Cert 3- ICA/ica.crt",
@@ -1090,7 +1090,7 @@ def test_vectors_idd_configuration_crl_3_signature(log_level=logging.INFO):
             "CERT_RCA" : "Cert 1 - RCA/rca.crt"
         },
 
-        'IDD_CRL' : {
+        'USER_IDD_CRL' : {
             "CRL_ICA" : 'CRL 3 - ICA/ica.crl',
             "CRL_SCA" : 'CRL 2 - SCA/sca.crl',
             "CRL_RCA" : 'CRL 1 - RCA/rca_signature.crl'

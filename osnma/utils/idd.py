@@ -1,4 +1,5 @@
 import paramiko
+from paramiko import SSHException
 import xml.etree.ElementTree as ET
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
@@ -16,13 +17,34 @@ import osnma.utils.logger_factory as logger_factory
 logger = logger_factory.get_logger(__name__)
 
 class IDD:
-    def __init__(self): 
+    def __init__(self):
+
+        # Avoid running anything if the user does not want to
+        if not self._idd_coherence_check():
+            return
+
+        Config.IDD_CERT = {
+            "CERT_PKIEE" : '',
+            "CERT_MERKLE" : '',
+            "CERT_ICA" : '',
+            "CERT_SCA" : '',
+            "CERT_RCA" : ''
+        }
+        Config.IDD_CERT.update(Config.USER_IDD_CERT)
+
+        Config.IDD_CRL = {
+            "CRL_ICA" : '',
+            "CRL_SCA" : '',
+            "CRL_RCA" : ''
+        }
+        Config.IDD_CRL.update(Config.USER_IDD_CRL)
+
         if not os.path.isdir(f"{Config.CERT_FOLDER}"):
-                logger.warning(f"Path certs not exist")
-                a = f"{Config.EXEC_PATH}" + '/Cert'
-                if not os.path.isdir(a):
-                    os.mkdir(a)
-                Config.CERT_FOLDER = a
+            logger.warning(f"Path certs not exist")
+            a = f"{Config.EXEC_PATH}" + '/Cert'
+            if not os.path.isdir(a):
+                os.mkdir(a)
+            Config.CERT_FOLDER = a
         
         if Config.DOWNLOAD_RCA:
             self.web_download("rca")
@@ -39,93 +61,115 @@ class IDD:
             try:
                 self.connect()
 
-                if Config.DOWNLOAD_PKI: 
+                if Config.DOWNLOAD_PKI:
                     self.download_PK()
 
                 if Config.DOWNLOAD_MERKLE:
                     self.download_MerkleTree()
-                
-                self.disconnect()            
-            except:
-                logger.warning(f"failed to establish connection to targeted server")   
+
+                self.disconnect()
+            except SSHException as e:
+                logger.warning(f"Failed to establish connection to targeted server: {e} Trying to continue...")
+            except Exception as e:
+                logger.warning(f"Error when downloading PKI and MerkleTree: {e} Trying to continue...")
+
+        # Before calling authenticate() we should make sure everything is in place
+        # The file existence checks should be done before
+        # The ICA extraction too
         self.authenticate()
-        
-            
+
+
+    def _idd_coherence_check(self):
+        # TODO: Define more inconsistencies, e.g. provide RCA CERT without CLR
+
+        download_idd_info = (Config.DOWNLOAD_RCA or Config.DOWNLOAD_SCA or Config.DOWNLOAD_PKI or Config.DOWNLOAD_MERKLE)
+        provided_idd_info = (Config.USER_IDD_CRL or Config.USER_IDD_CERT)
+
+        if not download_idd_info and not provided_idd_info:
+            return False
+
+        return True
+
+
     def connect(self):
         self.transport = paramiko.Transport(("osnma.gsc-europa.eu", 2222))
-
         self.transport.connect(username = self.username, password = self.password)
-        logger.info(f"connection established successfully")
-
+        logger.info(f"Connection with the SFTP server established successfully")
         self.sftp = paramiko.SFTPClient.from_transport(self.transport)
             
     
     def disconnect(self):
         self.sftp.close()
         self.transport.close()
-        logger.info(f"disconnection successfully")
 
 
     def download_PK(self):
+        """
+        Are we verifying the downloads with the MD5?
+        Why dont we extract the CERT ICA from the CRT file and save it aside?
+        Could even use the same function as in the authenticate function and avoid multiple iterations
+        """
 
-        directorios = self.sftp.listdir("OSNMA_PublicKey/Applicable")
-        
-        xml = sorted(filter(lambda x: x[-4:] == ".xml",directorios))[-1]
-        
-        pki_path = "OSNMA_PublicKey/Applicable/"
-        remote_file_path = pki_path + xml
-        
-        self.sftp.get(remote_file_path, f"{Config.CERT_FOLDER}/" + xml)
-        self.sftp.get(remote_file_path + ".md5", f"{Config.CERT_FOLDER}/" + xml + ".md5")
+        sftp_public_key_path = "OSNMA_PublicKey/Applicable/"
 
-        tree = ET.parse(f"{Config.CERT_FOLDER}/" + xml)
-        root = tree.getroot()
+        # Download Public Key XML and MD5
+        public_key_files = self.sftp.listdir(sftp_public_key_path)
+        pubk_xml = sorted(filter(lambda x: x[-4:] == ".xml", public_key_files))[-1]
+        remote_file_path = sftp_public_key_path + pubk_xml
 
-        cert_file_path = root.find('body').find('PublicKey').find('Certificate').text
-        path_cert_file = pki_path + cert_file_path
+        self.sftp.get(remote_file_path, f"{Config.CERT_FOLDER}/" + pubk_xml)
+        self.sftp.get(remote_file_path + ".md5", f"{Config.CERT_FOLDER}/" + pubk_xml + ".md5")
+
+        # Find and download the certificate to authenticate the key
+        pubk_xml_parser = ET.parse(f"{Config.CERT_FOLDER}/" + pubk_xml).getroot()
+        cert_file_path = pubk_xml_parser.find('body').find('PublicKey').find('Certificate').text
+        path_cert_file = sftp_public_key_path + cert_file_path
 
         self.sftp.get(path_cert_file, f"{Config.CERT_FOLDER}/" + cert_file_path)
         self.sftp.get(path_cert_file + ".md5", f"{Config.CERT_FOLDER}/" + cert_file_path + ".md5")
 
-        crl_file_path = root.find('body').find('PublicKey').find('CRL').text
-        path_crl_file = pki_path + crl_file_path
+        # Find and download the CRL for the key
+        crl_file_path = pubk_xml_parser.find('body').find('PublicKey').find('CRL').text
+        path_crl_file = sftp_public_key_path + crl_file_path
 
         self.sftp.get(path_crl_file, f"{Config.CERT_FOLDER}/" + crl_file_path)
         self.sftp.get(path_crl_file + ".md5", f"{Config.CERT_FOLDER}/" + crl_file_path + ".md5")
 
-        Config.PUBK_NAME = f"{Config.CERT_FOLDER}/" + xml
+        # Save the file names in the Config object
+        Config.PUBK_NAME = f"{Config.CERT_FOLDER}/" + pubk_xml
         Config.IDD_CERT["CERT_PKIEE"] = cert_file_path
         Config.IDD_CRL["CRL_ICA"] = crl_file_path
-        logger.info(f"Download PKI done")
+        logger.info(f"Download of the Public Key done")
 
 
     def download_MerkleTree(self):
 
-        directorios = self.sftp.listdir("OSNMA_MerkleTree/Applicable")
+        sftp_merkle_tree_path = "OSNMA_MerkleTree/Applicable/"
 
-        xml = sorted(filter(lambda x: x[-4:] == ".xml",directorios))[-1]
-
-        pki_path = "OSNMA_MerkleTree/Applicable/"
-        remote_file_path = pki_path + xml
+        # Download Merkle Tree XML and MD5
+        merkle_tree_files = self.sftp.listdir(sftp_merkle_tree_path)
+        xml = sorted(filter(lambda x: x[-4:] == ".xml", merkle_tree_files))[-1]
+        remote_file_path = sftp_merkle_tree_path + xml
 
         self.sftp.get(remote_file_path, f"{Config.CERT_FOLDER}/" + xml)
         self.sftp.get(remote_file_path + ".md5", f"{Config.CERT_FOLDER}/" + xml + ".md5")
-        
-        tree = ET.parse(f"{Config.CERT_FOLDER}/" + xml)
-        root = tree.getroot()
 
-        sig_file_path = root.find('body').find('MerkleTree').find('SignatureFile').text
-        path_sig_file = pki_path + sig_file_path
+        # Download Merkle Tree Signature
+        merkle_tree_xml_parser = ET.parse(f"{Config.CERT_FOLDER}/" + xml).getroot()
+        sig_file_path = merkle_tree_xml_parser.find('body').find('MerkleTree').find('SignatureFile').text
+        path_sig_file = sftp_merkle_tree_path + sig_file_path
 
         self.sftp.get(path_sig_file, f"{Config.CERT_FOLDER}/" + sig_file_path)
         self.sftp.get(path_sig_file + ".md5", f"{Config.CERT_FOLDER}/" + sig_file_path + ".md5")
 
-        cert_file_path = root.find('body').find('MerkleTree').find('SignatureVerificationCertificate').text
-        path_cert_file = pki_path + cert_file_path
+        # Download Merkle Tree Certificate
+        cert_file_path = merkle_tree_xml_parser.find('body').find('MerkleTree').find('SignatureVerificationCertificate').text
+        path_cert_file = sftp_merkle_tree_path + cert_file_path
 
         self.sftp.get(path_cert_file, f"{Config.CERT_FOLDER}/" + cert_file_path)
         self.sftp.get(path_cert_file + ".md5", f"{Config.CERT_FOLDER}/" + cert_file_path + ".md5")
-        
+
+        # Save the file names in the Config object
         Config.MERKLE_NAME = f"{Config.CERT_FOLDER}/" + xml
         Config.IDD_CERT["CERT_MERKLE"] = cert_file_path
         logger.info(f"Download Merkle Tree done")
@@ -233,10 +277,31 @@ class IDD:
 
     def authenticate(self):
         entity = ["EEPKI", "MerkleTree", "ICA", "SCA", "RCA"]
+        """
+        Why not use enumerations?
+        class ENTITIES(Enum):
+            EEPPKI = "PKIEE",
+            MERKLE_TREE = "MERKLE,
+            ICA = "ICA",
+            SCA = "SCA",
+            RCA = "RCA"
+        Then you can do:
+        certs[ENTITIES.EEPPKI] = x509.load_pem_x509_certificate(cert_data, default_backend())
+        Easier than:
+        certs[entity[count2]] = x509.load_pem_x509_certificate(cert_data, default_backend())
+        https://docs.python.org/3.8/library/enum.html
+        """
         certs = {}
         crls = {}
         count = 0
         check = 0
+
+        """
+        I guess we are extracting the ICA here?
+        Why iterating over all certificates, if it is only inside the PubKey.crt or the MerkleTree.crt?
+        We could extract it when downloading PubKey or MerkleTree, or directly from https://www.gsc-europa.eu/gsc-products/pki
+        And have a cleaner authenticate() implementation
+        """
         for name,value in Config.IDD_CERT.items():
             value = f"{Config.CERT_FOLDER}/" + value
             if os.path.exists(value):
@@ -254,6 +319,19 @@ class IDD:
             
             count = count + 1
             if count > 1: break      
+
+        """
+        Make a function out of:
+        
+            if os.path.exists(value):
+                with open(value, 'rb') as cert_file:
+                    cert_data = cert_file.read()
+                certs[entity[count2]] = x509.load_pem_x509_certificate(cert_data, default_backend())
+            else:
+                logger.warning(f"{name} file don't found")
+        
+        count, count2 and check are not meaningful variable names. What does check == 1 mean?       
+        """
 
         count2 = 0
         for name,value in Config.IDD_CERT.items():
