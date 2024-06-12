@@ -65,6 +65,8 @@ class _Config:
         self.DOWNLOAD_PKI = False
         self.DOWNLOAD_MERKLE = False
 
+        self.DOWNLOAD_ICA = False
+
         self.DOWNLOAD_SCA = False
         self.DOWNLOAD_RCA = False
 

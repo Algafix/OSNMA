@@ -78,6 +78,7 @@ def test_vectors_idd_configuration(log_level=logging.INFO):
         'exec_path': Path(__file__).parent / 'idd_test_vectors/',
         'download_pki': True,
         'download_merkle': True,
+        'download_ica': True,
         'download_sca': True,
         'download_rca': True,
         'CERT_FOLDER' : Path(__file__).parent / 'idd_test_vectors/Cert/'

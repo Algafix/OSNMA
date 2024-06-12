@@ -70,3 +70,8 @@ class VerifyException(IDDException):
     template_message = "The {message} signature is invalid."
     def __init__(self, message):
         super().__init__(self.template_message.format(message = message))
+
+class MD5Exception(Exception):
+    template_message = "File {message} is not MD5 validated."
+    def __init__(self, message):
+        super().__init__(self.template_message.format(message = message))

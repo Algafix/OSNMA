@@ -20,8 +20,9 @@ def sbf_current_config():
         'exec_path': '.',
         'download_pki': True,
         'download_merkle': True,
-        # 'download_sca': False,
-        # 'download_rca': False,
+        'download_sca': True,
+        'download_rca': True,
+        'download_ica': True,
         # 'USER_IDD_CERT' : {
         #     "CERT_PKIEE" : "Cert/pki_1.crt",
         #     "CERT_MERKLE" : "Cert/mk_1.crt",
