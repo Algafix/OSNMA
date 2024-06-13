@@ -16,14 +16,13 @@
 
 ######## type annotations ########
 from typing import TYPE_CHECKING, List, Dict, Tuple, Optional, Union
-if TYPE_CHECKING:
-    from osnma.receiver.satellite import Satellite
 
 ######## imports ########
 from osnma.structures.adkd import adkd_masks
 from osnma.structures.mack_structures import TagAndInfo
 from osnma.cryptographic.gst_class import GST
 from osnma.utils.config import Config
+from osnma.utils.status_logger import StatusLogger
 from osnma.utils.exceptions import StoppedAtFAF
 
 from bitstring import BitArray
@@ -427,16 +426,16 @@ class NavigationDataManager:
         else:
             self.authenticated_data_dict[tag.data_id] = AuthenticatedData(tag)
 
-    def load_page(self, page: BitArray, gst_page: GST, satellite: 'Satellite'):
+    def load_page(self, page: BitArray, gst_page: GST, svid: int):
         word_type = page[2:8].uint
         if word_type not in self.active_words:
             return
         if word_type in WORDS_PER_ADKD[ADKD0]:
-            satellite.add_word(ADKD0, word_type)
-            self.adkd0_data_managers[satellite.svid].add_word(word_type, page, gst_page)
+            StatusLogger.log_nav_data(svid, ADKD0, word_type)
+            self.adkd0_data_managers[svid].add_word(word_type, page, gst_page)
         else:
-            satellite.add_word(ADKD4, word_type)
-            self.adkd4_data_managers[satellite.svid].add_word(word_type, page, gst_page)
+            StatusLogger.log_nav_data(svid, ADKD4, word_type)
+            self.adkd4_data_managers[svid].add_word(word_type, page, gst_page)
 
     def _calculate_TTFAF(self, auth_data: AuthenticatedData, gst_subframe: GST):
 

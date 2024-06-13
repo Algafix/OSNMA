@@ -181,10 +181,10 @@ class OSNMAReceiver:
                 satellite.new_page(page)
 
                 # Log satellite
-                StatusLogger.add_satellite(satellite)
+                StatusLogger.add_satellite(gst_sf, satellite)
 
                 # Add nav data of the page to the navigation data manager
-                self.receiver_state.load_nav_data_page(page.nav_bits, page.gst_page, satellite)
+                self.receiver_state.load_nav_data_page(page.nav_bits, page.gst_page, satellite.svid)
 
                 # If we get the last subframe page of this satellite, process it now instead of waiting
                 if page.gst_page % 30 == 29:

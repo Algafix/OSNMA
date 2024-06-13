@@ -351,8 +351,8 @@ class ReceiverState:
         if nma_status is not None:
             self.last_received_nmas = nma_status
 
-    def load_nav_data_page(self, nav_bits: BitArray, gst_page: GST, satellite: 'Satellite'):
-        self.nav_data_structure.load_page(nav_bits, gst_page, satellite)
+    def load_nav_data_page(self, nav_bits: BitArray, gst_page: GST, svid: int):
+        self.nav_data_structure.load_page(nav_bits, gst_page, svid)
 
 
 if __name__ == '__main__':

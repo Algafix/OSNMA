@@ -19,11 +19,13 @@ from typing import TYPE_CHECKING, Dict, List
 if TYPE_CHECKING:
     from osnma.receiver.receiver import OSNMAReceiver
     from osnma.receiver.satellite import Satellite
+    from osnma.cryptographic.gst_class import GST
     from osnma.structures.mack_structures import TagAndInfo, TESLAKey
 
 ### imports ###
 import pprint
 import json
+from enum import Enum
 from osnma.structures.maclt import mac_lookup_table
 from osnma.structures.fields_information import mf_lt, hf_lt, npkt_lt, KS_lt, TS_lt, NMAS, CPKS, OSNMAlibSTATE
 from osnma.utils.config import Config
@@ -31,6 +33,11 @@ from osnma.utils.config import Config
 ######## logger ########
 import osnma.utils.logger_factory as log_factory
 logger = log_factory.get_logger(__name__)
+
+class ADKD(Enum):
+    ADKD0 = 0
+    ADKD4 = 4
+    ADKD12 = 12
 
 STATUS_DICT_TEMPLATE = {
     "Metadata": {
@@ -125,22 +132,28 @@ class _StatusLogger:
 
         return osnma_data_dict
 
-    def _get_subframe_nav_data(self, satellites: Dict[int, 'Satellite']) -> Dict:
-        nav_data_per_satellite = {}
-        for svid, satellite in satellites.items():
-            if satellite.is_active():
-                svid = f"{svid:02d}"
-                nav_data_per_satellite[svid] = {"ADKD0": satellite.words_adkd0, "ADKD4": satellite.words_adkd4}
-        return nav_data_per_satellite
+    def log_nav_data(self, svid_int: int, adkd, word_type):
+        svid = f"{svid_int:02d}"
+        self.nav_data[svid][ADKD(adkd).name][word_type] = True
 
     def load_mack_data(self, svid_int: int, tag_list: List['TagAndInfo'], tesla_key: 'TESLAKey'):
         svid = f"{svid_int:02d}"
         self.osnma_mack_data[svid]["Tags"] = tag_list
         self.osnma_mack_data[svid]["Key"] = tesla_key if tesla_key is None else tesla_key.get_json()
 
-    def add_satellite(self, satellite: 'Satellite'):
+    def add_satellite(self, gst_sf: 'GST', satellite: 'Satellite'):
         svid = f"{satellite.svid:02d}"
-        self.nav_data[svid] = {}
+
+        # Initialize nav data
+        if svid not in self.nav_data:
+            self.nav_data[svid] = {
+                "ADKD0": {1: False, 2: False, 3: False, 4: False, 5: False},
+                "ADKD4": {6: False, 10: False},
+            }
+            if gst_sf.tow % 60 == 0:
+                self.nav_data[svid]["ADKD4"][10] = None
+
+        # initialize OSNMA data
         if satellite.subframe_with_osnma():
             self.osnma_mack_data[svid] = {"Tags": [], 'Key': None}
 
@@ -154,7 +167,7 @@ class _StatusLogger:
             },
             "OSNMA Status": self._get_osnma_chain_dict(osnma_r),
             "OSNMA Authenticated Data": self._get_osnma_data_auth_dict(osnma_r),
-            "Nav Data Received": self._get_subframe_nav_data(osnma_r.satellites),
+            "Nav Data Received": dict(sorted(self.nav_data.items())),
             "OSNMA Data": dict(sorted(self.osnma_mack_data.items()))
         }
 
