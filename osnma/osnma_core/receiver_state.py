@@ -20,11 +20,9 @@ if TYPE_CHECKING:
     from osnma.receiver.satellite import Satellite
 
 ######## imports ########
-from enum import IntEnum
-
 from bitstring import BitArray
 
-from osnma.structures.fields_information import CPKS, NMAS, parse_nma_header
+from osnma.structures.fields_information import CPKS, NMAS, parse_nma_header, OSNMAlibSTATE
 from osnma.cryptographic.dsm_kroot import DSMKroot
 from osnma.cryptographic.dsm_pkr import DSMPKR
 from osnma.cryptographic.gst_class import GST
@@ -39,12 +37,6 @@ from osnma.utils.config import Config
 import osnma.utils.logger_factory as log_factory
 logger = log_factory.get_logger(__name__)
 
-class OSNMAlibSTATE(IntEnum):
-    COLD_START = 0
-    WARM_START = 1
-    HOT_START = 2
-    STARTED = 6
-    OSNMA_AM = 7
 
 class ReceiverState:
 
@@ -328,11 +320,9 @@ class ReceiverState:
             try:
                 if self.kroot_waiting_mack:
                     for w_mack in self.kroot_waiting_mack:
-                        self.tesla_chain_force.parse_mack_message(w_mack[0], w_mack[1], w_mack[2], w_mack[3])
+                        self.tesla_chain_force.parse_mack_message(w_mack[0], w_mack[1], w_mack[2], w_mack[3], do_log = False)
                     self.kroot_waiting_mack = []
-                tags_log, tkey = self.tesla_chain_force.parse_mack_message(mack_subframe, gst_subframe, satellite.svid, self.last_received_nmas)
-                satellite.osnma_tags_log = tags_log
-                satellite.osnma_tesla_key_log = tkey
+                self.tesla_chain_force.parse_mack_message(mack_subframe, gst_subframe, satellite.svid, self.last_received_nmas)
             except NMAStatusDontUseFromTag as e:
                 logger.warning(f"Tag authenticated with NMA Status to Dont Use. Stopping navigation data processing.")
                 self.nma_status = NMAS.DONT_USE

@@ -17,6 +17,12 @@
 from enum import Enum, IntEnum
 from bitstring import BitArray
 
+class OSNMAlibSTATE(IntEnum):
+    COLD_START = 0
+    WARM_START = 1
+    HOT_START = 2
+    STARTED = 6
+    OSNMA_AM = 7
 
 class Field:
     """

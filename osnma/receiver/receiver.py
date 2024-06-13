@@ -25,10 +25,8 @@ from osnma.osnma_core.receiver_state import ReceiverState
 from osnma.utils.config import Config
 from osnma.utils.exceptions import StoppedAtFAF
 from osnma.cryptographic.gst_class import GST
-from osnma.utils.status_logger import do_status_log
+from osnma.utils.status_logger import StatusLogger
 from osnma.utils.bits_logger import BitsLogger
-
-from bitstring import BitArray
 
 ######## logger ########
 import osnma.utils.logger_factory as log_factory
@@ -67,7 +65,7 @@ class OSNMAReceiver:
     def _do_status_log(self):
         if Config.DO_STATUS_LOG:
             try:
-                do_status_log(self)
+                StatusLogger.do_status_log(self)
             except Exception as e:
                 logger.exception(f"Error doing status logging")
 
@@ -181,6 +179,9 @@ class OSNMAReceiver:
                 # Add OSNMA data to satellite
                 satellite = self.satellites[page.svid]
                 satellite.new_page(page)
+
+                # Log satellite
+                StatusLogger.add_satellite(satellite)
 
                 # Add nav data of the page to the navigation data manager
                 self.receiver_state.load_nav_data_page(page.nav_bits, page.gst_page, satellite)
