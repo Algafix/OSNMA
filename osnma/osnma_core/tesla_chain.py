@@ -146,7 +146,8 @@ class TESLAChain:
 
         return computed_tesla_key
 
-    def parse_mack_message(self, mack_message: List[BitArray], gst_sf: GST, prn_a: int, nma_status: BitArray, do_log = True):
+    def parse_mack_message(self, mack_message: List[BitArray], gst_sf: GST, prn_a: int, nma_status: BitArray, do_log = True)\
+            -> Optional[TESLAKey]:
         """Parse a MACK message bit stream. Then handles the MACK object to the tag structure to add the new tags to the
         tag list. Finally, add the key(s) received to the TESLA key chain.
 
@@ -172,6 +173,7 @@ class TESLAChain:
                     self.tags_structure.update_tag_lists(gst_sf)
             if do_log:
                 StatusLogger.load_mack_data(prn_a, tags_log, tesla_key)
+            return tesla_key
 
     def get_key_index(self, gst_sf: GST) -> int:
         """Computes the key index that would have a key received on the subframe specified and in the position specified

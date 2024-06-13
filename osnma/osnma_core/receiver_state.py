@@ -322,7 +322,7 @@ class ReceiverState:
                     for w_mack in self.kroot_waiting_mack:
                         self.tesla_chain_force.parse_mack_message(w_mack[0], w_mack[1], w_mack[2], w_mack[3], do_log = False)
                     self.kroot_waiting_mack = []
-                self.tesla_chain_force.parse_mack_message(mack_subframe, gst_subframe, satellite.svid, self.last_received_nmas)
+                tesla_key = self.tesla_chain_force.parse_mack_message(mack_subframe, gst_subframe, satellite.svid, self.last_received_nmas)
             except NMAStatusDontUseFromTag as e:
                 logger.warning(f"Tag authenticated with NMA Status to Dont Use. Stopping navigation data processing.")
                 self.nma_status = NMAS.DONT_USE
@@ -343,7 +343,7 @@ class ReceiverState:
                     logger.warning("Deleting first mack message from waiting list")
                     self.kroot_waiting_mack = self.kroot_waiting_mack[1:]
             else:
-                if self.osnmalib_state == OSNMAlibSTATE.HOT_START and tkey is not None:
+                if self.osnmalib_state == OSNMAlibSTATE.HOT_START and tesla_key is not None:
                     self.osnmalib_state = OSNMAlibSTATE.STARTED
                     logger.info(f"One TESLA key verified. Start Status: {self.osnmalib_state.name}")
 
