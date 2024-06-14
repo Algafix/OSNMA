@@ -15,7 +15,7 @@
 #
 
 ######## type annotations ########
-from typing import Union, List, Optional, Tuple
+from typing import Union, List, Optional
 from osnma.osnma_core.nav_data_manager import NavigationDataManager
 from osnma.structures.mack_structures import MACSeqObject, TagAndInfo
 
@@ -171,8 +171,9 @@ class TESLAChain:
                 verified, is_new_key = self.add_key(tesla_key)
                 if verified and is_new_key:
                     self.tags_structure.update_tag_lists(gst_sf)
+                StatusLogger.log_auth_tesla_key(tesla_key)
             if do_log:
-                StatusLogger.load_mack_data(prn_a, tags_log, tesla_key)
+                StatusLogger.log_mack_data(prn_a, tags_log, tesla_key)
             return tesla_key
 
     def get_key_index(self, gst_sf: GST) -> int:
