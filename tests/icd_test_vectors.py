@@ -81,11 +81,11 @@ def run(input_module, config_dict, expected_results_dict):
         log_text = log_file.read()
 
         total_subframes = len(re.findall(r'STATUS END OF SUBFRAME', log_text))
-        nmas_operational = len(re.findall(r'\'NMAS\': \'OPERATIONAL\'', log_text))
-        nmas_test = len(re.findall(r'\'NMAS\': \'TEST\'', log_text))
-        nmas_dnu = len(re.findall(r'\'NMAS\': \'DONT_USE\'', log_text))
-        total_cpks_nominal = len(re.findall(r'\'CPKS\': \'NOMINAL\'', log_text))
-        total_npkid = len(re.findall(r'\'NPKID\'', log_text))
+        nmas_operational = len(re.findall(r'\'nma_status\'.*\'nmas\': \'OPERATIONAL\'', log_text))
+        nmas_test = len(re.findall(r'\'nma_status\'.*\'nmas\': \'TEST\'', log_text))
+        nmas_dnu = len(re.findall(r'\'nma_status\'.*\'nmas\': \'DONT_USE\'', log_text))
+        total_cpks_nominal = len(re.findall(r'\'nma_status\'.*\'cpks\': \'NOMINAL\'', log_text))
+        total_npkid = len(re.findall(r'\'npkid\'', log_text))
         # TBC
 
     # print(f"{total_subframes} vs {expected_results_dict['total_subframes']}")
@@ -237,7 +237,7 @@ def test_vectors_eoc_step2(log_level=logging.INFO):
         "warnings": 0,
         "errors": 0,
         "total_subframes": 119,
-        "nmas_operational": 115,
+        "nmas_operational": 119,
         "nmas_test": 0,
         "nmas_dnu": 0,
         "total_cpks_nominal": 59,

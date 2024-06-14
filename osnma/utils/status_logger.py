@@ -44,7 +44,6 @@ class _StatusLogger:
 
     def __init__(self):
 
-        self.current_subframe_dict = {}
         self.osnma_data_received = {}
         self.nav_data = {}
         self.osnma_authenticated = {
@@ -53,7 +52,15 @@ class _StatusLogger:
             "tags": [],
         }
 
-    def _get_pkr_dict(self, osnma_r: 'OSNMAReceiver'):
+    def _get_nma_status(self, osnma_r: 'OSNMAReceiver'):
+        nma_status = {
+            'nmas': osnma_r.receiver_state.nma_status.name if osnma_r.receiver_state.nma_status else None,
+            'cid': osnma_r.receiver_state.chain_id,
+            'cpks': osnma_r.receiver_state.chain_status.name if osnma_r.receiver_state.chain_status else None,
+        }
+        return nma_status
+
+    def _get_pkr_in_force(self, osnma_r: 'OSNMAReceiver'):
 
         if osnma_r.receiver_state.osnmalib_state == OSNMAlibSTATE.STARTED:
             # We know the current pkid is in force
@@ -72,12 +79,14 @@ class _StatusLogger:
         else:
             return None
 
-        osnma_pubk_dict = {"NPKID": pkr_handler.get_value("NPKID").uint,
-                           "NPKT": npkt_lt[pkr_handler.get_value("NPKT").uint].name,
-                           "MID": pkr_handler.get_value("MID").uint}
+        osnma_pubk_dict = {
+            "npkid": pkr_handler.get_value("NPKID").uint,
+            "npkt": npkt_lt[pkr_handler.get_value("NPKT").uint].name,
+            "mid": pkr_handler.get_value("MID").uint
+        }
         return osnma_pubk_dict
 
-    def _get_kroot_dict(self, osnma_r: 'OSNMAReceiver'):
+    def _get_chain_in_force(self, osnma_r: 'OSNMAReceiver'):
 
         if osnma_r.receiver_state.osnmalib_state == OSNMAlibSTATE.STARTED:
             # We have a TESLA chain in force
@@ -88,22 +97,25 @@ class _StatusLogger:
         else:
             return None
 
-        osnma_chain_dict = {"NMAS": osnma_r.receiver_state.nma_status.name,
-                            "CID": kroot_handler.get_value("CIDKR").uint,
-                            "CPKS": osnma_r.receiver_state.chain_status.name,
-                            "PKID": kroot_handler.get_value("PKID").uint,
-                            "HF": hf_lt[kroot_handler.get_value('HF').uint].name,
-                            "MF": mf_lt[kroot_handler.get_value('MF').uint].name,
-                            "KS": KS_lt[kroot_handler.get_value('KS').uint],
-                            "TS": TS_lt[kroot_handler.get_value('TS').uint],
-                            "MACLT": kroot_handler.get_value('MACLT').uint}
-        maclt_sequence = mac_lookup_table[osnma_chain_dict["MACLT"]]["sequence"]
-        osnma_chain_dict["MACLT Sequence"] = maclt_sequence
+        osnma_chain_dict = {
+            "pkid": kroot_handler.get_value("PKID").uint,
+            "cidkr": kroot_handler.get_value("CIDKR").uint,
+            "hf": hf_lt[kroot_handler.get_value('HF').uint].name,
+            "mf": mf_lt[kroot_handler.get_value('MF').uint].name,
+            "ks": KS_lt[kroot_handler.get_value('KS').uint],
+            "ts": TS_lt[kroot_handler.get_value('TS').uint],
+            "maclt": kroot_handler.get_value('MACLT').uint,
+        }
+        maclt_sequence = mac_lookup_table[osnma_chain_dict["maclt"]]["sequence"]
+        osnma_chain_dict["maclt_sequence"] = maclt_sequence
         return osnma_chain_dict
 
-    def _get_osnma_chain_dict(self, osnma_r: 'OSNMAReceiver') -> Dict:
-        osnma_status_dict = {"Tesla Chain in Force": self._get_kroot_dict(osnma_r),
-                             "Public Key in Force": self._get_pkr_dict(osnma_r)}
+    def _get_osnma_status_dict(self, osnma_r: 'OSNMAReceiver') -> Dict:
+        osnma_status_dict = {
+            "nma_status": self._get_nma_status(osnma_r),
+            "tesla_chain_in_force": self._get_chain_in_force(osnma_r),
+            "public_key_in_force": self._get_pkr_in_force(osnma_r)
+        }
 
         return osnma_status_dict
 
@@ -217,7 +229,7 @@ class _StatusLogger:
                 "Input Module": osnma_r.nav_data_input.__class__.__name__,
                 "OSNMAlib Status": osnma_r.receiver_state.osnmalib_state.name,
             },
-            "OSNMA Status": self._get_osnma_chain_dict(osnma_r),
+            "OSNMA Status": self._get_osnma_status_dict(osnma_r),
             "OSNMA Authenticated Data": self._get_osnma_data_auth_dict(osnma_r),
             "Nav Data Received": dict(sorted(self.nav_data.items())),
             "OSNMA Data": dict(sorted(self.osnma_data_received.items())),

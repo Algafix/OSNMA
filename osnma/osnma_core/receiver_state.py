@@ -43,8 +43,9 @@ class ReceiverState:
     def __init__(self):
 
         self.osnmalib_state = OSNMAlibSTATE.COLD_START
-        self.chain_status = CPKS.NOMINAL
-        self.nma_status = NMAS.TEST
+        self.nma_status = None
+        self.chain_id = None
+        self.chain_status = None
         self.last_received_nmas = BitArray(uint=NMAS.TEST.value, length=2)
 
         self.nma_header: Optional[BitArray] = None
@@ -92,8 +93,7 @@ class ReceiverState:
                         dsm_kroot.set_value('NMA_H', nmah_bits)
                         dsm_kroot.process_data(kroot_bits)
                         if dsm_kroot.kroot_verification():
-                            # self._chain_status_handler(nmah_bits, dsm_kroot)
-                            self.nma_status, _, self.chain_status = parse_nma_header(nmah_bits)
+                            self.nma_status, self.chain_id, self.chain_status = parse_nma_header(nmah_bits)
                             self.last_received_nmas = nmah_bits[:2]
                             self.nma_header = nmah_bits
                             self.tesla_chain_force = TESLAChain(self.nav_data_structure, dsm_kroot)
@@ -108,13 +108,17 @@ class ReceiverState:
                         logger.warning('Saved Key Root PKID is not consistent with the stored Public Key. Not used.')
 
     def _subframe_actions(self, nma_header: BitArray):
-        if self.chain_status == CPKS.EOC and self.next_tesla_chain is not None:
+        if self.chain_status == CPKS.EOC:
             current_chain_in_force = nma_header[2:4].uint
-            if current_chain_in_force == self.next_tesla_chain.chain_id:
-                logger.info(f"New chain in force: CID {current_chain_in_force} GST0 "
-                            f"{self.next_tesla_chain.GST0}")
-                self.tesla_chain_force = self.next_tesla_chain
-                self.next_tesla_chain = None
+            if self.chain_id != current_chain_in_force:
+                logger.info(f"Change in Chain in Force: {self.chain_id} -> {current_chain_in_force}")
+                self.chain_id = current_chain_in_force
+                if self.next_tesla_chain and current_chain_in_force == self.next_tesla_chain.chain_id:
+                    logger.info(f"New chain in force loaded from memory: GST0 {self.next_tesla_chain.GST0}")
+                    self.tesla_chain_force = self.next_tesla_chain
+                    self.next_tesla_chain = None
+                else:
+                    logger.info(f"The chain in force is not saved in memory.")
 
     def _fallback_to_state(self, new_osnmalib_state: OSNMAlibSTATE, cpks: CPKS = CPKS.NOMINAL):
 
@@ -163,6 +167,7 @@ class ReceiverState:
 
         new_nmas, cid, new_cpks = parse_nma_header(nma_header)
         self.nma_status = new_nmas
+        self.chain_id = cid
         self.chain_status = new_cpks
         self.nma_header = nma_header
         cid_kroot = dsm_kroot.get_value('CIDKR').uint
