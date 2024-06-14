@@ -15,8 +15,9 @@
 #
 
 ######## type annotations ########
-from typing import TYPE_CHECKING, Dict, List
+from typing import TYPE_CHECKING, Dict, List, Optional
 if TYPE_CHECKING:
+    from bitstring import BitArray
     from osnma.receiver.receiver import OSNMAReceiver
     from osnma.receiver.satellite import Satellite
     from osnma.cryptographic.gst_class import GST
@@ -27,7 +28,7 @@ import pprint
 import json
 from enum import Enum
 from osnma.structures.maclt import mac_lookup_table
-from osnma.structures.fields_information import mf_lt, hf_lt, npkt_lt, KS_lt, TS_lt, NMAS, CPKS, OSNMAlibSTATE
+from osnma.structures.fields_information import mf_lt, hf_lt, npkt_lt, KS_lt, TS_lt, NMAS, CPKS, OSNMAlibSTATE, parse_nma_header
 from osnma.utils.config import Config
 
 ######## logger ########
@@ -39,24 +40,12 @@ class ADKD(Enum):
     ADKD4 = 4
     ADKD12 = 12
 
-STATUS_DICT_TEMPLATE = {
-    "Metadata": {
-        "GST Subframe": None,
-        "Input Module": None,
-        "OSNMAlib Status": None,
-    },
-    "OSNMA Status": None,
-    "OSNMA Authenticated Data": None,
-    "Nav Data Received": None,
-    "OSNMA Data": None
-}
-
 class _StatusLogger:
 
     def __init__(self):
 
         self.current_subframe_dict = {}
-        self.osnma_mack_data = {}
+        self.osnma_data_received = {}
         self.nav_data = {}
         self.osnma_authenticated = {
             "tesla_key": [],
@@ -177,8 +166,29 @@ class _StatusLogger:
 
     def log_mack_data(self, svid_int: int, tag_list: List['TagAndInfo'], tesla_key: 'TESLAKey'):
         svid = f"{svid_int:02d}"
-        self.osnma_mack_data[svid]["Tags"] = tag_list
-        self.osnma_mack_data[svid]["Key"] = tesla_key if tesla_key is None else tesla_key.key.hex
+        osnma_mack_data = self.osnma_data_received[svid]['mack_data']
+        osnma_mack_data["tags"] = tag_list
+        osnma_mack_data["tesla_key"] = tesla_key if tesla_key is None else tesla_key.key.hex
+
+    def log_hkroot_data(self, svid_int: int, received_blocks: List[Optional['BitArray']]):
+        svid = f"{svid_int:02d}"
+        osnma_hkroot_data = self.osnma_data_received[svid]['hkroot_data']
+
+        if nma_header := received_blocks[0]:
+            nmas, cid, cpks = parse_nma_header(nma_header)
+            osnma_hkroot_data["nma_header"] = {
+                "nmas": nmas.name,
+                "cid": cid,
+                "cpks": cpks.name,
+            }
+
+        if dsm_header := received_blocks[1]:
+            osnma_hkroot_data["dsm_header"] = {
+                "dsm_id": dsm_header[0:4].uint,
+                "block_id": dsm_header[4:8].uint,
+            }
+
+        osnma_hkroot_data["dsm_blocks"] = [True if block is not None else False for block in received_blocks[2:]]
 
     def add_satellite(self, gst_sf: 'GST', satellite: 'Satellite'):
         svid = f"{satellite.svid:02d}"
@@ -193,8 +203,11 @@ class _StatusLogger:
                 self.nav_data[svid]["ADKD4"][10] = None
 
         # initialize OSNMA data
-        if satellite.subframe_with_osnma():
-            self.osnma_mack_data[svid] = {"Tags": [], 'Key': None}
+        if satellite.subframe_with_osnma() and svid not in self.osnma_data_received:
+            self.osnma_data_received[svid] = {
+                "hkroot_data": {"nma_header": None, "dsm_header": None, "dsm_blocks": []},
+                "mack_data": {"tags": [], 'tesla_key': None},
+            }
 
     def do_status_log(self, osnma_r: 'OSNMAReceiver'):
 
@@ -207,7 +220,7 @@ class _StatusLogger:
             "OSNMA Status": self._get_osnma_chain_dict(osnma_r),
             "OSNMA Authenticated Data": self._get_osnma_data_auth_dict(osnma_r),
             "Nav Data Received": dict(sorted(self.nav_data.items())),
-            "OSNMA Data": dict(sorted(self.osnma_mack_data.items())),
+            "OSNMA Data": dict(sorted(self.osnma_data_received.items())),
             "OSNMA Authentication": self.osnma_authenticated,
         }
 
@@ -229,7 +242,7 @@ class _StatusLogger:
             with open(Config.JSON_STATUS_PATH, 'w') as f:
                 json.dump(status_dict, f)
 
-        self.osnma_mack_data = {}
+        self.osnma_data_received = {}
         self.nav_data = {}
         self.osnma_authenticated = {
             "tesla_key": [],
