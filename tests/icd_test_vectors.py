@@ -85,7 +85,7 @@ def run(input_module, config_dict, expected_results_dict):
         nmas_test = len(re.findall(r'\'nma_status\'.*\'nmas\': \'TEST\'', log_text))
         nmas_dnu = len(re.findall(r'\'nma_status\'.*\'nmas\': \'DONT_USE\'', log_text))
         total_cpks_nominal = len(re.findall(r'\'nma_status\'.*\'cpks\': \'NOMINAL\'', log_text))
-        total_npkid = len(re.findall(r'\'npkid\'', log_text))
+        total_npkid = len(re.findall(r'\'public_key_in_force\': \{\'npkid\'', log_text))
         # TBC
 
     # print(f"{total_subframes} vs {expected_results_dict['total_subframes']}")

@@ -39,6 +39,7 @@ class OSNMAReceiver:
 
         Config.load_configuration_parameters(param_dict)
         log_factory.configure_loggers()
+        StatusLogger.initialize()
 
         # Initialize all objects
         self.satellites: Dict[int, Satellite] = {}

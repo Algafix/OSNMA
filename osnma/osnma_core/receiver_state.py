@@ -32,6 +32,7 @@ from osnma.osnma_core.dsm_manager import DigitalSignatureMessageManager, DSMType
 from osnma.utils.iohandler import IOHandler
 from osnma.utils.exceptions import PublicKeyObjectError, TeslaKeyVerificationFailed, MackParsingError, NMAStatusDontUseFromTag
 from osnma.utils.config import Config
+from osnma.utils.status_logger import StatusLogger
 
 ######## logger ########
 import osnma.utils.logger_factory as log_factory
@@ -63,9 +64,6 @@ class ReceiverState:
         self.dsm_manager = DigitalSignatureMessageManager()
 
         self.kroot_waiting_mack: List[Tuple[List[Optional[BitArray]], GST, int, BitArray]] = []
-
-        self.log_last_kroot_auth: Optional[DSMKroot] = None
-        self.log_last_pkr_auth: Optional[DSMPKR] = None
 
         self._initialize_status()
 
@@ -254,7 +252,6 @@ class ReceiverState:
                 logger.info(f"KROOT with CID: {dsm_kroot.get_value('CIDKR').uint} - PKID: "
                             f"{dsm_kroot.get_value('PKID').uint} - GST0: WN {dsm_kroot.get_value('WN_K').uint} TOW "
                             f"{dsm_kroot.get_value('TOWH_K').uint*3600}\n\tAUTHENTICATED\n")
-                self.log_last_kroot_auth = dsm_kroot
                 self._chain_status_handler(nma_header, dsm_kroot)
             else:
                 logger.error(
@@ -263,6 +260,7 @@ class ReceiverState:
                     f"\n\tFAILED\n")
                 if self.osnmalib_state == OSNMAlibSTATE.WARM_START:
                     self._fallback_to_state(OSNMAlibSTATE.COLD_START)
+            StatusLogger.log_auth_kroot(dsm_kroot)
 
     def process_pkr_message(self, pkr: BitArray):
 
@@ -276,10 +274,10 @@ class ReceiverState:
 
         if dsm_pkr.pkr_verification():
             logger.info(f"PKR with NPKID {npkid} verified.")
-            self.log_last_pkr_auth = dsm_pkr
 
             if dsm_pkr.is_OAM:
                 logger.warning("OAM Detected - Please connect to the GSC OSNMA Server")
+                StatusLogger.log_auth_pkr(dsm_pkr)
                 self._fallback_to_state(OSNMAlibSTATE.OSNMA_AM, CPKS.AM)
                 return
 
@@ -294,6 +292,7 @@ class ReceiverState:
                 logger.info(f"Start status from {OSNMAlibSTATE.COLD_START.name} to {self.osnmalib_state.name}")
         else:
             logger.error(f"PKR verification failed! PRK received: NPKID {npkid}, NPKT {dsm_pkr.get_value('NPKT').uint}, MID {dsm_pkr.get_value('MID').uint}.")
+        StatusLogger.log_auth_pkr(dsm_pkr)
 
     def process_hkroot_subframe(self, hkroot_sf: BitArray, is_consecutive_hkroot=False):
 

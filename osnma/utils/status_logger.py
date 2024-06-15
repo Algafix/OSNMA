@@ -22,13 +22,16 @@ if TYPE_CHECKING:
     from osnma.receiver.satellite import Satellite
     from osnma.cryptographic.gst_class import GST
     from osnma.structures.mack_structures import TagAndInfo, TESLAKey, MACSeqObject
+    from osnma.cryptographic.dsm_pkr import DSMPKR
+    from osnma.cryptographic.dsm_kroot import DSMKroot
 
 ### imports ###
 import pprint
 import json
 from enum import Enum
 from osnma.structures.maclt import mac_lookup_table
-from osnma.structures.fields_information import mf_lt, hf_lt, npkt_lt, KS_lt, TS_lt, NMAS, CPKS, OSNMAlibSTATE, parse_nma_header
+from osnma.structures.fields_information import (mf_lt, hf_lt, npkt_lt, KS_lt, TS_lt, NMAS, CPKS, OSNMAlibSTATE,
+                                                 parse_nma_header, NB_DP_lt, NB_DK_lt)
 from osnma.utils.config import Config
 
 ######## logger ########
@@ -50,7 +53,12 @@ class _StatusLogger:
             "tesla_key": [],
             "macseq": [],
             "tags": [],
+            "last_kroot": None,
+            "last_pkr": None,
         }
+
+        self.last_verified_kroot: Optional['DSMKroot'] = None
+        self.last_verified_pkr: Optional['DSMPKR'] = None
 
     def _get_nma_status(self, osnma_r: 'OSNMAReceiver'):
         nma_status = {
@@ -69,11 +77,11 @@ class _StatusLogger:
         elif osnma_r.receiver_state.nma_status == NMAS.DONT_USE:
             if osnma_r.receiver_state.chain_status == CPKS.CREV:
                 # The pubk is still valid
-                pubk_id = osnma_r.receiver_state.log_last_kroot_auth.get_value('PKID').uint
+                pubk_id = self.last_verified_kroot.get_value('PKID').uint
                 pkr_handler = osnma_r.receiver_state.pkr_dict[pubk_id]
-            elif osnma_r.receiver_state.log_last_pkr_auth is not None:
+            elif self.last_verified_pkr is not None:
                 # Case of PKREV or OAM
-                pkr_handler = osnma_r.receiver_state.log_last_pkr_auth
+                pkr_handler = self.last_verified_pkr
             else:
                 return None
         else:
@@ -91,9 +99,9 @@ class _StatusLogger:
         if osnma_r.receiver_state.osnmalib_state == OSNMAlibSTATE.STARTED:
             # We have a TESLA chain in force
             kroot_handler = osnma_r.receiver_state.tesla_chain_force.dsm_kroot
-        elif osnma_r.receiver_state.nma_status == NMAS.DONT_USE and osnma_r.receiver_state.log_last_kroot_auth is not None:
+        elif osnma_r.receiver_state.nma_status == NMAS.DONT_USE and self.last_verified_kroot is not None:
             # Case of DNU with CREV or AM
-            kroot_handler = osnma_r.receiver_state.log_last_kroot_auth
+            kroot_handler = self.last_verified_kroot
         else:
             return None
 
@@ -171,6 +179,91 @@ class _StatusLogger:
             'reconstructed': tesla_key.reconstructed
         }
         self.osnma_authenticated['tesla_key'].append(tesla_key_dict)
+
+    def log_auth_kroot(self, dsm_kroot: 'DSMKroot'):
+        if dsm_kroot.is_verified():
+            self.last_verified_kroot = dsm_kroot
+
+        nmas, cid, cpks = parse_nma_header(dsm_kroot.get_value("NMA_H"))
+        reserved_nmah = int(dsm_kroot.get_value("NMA_H")[-1])
+
+        nb_dk = dsm_kroot.get_value("NB_DK").uint
+        pkid = dsm_kroot.get_value("PKID").uint
+        cidkr = dsm_kroot.get_value("CIDKR").uint
+        reserved1 = dsm_kroot.get_value("NMACK").uint
+        hf = dsm_kroot.get_value("HF").uint
+        mf = dsm_kroot.get_value("MF").uint
+        ks = dsm_kroot.get_value("KS").uint
+        ts = dsm_kroot.get_value("TS").uint
+        maclt = dsm_kroot.get_value("MACLT").uint
+        reserved2 = (dsm_kroot.get_value("KROOT_R") + dsm_kroot.get_value("MO")).uint
+        wn_k = dsm_kroot.get_value("WN_K").uint
+        towh_k = dsm_kroot.get_value("TOWH_K").uint
+        alpha = dsm_kroot.get_value("ALPHA").hex
+        kroot = dsm_kroot.get_value("KROOT").hex
+        ds = dsm_kroot.get_value("DS").hex
+        p_dk = dsm_kroot.get_value("P_DK").bin
+
+        dsm_kroot_dict = {
+            "verification": dsm_kroot.is_verified(),
+            "nma_header": {
+                "nmas": [nmas.value, nmas.name],
+                "cid": [cid, None],
+                "cpks": [cpks.value, cpks.name],
+                "reserved_nmah": [reserved_nmah, None],
+            },
+            "fields": {
+                "nb_dk": [nb_dk, NB_DK_lt[nb_dk]],
+                "pkid": [pkid, None],
+                "cidkr": [cidkr, None],
+                "reserved1": [reserved1, None],
+                "hf": [hf, hf_lt[hf].name],
+                "mf": [mf, mf_lt[mf].name],
+                "ks": [ks, KS_lt[ks]],
+                "ts": [ts, TS_lt[ts]],
+                "maclt": [maclt, None],
+                "reserved2": [reserved2, None],
+                "wn_k": [wn_k, None],
+                "towh_k": [towh_k, towh_k * 3600],
+                "alpha": [alpha, None],
+                "kroot": [kroot, None],
+                "ds": [ds, None],
+                "p_dk": p_dk,
+            }
+        }
+
+        self.osnma_authenticated["last_kroot"] = dsm_kroot_dict
+
+    def log_auth_pkr(self, dsm_pkr: 'DSMPKR'):
+        if dsm_pkr.is_verified():
+            self.last_verified_pkr = dsm_pkr
+
+        nb_dp = dsm_pkr.get_value("NB_DP").uint
+        mid = dsm_pkr.get_value("MID").uint
+        intermediate = dsm_pkr.get_value("ITN")
+        itn1, itn2, itn3, itn4 = intermediate.cut(len(intermediate)//4)
+        npkt = dsm_pkr.get_value("NPKT").uint
+        npkid = dsm_pkr.get_value("NPKID").uint
+        npk = dsm_pkr.get_value("NPK").hex
+        p_dp = dsm_pkr.get_value("P_DP").bin
+
+        dsm_pkr_dict = {
+            "verification": dsm_pkr.is_verified(),
+            "merkle_tree_root": dsm_pkr.merkle_root.hex,
+            "fields": {
+                "nb_dp": [nb_dp, NB_DP_lt[nb_dp]],
+                "mid": [mid, None],
+                "itn1": [itn1.hex, None],
+                "itn2": [itn2.hex, None],
+                "itn3": [itn3.hex, None],
+                "itn4": [itn4.hex, None],
+                "npkt": [npkt, npkt_lt[npkt].name],
+                "npkid": [npkid, None],
+                "npk": [npk, None],
+                "p_dp": [p_dp, None],
+            }
+        }
+        self.osnma_authenticated["last_pkr"] = dsm_pkr_dict
 
     def log_nav_data(self, svid_int: int, adkd, word_type):
         svid = f"{svid_int:02d}"
@@ -256,10 +349,11 @@ class _StatusLogger:
 
         self.osnma_data_received = {}
         self.nav_data = {}
-        self.osnma_authenticated = {
-            "tesla_key": [],
-            "tags": [],
-            "macseq": [],
-        }
+        self.osnma_authenticated["tesla_key"] = []
+        self.osnma_authenticated["tags"] = []
+        self.osnma_authenticated["macseq"] = []
+
+    def initialize(self):
+        self.__init__()
 
 StatusLogger = _StatusLogger()
