@@ -150,3 +150,6 @@ tests/icd_test_vectors/*/OSNMA_last_KROOT.txt
 tests/test_corner_cases/*/OSNMA_last_KROOT.txt
 !tests/icd_test_vectors/configuration_X/OSNMA_last_KROOT.txt
 /tests/icd_test_vectors/configuration_2/OSNMA_PublicKey_2.xml
+
+
+!tests/idd_test_vectors/log/** 

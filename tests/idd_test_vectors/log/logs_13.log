@@ -1,0 +1,8 @@
+osnma.utils.idd                     | INFO     | Authenticate <Name(C=ES,O=EUSPA,CN=OSNMA-PublicKey-PKID-01)> certificate done
+osnma.utils.idd                     | INFO     | Authenticate <Name(C=ES,O=EUSPA,CN=EUSPA OSNMA EE MERKLE TREE)> certificate done
+osnma.utils.idd                     | WARNING  | The certificate <Name(C=ES,O=EUSPA,CN=EUSPA OSNMA ICA)> has been revoked.
+osnma.utils.idd                     | INFO     | Authenticate <Name(C=ES,O=EUSPA,CN=EUSPA GALILEO SCA)> certificate done
+osnma.utils.idd                     | INFO     | Authenticate <Name(C=ES,O=EUSPA,CN=EUSPA ROOT CA)> certificate done
+osnma.utils.idd                     | INFO     | Authenticate <Name(C=ES,O=EUSPA,CN=EUSPA OSNMA ICA)> CRL done
+osnma.utils.idd                     | INFO     | Authenticate <Name(C=ES,O=EUSPA,CN=EUSPA GALILEO SCA)> CRL done
+osnma.utils.idd                     | INFO     | Authenticate <Name(C=ES,O=EUSPA,CN=EUSPA ROOT CA)> CRL done

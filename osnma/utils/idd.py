@@ -74,9 +74,6 @@ class IDD:
             except Exception as e:
                 logger.warning(f"Error when downloading PKI and MerkleTree: {e} Trying to continue...")
 
-        # Before calling authenticate() we should make sure everything is in place
-        # The file existence checks should be done before
-        # The ICA extraction too
         self.parser()
         self.authenticate()
 
@@ -98,11 +95,12 @@ class IDD:
         self.transport.connect(username = self.username, password = self.password)
         logger.info(f"Connection with the SFTP server established successfully")
         self.sftp = paramiko.SFTPClient.from_transport(self.transport)
-            
-    
+
+
     def disconnect(self):
         self.sftp.close()
         self.transport.close()
+
 
     def validate_MD5(self, file_path):
         new_file_path = f"{Config.CERT_FOLDER}/" + file_path
@@ -116,7 +114,8 @@ class IDD:
             expected_md5 = file_MD5.read().strip()
             
         return hash.hexdigest() == expected_md5
-    
+
+
     def extract_ica(self, path):
         new_path = f"{Config.CERT_FOLDER}/" + path
         if os.path.exists(new_path):
@@ -139,16 +138,9 @@ class IDD:
                     logger.warning(f"ICA certificate could not be created")
             else:
                 logger.warning(f"ICA certificate could not be created")
-        
 
 
     def download_PK(self):
-        """
-        DONE Are we verifying the downloads with the MD5?
-        DONE Why dont we extract the CERT ICA from the CRT file and save it aside?
-        Could even use the same function as in the authenticate function and avoid multiple iterations
-        """
-
         sftp_public_key_path = "OSNMA_PublicKey/Applicable/"
 
         # Download Public Key XML and MD5
@@ -335,68 +327,71 @@ class IDD:
         except:
             raise VerifyException(f"CRL {crl.issuer}")
 
+
     def parser(self):
-        self.entity = ["EEPKI", "MerkleTree", "ICA", "SCA", "RCA"]
+        truth_chain = [
+            ["CERT_MERKLE", "CERT_ICA", "CRL_ICA"],
+            ["CERT_PKIEE", "CERT_ICA", "CRL_ICA"],
+            ["CERT_ICA", "CERT_SCA", "CRL_SCA"],
+            ["CERT_SCA", "CERT_RCA", "CRL_RCA"],
+            ["CERT_RCA", "CERT_RCA", None]
+        ]
+        idd_cert = []
+        idd_crl = []
+        self.user_truth_chain = []
 
-        self.certs = {}
-        self.crls = {}
+        for crt, crt_issuer, crl in truth_chain:
+            if Config.IDD_CERT[crt] != "" and Config.IDD_CERT[crt_issuer] != "" and (crl is None or Config.IDD_CRL[crl] != ""):
+                value_0 = f"{Config.CERT_FOLDER}/" + Config.IDD_CERT[crt]
+                value_1 = f"{Config.CERT_FOLDER}/" + Config.IDD_CERT[crt_issuer]
+                if crl is not None:
+                    value_2 = f"{Config.CERT_FOLDER}/" + Config.IDD_CRL[crl]
+                if os.path.exists(value_0) and os.path.exists(value_1) and os.path.exists(value_2):
+                    self.user_truth_chain.append([crt, crt_issuer, crl])
+                    idd_cert.append(crt)
+                    idd_cert.append(crt_issuer)
+                    if crl is not None:
+                        idd_crl.append(crl)
+                else:
+                    break
+            else:
+                break
 
-        for index, (name,value) in enumerate(Config.IDD_CERT.items()):
-            value = f"{Config.CERT_FOLDER}/" + value
-            if os.path.exists(value):
-                with open(value, 'rb') as cert_file:
+        idd_cert =list(set(idd_cert))
+        idd_crl =list(set(idd_crl))
+
+        self.authenticate_entity = {None : None}
+
+        for name in idd_cert:
+            value = Config.IDD_CERT[name]
+            path = f"{Config.CERT_FOLDER}/" + value
+            if os.path.exists(path) and value != "":
+                with open(path, 'rb') as cert_file:
                     cert_data = cert_file.read()
-                self.certs[self.entity[index]] = x509.load_pem_x509_certificate(cert_data, default_backend())
+                self.authenticate_entity[name] = x509.load_pem_x509_certificate(cert_data, default_backend())
             else:
                 logger.warning(f"{name} file don't found")
 
-        for index, (name,value) in enumerate(Config.IDD_CRL.items(), 2):
-            value = f"{Config.CERT_FOLDER}/" + value
-            if os.path.exists(value):
-                with open(value, 'rb') as crl_file:
+        for name in idd_crl:
+            value = Config.IDD_CRL[name]
+            path = f"{Config.CERT_FOLDER}/" + value
+            if os.path.exists(path) and value != "":
+                with open(path, 'rb') as crl_file:
                     crl_data = crl_file.read()
-                self.crls[self.entity[index]] = x509.load_pem_x509_crl(crl_data, default_backend())
-            else:
-                logger.warning(f"{name} file don't found")
-
-    def authenticate(self):        
-        """
-        Why not use enumerations?
-        class ENTITIES(Enum):
-            EEPPKI = "PKIEE",
-            MERKLE_TREE = "MERKLE,
-            ICA = "ICA",
-            SCA = "SCA",
-            RCA = "RCA"
-        Then you can do:
-        certs[ENTITIES.EEPPKI] = x509.load_pem_x509_certificate(cert_data, default_backend())
-        Easier than:
-        certs[entity[count2]] = x509.load_pem_x509_certificate(cert_data, default_backend())
-        https://docs.python.org/3.8/library/enum.html
-        """
-
-        """
-        I guess we are extracting the ICA here?
-        Why iterating over all certificates, if it is only inside the PubKey.crt or the MerkleTree.crt?
-        We could extract it when downloading PubKey or MerkleTree, or directly from https://www.gsc-europa.eu/gsc-products/pki
-        And have a cleaner authenticate() implementation
-        """   
-
-        """
-        Make a function out of:
-        
-            if os.path.exists(value):
-                with open(value, 'rb') as cert_file:
-                    cert_data = cert_file.read()
-                certs[entity[count2]] = x509.load_pem_x509_certificate(cert_data, default_backend())
+                self.authenticate_entity[name] = x509.load_pem_x509_crl(crl_data, default_backend())
             else:
                 logger.warning(f"{name} file don't found")
         
-        count, count2 and check are not meaningful variable names. What does check == 1 mean?       
-        """
+        
+    def authenticate(self): 
         try:
-            self.authenticateCRT(self.certs[self.entity[0]], self.certs[self.entity[2]], self.crls[self.entity[2]])
-            logger.info(f"Authenticate {self.certs[self.entity[0]].subject} certificate done")
+            for crt, crt_issuer, crl in self.user_truth_chain:
+                if crl is not None:
+                    self.authenticateCRL( self.authenticate_entity[crl],  self.authenticate_entity[crt_issuer])
+                    logger.info(f"Authenticate { self.authenticate_entity[crl].issuer} CRL done")
+
+                self.authenticateCRT( self.authenticate_entity[crt],  self.authenticate_entity[crt_issuer],  self.authenticate_entity[crl])
+                logger.info(f"Authenticate { self.authenticate_entity[crt].subject} certificate done")
         except IDDException as e:
             if Config.IDD_STRICT:
                 logger.critical(f"{e}")
@@ -406,44 +401,3 @@ class IDD:
         except Exception as e:
             logger.critical(f"{e}")
             exit(1)
- 
-        for index, crl in enumerate(self.crls,1):
-            try:
-                self.authenticateCRT(self.certs[self.entity[index]], self.certs[self.entity[index+1]], self.crls[crl])
-                logger.info(f"Authenticate {self.certs[self.entity[index]].subject} certificate done")
-            except IDDException as e:
-                if Config.IDD_STRICT:
-                    logger.critical(f"{e}")
-                    exit(1)
-                else:
-                    logger.warning(f"{e}")
-            except Exception as e:
-                logger.critical(f"{e}")
-                exit(1)
-
-        try:
-            self.authenticateCRT(self.certs[self.entity[4]], self.certs[self.entity[4]], None)
-            logger.info(f"Authenticate {self.certs[self.entity[4]].subject} certificate done")
-        except IDDException as e:
-            if Config.IDD_STRICT:
-                logger.critical(f"{e}")
-                exit(1)
-            else:
-                logger.warning(f"{e}")
-        except Exception as e:
-            logger.critical(f"{e}")
-            exit(1)
-
-        for index, crl in enumerate(self.crls,2):
-            try:
-                self.authenticateCRL(self.crls[crl], self.certs[self.entity[index]])
-                logger.info(f"Authenticate {self.crls[crl].issuer} CRL done")
-            except IDDException as e:
-                if Config.IDD_STRICT:
-                    logger.critical(f"{e}")
-                    exit(1)
-                else:
-                    logger.warning(f"{e}")
-            except Exception as e:
-                logger.critical(f"{e}")
-                exit(1)
