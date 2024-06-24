@@ -329,75 +329,83 @@ class IDD:
 
 
     def parser(self):
-        truth_chain = [
-            ["CERT_MERKLE", "CERT_ICA", "CRL_ICA"],
-            ["CERT_PKIEE", "CERT_ICA", "CRL_ICA"],
-            ["CERT_ICA", "CERT_SCA", "CRL_SCA"],
-            ["CERT_SCA", "CERT_RCA", "CRL_RCA"],
-            ["CERT_RCA", "CERT_RCA", None]
-        ]
-        idd_cert = []
-        idd_crl = []
-        self.user_truth_chain = []
+        authenticate_entity = {None : None}
 
-        for crt, crt_issuer, crl in truth_chain:
-            if Config.IDD_CERT[crt] != "" and Config.IDD_CERT[crt_issuer] != "" and (crl is None or Config.IDD_CRL[crl] != ""):
-                value_0 = f"{Config.CERT_FOLDER}/" + Config.IDD_CERT[crt]
-                value_1 = f"{Config.CERT_FOLDER}/" + Config.IDD_CERT[crt_issuer]
-                if crl is not None:
-                    value_2 = f"{Config.CERT_FOLDER}/" + Config.IDD_CRL[crl]
-                if os.path.exists(value_0) and os.path.exists(value_1) and os.path.exists(value_2):
-                    self.user_truth_chain.append([crt, crt_issuer, crl])
-                    idd_cert.append(crt)
-                    idd_cert.append(crt_issuer)
-                    if crl is not None:
-                        idd_crl.append(crl)
-                else:
-                    break
-            else:
-                break
-
-        idd_cert =list(set(idd_cert))
-        idd_crl =list(set(idd_crl))
-
-        self.authenticate_entity = {None : None}
-
-        for name in idd_cert:
+        for name in Config.IDD_CERT:
             value = Config.IDD_CERT[name]
             path = f"{Config.CERT_FOLDER}/" + value
             if os.path.exists(path) and value != "":
                 with open(path, 'rb') as cert_file:
                     cert_data = cert_file.read()
-                self.authenticate_entity[name] = x509.load_pem_x509_certificate(cert_data, default_backend())
+                authenticate_entity[name] = x509.load_pem_x509_certificate(cert_data, default_backend())
             else:
                 logger.warning(f"{name} file don't found")
 
-        for name in idd_crl:
+        for name in Config.IDD_CRL:
             value = Config.IDD_CRL[name]
             path = f"{Config.CERT_FOLDER}/" + value
             if os.path.exists(path) and value != "":
                 with open(path, 'rb') as crl_file:
                     crl_data = crl_file.read()
-                self.authenticate_entity[name] = x509.load_pem_x509_crl(crl_data, default_backend())
+                authenticate_entity[name] = x509.load_pem_x509_crl(crl_data, default_backend())
             else:
                 logger.warning(f"{name} file don't found")
+        
+        truth_chain = [
+            [["CERT_MERKLE","CERT_PKIEE"], "CERT_ICA", "CRL_ICA"],
+            [["CERT_ICA"], "CERT_SCA", "CRL_SCA"],
+            [["CERT_SCA"], "CERT_RCA", "CRL_RCA"],
+            [["CERT_RCA"], "CERT_RCA", None]
+        ]
+        self.user_truth_chain = []
+
+        for crts, crt_issuer, crl in truth_chain:
+            crt_exist = []
+            for crt in crts:
+                if crt in authenticate_entity:
+                    crt_exist.append(authenticate_entity[crt])
+            if crt_issuer in authenticate_entity and crt_issuer in authenticate_entity and crt_exist:
+                self.user_truth_chain.append([crt_exist, authenticate_entity[crt_issuer], authenticate_entity[crl]])
+            else:
+                break
         
         
     def authenticate(self): 
         try:
-            for crt, crt_issuer, crl in self.user_truth_chain:
-                if crl is not None:
-                    self.authenticateCRL( self.authenticate_entity[crl],  self.authenticate_entity[crt_issuer])
-                    logger.info(f"Authenticate { self.authenticate_entity[crl].issuer} CRL done")
+            for crts, crt_issuer, crl in self.user_truth_chain:
+                #authenticate certificate
+                count_error = 0
+                for crt in crts:
+                    try:
+                        self.authenticateCRT(crt,  crt_issuer,  crl)
+                        logger.info(f"Authenticate {crt.subject} certificate done")
+                    except IDDException as e:
+                        if Config.IDD_STRICT:
+                            logger.critical(f"{e}")
+                            exit(1)
+                        else:
+                            logger.warning(f"{e}")
+                        count_error =+ 1
+                        if count_error == len(crts):
+                            raise
+                    except Exception as e:
+                        logger.critical(f"{e}")
+                        exit(1)
 
-                self.authenticateCRT( self.authenticate_entity[crt],  self.authenticate_entity[crt_issuer],  self.authenticate_entity[crl])
-                logger.info(f"Authenticate { self.authenticate_entity[crt].subject} certificate done")
-        except IDDException as e:
-            if Config.IDD_STRICT:
-                logger.critical(f"{e}")
-                exit(1)
-            else:
-                logger.warning(f"{e}")
+                #authenticate CRL
+                try:
+                    if crl is not None:
+                        self.authenticateCRL(crl, crt_issuer)
+                        logger.info(f"Authenticate { crl.issuer} CRL done")
+                except IDDException as e:
+                    if Config.IDD_STRICT:
+                        logger.critical(f"{e}")
+                        exit(1)
+                    else:
+                        logger.warning(f"{e}")
+                        raise
+                except Exception as e:
+                    logger.critical(f"{e}")
+                    exit(1)
         except Exception as e:
-            logger.critical(f"{e}")
-            exit(1)
+            pass
