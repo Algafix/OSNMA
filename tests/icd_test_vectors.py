@@ -47,8 +47,7 @@ def run(input_module, config_dict, expected_results_dict):
     general_logger, general_file_handler, general_log_filename = get_base_logger_and_file_handler('osnma')
     general_logger.removeHandler(general_file_handler)
 
-    status_logger, status_file_handler, status_log_filename = get_base_logger_and_file_handler('status_logger')
-    status_logger.removeHandler(status_file_handler)
+    status_log_filename = general_log_filename.rpartition('/')[0] + '/' + 'status_log.json'
 
     with open(general_log_filename, 'r') as log_file:
         log_text = log_file.read()
@@ -80,12 +79,12 @@ def run(input_module, config_dict, expected_results_dict):
     with open(status_log_filename, 'r') as log_file:
         log_text = log_file.read()
 
-        total_subframes = len(re.findall(r'STATUS END OF SUBFRAME', log_text))
-        nmas_operational = len(re.findall(r'\'nma_status\'.*\'nmas\': \'OPERATIONAL\'', log_text))
-        nmas_test = len(re.findall(r'\'nma_status\'.*\'nmas\': \'TEST\'', log_text))
-        nmas_dnu = len(re.findall(r'\'nma_status\'.*\'nmas\': \'DONT_USE\'', log_text))
-        total_cpks_nominal = len(re.findall(r'\'nma_status\'.*\'cpks\': \'NOMINAL\'', log_text))
-        total_npkid = len(re.findall(r'\'public_key_in_force\': \{\'npkid\'', log_text))
+        total_subframes = len(re.findall(r'"GST_subframe":', log_text))
+        nmas_operational = len(re.findall(r'\"nma_status\": \{\"nmas\": \"OPERATIONAL\"', log_text))
+        nmas_test = len(re.findall(r'\"nma_status\": \{\"nmas\": \"TEST\"', log_text))
+        nmas_dnu = len(re.findall(r'\"nma_status\": \{\"nmas\": \"DONT_USE\"', log_text))
+        total_cpks_nominal = len(re.findall(r'\"nma_status\".*\"cpks\": \"NOMINAL\".*\"tesla_chain_in_force', log_text))
+        total_npkid = len(re.findall(r'\"public_key_in_force\": \{\"npkid\"', log_text))
         # TBC
 
     # print(f"{total_subframes} vs {expected_results_dict['total_subframes']}")

@@ -38,8 +38,8 @@ class OSNMAReceiver:
     def __init__(self, input_module: PageIterator, param_dict: dict):
 
         Config.load_configuration_parameters(param_dict)
-        log_factory.configure_loggers()
-        StatusLogger.initialize()
+        logs_path = log_factory.configure_loggers()
+        StatusLogger.initialize(logs_path)
 
         # Initialize all objects
         self.satellites: Dict[int, Satellite] = {}
@@ -195,3 +195,5 @@ class OSNMAReceiver:
         except StoppedAtFAF as e:
             self._do_status_log()
             return e.ttfaf, e.first_tow, e.faf_tow
+        finally:
+            StatusLogger.close()

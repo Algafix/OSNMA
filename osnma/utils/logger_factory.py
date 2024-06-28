@@ -54,7 +54,7 @@ class CustomFormatter(logging.Formatter):
         return formatter.format(record)
 
 
-def _configure_status_logger(file_path):
+def _configure_status_logger():
 
     status_logger = logging.getLogger('status_logger')
 
@@ -66,19 +66,11 @@ def _configure_status_logger(file_path):
     # Disable the call to logging.lastresort when no handler is found
     status_logger.addHandler(logging.NullHandler())
 
-    if Config.DO_STATUS_LOG:
-        if Config.LOG_FILE:
-            file_name = file_path / 'status_log.log'
-            f_handler = logging.FileHandler(file_name, mode='w')
-            f_handler.setLevel(logging.DEBUG)
-            f_format = logging.Formatter('%(message)s')
-            f_handler.setFormatter(f_format)
-            status_logger.addHandler(f_handler)
-        if Config.LOG_CONSOLE:
-            c_handler = logging.StreamHandler()
-            c_handler.setLevel(logging.DEBUG)
-            c_handler.setFormatter(CustomFormatter())
-            status_logger.addHandler(c_handler)
+    if Config.DO_STATUS_LOG and Config.LOG_CONSOLE:
+        c_handler = logging.StreamHandler()
+        c_handler.setLevel(logging.DEBUG)
+        c_handler.setFormatter(CustomFormatter())
+        status_logger.addHandler(c_handler)
 
 
 def _configure_verbose_logger(file_path):
@@ -121,7 +113,9 @@ def configure_loggers():
 
     _configure_verbose_logger(file_path)
 
-    _configure_status_logger(file_path)
+    _configure_status_logger()
+
+    return file_path
 
 
 def get_logger(name):

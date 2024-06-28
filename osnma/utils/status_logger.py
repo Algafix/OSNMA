@@ -24,11 +24,13 @@ if TYPE_CHECKING:
     from osnma.structures.mack_structures import TagAndInfo, TESLAKey, MACSeqObject
     from osnma.cryptographic.dsm_pkr import DSMPKR
     from osnma.cryptographic.dsm_kroot import DSMKroot
+    from io import TextIOWrapper
 
 ### imports ###
 import pprint
 import json
 from enum import Enum
+from pathlib import Path
 from osnma.structures.maclt import mac_lookup_table
 from osnma.structures.fields_information import (mf_lt, hf_lt, npkt_lt, KS_lt, TS_lt, NMAS, CPKS, OSNMAlibSTATE,
                                                  parse_nma_header, NB_DP_lt, NB_DK_lt)
@@ -45,11 +47,14 @@ class ADKD(Enum):
 
 class _StatusLogger:
 
-    def __init__(self):
+    def __init__(self, logs_path = None):
 
-        self.osnma_data_received = {}
-        self.nav_data = {}
-        self.osnma_authenticated = {
+        self.json_file_name: Optional[Path] = logs_path / 'status_log.json' if logs_path is not None else None
+        self.json_file: Optional[TextIOWrapper] = None
+
+        self.osnma_material_received = {}
+        self.nav_data_received = {}
+        self.verified_osnma_material = {
             "tesla_key": [],
             "macseq": [],
             "tags": [],
@@ -127,12 +132,12 @@ class _StatusLogger:
 
         return osnma_status_dict
 
-    def _get_osnma_data_auth_dict(self, osnma_r: 'OSNMAReceiver') -> Dict:
+    def _get_authenticated_nav_data(self, osnma_r: 'OSNMAReceiver') -> Dict:
         osnma_data_dict = {"ADKD0": {}, "ADKD4": {}, "ADKD12": {}}
 
         auth_data_dict_handler = osnma_r.receiver_state.nav_data_structure.authenticated_data_dict
         for data_block in auth_data_dict_handler.values():
-            svid = f"{data_block.prn_d:02d}"
+            svid = data_block.prn_d
             adkd = data_block.adkd
             last_adkd_per_sat = osnma_data_dict[ADKD(adkd).name]
             if not (saved_data := last_adkd_per_sat.get(svid, False)):
@@ -165,11 +170,11 @@ class _StatusLogger:
             'verification': macseq.is_verified,
             'GST': [macseq.gst.wn, macseq.gst.tow],
         }
-        self.osnma_authenticated['macseq'].append(macseq_dict)
+        self.verified_osnma_material['macseq'].append(macseq_dict)
 
     def log_auth_tag(self, tag: 'TagAndInfo'):
         tag_dict = self._parse_tag(tag)
-        self.osnma_authenticated['tags'].append(tag_dict)
+        self.verified_osnma_material['tags'].append(tag_dict)
 
     def log_auth_tesla_key(self, tesla_key: 'TESLAKey'):
         tesla_key_dict = {
@@ -178,7 +183,7 @@ class _StatusLogger:
             'GST': [tesla_key.gst_sf.wn, tesla_key.gst_sf.tow],
             'reconstructed': tesla_key.reconstructed
         }
-        self.osnma_authenticated['tesla_key'].append(tesla_key_dict)
+        self.verified_osnma_material['tesla_key'].append(tesla_key_dict)
 
     def log_auth_kroot(self, dsm_kroot: 'DSMKroot'):
         if dsm_kroot.is_verified():
@@ -232,7 +237,7 @@ class _StatusLogger:
             }
         }
 
-        self.osnma_authenticated["last_kroot"] = dsm_kroot_dict
+        self.verified_osnma_material["last_kroot"] = dsm_kroot_dict
 
     def log_auth_pkr(self, dsm_pkr: 'DSMPKR'):
         if dsm_pkr.is_verified():
@@ -263,21 +268,18 @@ class _StatusLogger:
                 "p_dp": [p_dp, None],
             }
         }
-        self.osnma_authenticated["last_pkr"] = dsm_pkr_dict
+        self.verified_osnma_material["last_pkr"] = dsm_pkr_dict
 
-    def log_nav_data(self, svid_int: int, adkd, word_type):
-        svid = f"{svid_int:02d}"
-        self.nav_data[svid][ADKD(adkd).name][word_type] = True
+    def log_nav_data(self, svid: int, adkd, word_type):
+        self.nav_data_received[svid][ADKD(adkd).name][word_type] = True
 
-    def log_mack_data(self, svid_int: int, tag_list: List['TagAndInfo'], tesla_key: 'TESLAKey'):
-        svid = f"{svid_int:02d}"
-        osnma_mack_data = self.osnma_data_received[svid]['mack_data']
+    def log_mack_data(self, svid, tag_list: List['TagAndInfo'], tesla_key: 'TESLAKey'):
+        osnma_mack_data = self.osnma_material_received[svid]['mack_data']
         osnma_mack_data["tags"] = tag_list
         osnma_mack_data["tesla_key"] = tesla_key if tesla_key is None else tesla_key.key.hex
 
-    def log_hkroot_data(self, svid_int: int, received_blocks: List[Optional['BitArray']]):
-        svid = f"{svid_int:02d}"
-        osnma_hkroot_data = self.osnma_data_received[svid]['hkroot_data']
+    def log_hkroot_data(self, svid: int, received_blocks: List[Optional['BitArray']]):
+        osnma_hkroot_data = self.osnma_material_received[svid]['hkroot_data']
 
         if nma_header := received_blocks[0]:
             nmas, cid, cpks = parse_nma_header(nma_header)
@@ -296,64 +298,87 @@ class _StatusLogger:
         osnma_hkroot_data["dsm_blocks"] = [True if block is not None else False for block in received_blocks[2:]]
 
     def add_satellite(self, gst_sf: 'GST', satellite: 'Satellite'):
-        svid = f"{satellite.svid:02d}"
+        svid = satellite.svid
 
         # Initialize nav data
-        if svid not in self.nav_data:
-            self.nav_data[svid] = {
+        if svid not in self.nav_data_received:
+            self.nav_data_received[svid] = {
                 "ADKD0": {1: False, 2: False, 3: False, 4: False, 5: False},
                 "ADKD4": {6: False, 10: False},
             }
             if gst_sf.tow % 60 == 0:
-                self.nav_data[svid]["ADKD4"][10] = None
+                self.nav_data_received[svid]["ADKD4"][10] = None
 
         # initialize OSNMA data
-        if satellite.subframe_with_osnma() and svid not in self.osnma_data_received:
-            self.osnma_data_received[svid] = {
+        if satellite.subframe_with_osnma() and svid not in self.osnma_material_received:
+            self.osnma_material_received[svid] = {
                 "hkroot_data": {"nma_header": None, "dsm_header": None, "dsm_blocks": []},
                 "mack_data": {"tags": [], 'tesla_key': None},
             }
 
+    def _json_file_logging(self, status_dict):
+        if Config.DO_STATUS_LOG and Config.LOG_FILE:
+            if self.json_file is None:
+                self.json_file = open(self.json_file_name, 'w')
+                self.json_file.write("[\n")
+                self.json_file.write(json.dumps(status_dict))
+                self.json_file.write("\n]")
+            else:
+                self.json_file.seek(self.json_file.tell() - 2)  # \n]
+                self.json_file.write(',\n')
+                self.json_file.write(json.dumps(status_dict))
+                self.json_file.write("\n]")
+
+    def _subframe_reset(self):
+        self.osnma_material_received = {}
+        self.nav_data_received = {}
+        self.verified_osnma_material["tesla_key"] = []
+        self.verified_osnma_material["tags"] = []
+        self.verified_osnma_material["macseq"] = []
+
     def do_status_log(self, osnma_r: 'OSNMAReceiver'):
 
         status_dict = {
-            "Metadata": {
-                "GST Subframe": [osnma_r.current_gst_subframe.wn, osnma_r.current_gst_subframe.tow],
-                "Input Module": osnma_r.nav_data_input.__class__.__name__,
-                "OSNMAlib Status": osnma_r.receiver_state.osnmalib_state.name,
+            "metadata": {
+                "GST_subframe": [osnma_r.current_gst_subframe.wn, osnma_r.current_gst_subframe.tow],
+                "input_module": osnma_r.nav_data_input.__class__.__name__,
+                "OSNMAlib_status": osnma_r.receiver_state.osnmalib_state.name,
             },
-            "OSNMA Status": self._get_osnma_status_dict(osnma_r),
-            "OSNMA Authenticated Data": self._get_osnma_data_auth_dict(osnma_r),
-            "Nav Data Received": dict(sorted(self.nav_data.items())),
-            "OSNMA Data": dict(sorted(self.osnma_data_received.items())),
-            "OSNMA Authentication": self.osnma_authenticated,
+            "OSNMA_status": self._get_osnma_status_dict(osnma_r),
+            "OSNMA_material_received": dict(sorted(self.osnma_material_received.items())),
+            "nav_data_received": dict(sorted(self.nav_data_received.items())),
+            "verified_OSNMA_material": self.verified_osnma_material,
+            "authenticated_nav_data": self._get_authenticated_nav_data(osnma_r),
         }
 
         string_object = (f"--- STATUS END OF SUBFRAME GST {osnma_r.current_gst_subframe} ---\n\n"
-                         f"OSNMAlib Status: {status_dict['Metadata']['OSNMAlib Status']}\n\n"
+                         f"OSNMAlib Status: {status_dict['metadata']['OSNMAlib_status']}\n\n"
                          f"## OSNMA Status\n"
-                         f"{pprint.pformat(status_dict['OSNMA Status'], sort_dicts=False, width=100, compact=True)}\n\n"
-                         f"## Nav Data Received in the Subframe\n"
-                         f"{pprint.pformat(status_dict['Nav Data Received'], sort_dicts=False, width=150)}\n\n"
-                         f"## OSNMA Data Received in the Subframe\n"
-                         f"{pprint.pformat(status_dict['OSNMA Data'], sort_dicts=False, width=150)}\n\n"
-                         f"## OSNMA Authenticated info in the Subframe\n"
-                         f"{pprint.pformat(status_dict['OSNMA Authentication'], sort_dicts=False, width=150)}\n\n"
-                         f"## OSNMA Authenticated Data\n"
-                         f"{pprint.pformat(status_dict['OSNMA Authenticated Data'], sort_dicts=False, width=150)}\n")
+                         f"{pprint.pformat(status_dict['OSNMA_status'], sort_dicts=False, width=100, compact=True)}\n\n"
+                         f"## OSNMA Material Received in the Subframe\n"
+                         f"{pprint.pformat(status_dict['OSNMA_material_received'], sort_dicts=False, width=150)}\n\n"
+                         f"## Navigation Data Received in the Subframe\n"
+                         f"{pprint.pformat(status_dict['nav_data_received'], sort_dicts=False, width=150)}\n\n"
+                         f"## Verified OSNMA Material\n"
+                         f"{pprint.pformat(status_dict['verified_OSNMA_material'], sort_dicts=False, width=150)}\n\n"
+                         f"## Authenticated Navigation Data\n"
+                         f"{pprint.pformat(status_dict['authenticated_nav_data'], sort_dicts=False, width=150)}\n")
+
         logger.info(string_object)
+
+        self._json_file_logging(status_dict)
 
         if Config.DO_JSON_STATUS:
             with open(Config.JSON_STATUS_PATH, 'w') as f:
                 json.dump(status_dict, f)
 
-        self.osnma_data_received = {}
-        self.nav_data = {}
-        self.osnma_authenticated["tesla_key"] = []
-        self.osnma_authenticated["tags"] = []
-        self.osnma_authenticated["macseq"] = []
+        self._subframe_reset()
 
-    def initialize(self):
-        self.__init__()
+    def initialize(self, logs_path: Path):
+        self.__init__(logs_path)
+
+    def close(self):
+        if self.json_file is not None:
+            self.json_file.close()
 
 StatusLogger = _StatusLogger()
