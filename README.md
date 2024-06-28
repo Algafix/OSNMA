@@ -58,7 +58,7 @@ Current data [formats supported](https://github.com/Algafix/OSNMA/wiki/Input-Dat
   * u-blox UBX log files
   * u-blox live connection through COM port 
   * Live aggregated data from the [galmon](https://github.com/berthubert/galmon) project.
-  * GNSS-SDR project format through UDP socket
+  * [GNSS-SDR](https://gnss-sdr.org/) project format through UDP socket
   * Allows for custom data by implementing your iterator.
 
 Future development:
