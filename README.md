@@ -231,14 +231,14 @@ I strongly believe in open-source software and free access to knowledge, and thi
 However, this approach by my side requires the uttermost respect to the research integrity and ethics by anyone accessing the repository. 
 
 Publication list:
-* "OSNMAlib: An Open Python Library for Galileo OSNMA," _NAVITEC_, Noordwijk, Netherlands, 2022. [[link](https://ieeexplore.ieee.org/document/9847548)]
-  * Some sections are a bit outdated.
+* "OSNMAlib Improvements and Real-Time Monitoring of Galileo OSNMA," _ICL-GNSS_, 2024. [[link](https://ieeexplore.ieee.org/document/10578487)]
+  * Report on the latest OSNMAlib improvements including [osnmalib.eu](https://osnmalib.eu)
 * "Improving Galileo OSNMA Time To First Authenticated Fix." _arXiv preprint_ arXiv:2403.14739, 2024. [[link](https://arxiv.org/abs/2403.14739)]
-  * This work has been submitted to the IEEE for possible publication.
+  * Technical description of the optimization to reduce the TTFAF to 44 seconds and testing with live data recording.
 * "GNSS Recordings for Galileo OSNMA Evaluation", _IEEE Dataport_, 2024. [[link](https://dx.doi.org/10.21227/a0nm-kn45)]
   * Dataset used for the "Improving Galileo OSNMA Time To First Authenticated Fix" manuscript.
-* "OSNMAlib Improvements and Real-Time Monitoring of Galileo OSNMA," _ICL-GNSS_, 2024.
-  * Will be linked after the conference takes place.
+* "OSNMAlib: An Open Python Library for Galileo OSNMA," _NAVITEC_, Noordwijk, Netherlands, 2022. [[link](https://ieeexplore.ieee.org/document/9847548)]
+  * Some sections are outdated.
 
 In case of any doubt, contact me at aleix.galan[@]kuleuven.be
 
