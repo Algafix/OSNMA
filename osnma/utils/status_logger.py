@@ -233,7 +233,7 @@ class _StatusLogger:
                 "alpha": [alpha, None],
                 "kroot": [kroot, None],
                 "ds": [ds, None],
-                "p_dk": p_dk,
+                "p_dk": [p_dk, None],
             }
         }
 
