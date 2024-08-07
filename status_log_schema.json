@@ -83,6 +83,7 @@
             }
           },
           "tesla_chain_in_force": {
+            "description": "Information about the TESLA Chain currently in use by OSNMA. It may be null during revocation of cryptographic material.",
             "type": [
               "object",
               "null"
@@ -124,6 +125,7 @@
             }
           },
           "public_key_in_force": {
+            "description": "Information about the Public Key currently used in OSNMA. May be null during revocation of cryptographic material.",
             "type": [
               "object",
               "null"
@@ -148,7 +150,7 @@
         }
       },
       "OSNMA_material_received": {
-        "description": "OSNMA material received from each satellite transmitting OSNMA",
+        "description": "OSNMA material received from each satellite transmitting OSNMA.",
         "type": "object",
         "patternProperties": {
           "^[0-9]+$": {
@@ -226,6 +228,7 @@
                     "type": "array",
                     "maxItems": 10,
                     "items": {
+                      "description": "Each tag is encoded as: [PRN_A, ADKD, COP, FLEX?]. To be updated to an object.",
                       "type": ["array", "null"],
                       "minItems": 3,
                       "maxItems": 4,
@@ -252,13 +255,14 @@
         }
       },
       "nav_data_received": {
-        "description": "OSNMA relevant navigation data received during this subframe for the tracked satellites",
+        "description": "OSNMA relevant navigation data received during this subframe from the tracked satellites",
         "type": "object",
         "patternProperties": {
           "^[0-9]+$": {
             "type": "object",
             "properties": {
               "ADKD0": {
+                "description": "Words types for ADKD0 or ADKD12. True if received, False if not.",
                 "type": "object",
                 "properties": {
                   "1": {
@@ -279,6 +283,7 @@
                 }
               },
               "ADKD4": {
+                "description": "Word types for ADKD4. True if received, False if not. Word 10 is null if it was not transmitted on the subframe.",
                 "type": "object",
                 "properties": {
                   "6": {
@@ -297,7 +302,7 @@
         }
       },
       "verified_OSNMA_material": {
-        "description": "Result of the OSNMA verification process",
+        "description": "Results of the OSNMA verification process: TESLA Key, MACSeq, Tags, KRoot and Public Key.",
         "type": "object",
         "properties": {
           "tela_key": {
@@ -312,6 +317,7 @@
                   "type": "boolean"
                 },
                 "reconstructed": {
+                  "description": "A TESLA Key may be reconstructed from partially received keys.",
                   "type": "boolean"
                 },
                 "GST": {
@@ -341,9 +347,11 @@
                   }
                 },
                 "flex_tags": {
+                  "description": "Flex tags validated with the MACSeq verification.",
                   "type": "array",
                   "maxItems": 4,
                   "items": {
+                    "description": "Each tag is encoded as: [PRN_A, ADKD, COP, FLEX?]. To be updated to an object.",
                     "type": "array",
                     "minItems": 3,
                     "maxItems": 4,
@@ -396,21 +404,428 @@
             }
           },
           "last_kroot": {
+            "description": "Last verified KRoot message. It may not contain the Tesla Chain in force during cryptographic material renewal.",
             "type": [
               "object",
               "null"
-            ]
+            ],
+            "properties": {
+              "verification": {
+                "type": "boolean"
+              },
+              "nma_header": {
+                "description": "Each field is encoded in a tuple of [raw value, decoded value | null]",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "nmas": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "TEST",
+                          "OPERATIONAL",
+                          "DONT_USE"
+                        ]
+                      }
+                    ]
+                  },
+                  "cid": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "cpks": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "NOMINAL",
+                          "EOC",
+                          "CREV",
+                          "NPK",
+                          "PKREV",
+                          "NMT",
+                          "AM"
+                        ]
+                      }
+                    ]
+                  },
+                  "reserved_nmah": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              },
+              "fields": {
+                "description": "Each field is encoded in a tuple of [raw value, decoded value | null]",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "nb_dk": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  },
+                  "pkid": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "cidkr": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "reserved1": {
+                    "description": "Used to be Number of MACK blocks. It may still show 1 as value.",
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "hf": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "SHA_256",
+                          "SHA3_224",
+                          "SHA3_256"
+                        ]
+                      }
+                    ]
+                  },
+                  "mf": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "HMAC_SHA_256",
+                          "CMAC_AES"
+                        ]
+                      }
+                    ]
+                  },
+                  "ks": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  },
+                  "ts": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  },
+                  "maclt": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "reserved2": {
+                    "description": "Used to be TESLA Key offset, with 0 being 30 seconds. It may still show 0.",
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "wn_k": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "towh_k": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  },
+                  "alpha": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "description": "Hex string",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "kroot": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "description": "Hex string",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "ds": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "description": "Hex string",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "p_dk": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "description": "Binary string",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
           },
           "last_pkr": {
+            "description": "Last verified Public Key message. It may not contain the Public Key in force during cryptographic material renewal.",
             "type": [
               "object",
               "null"
-            ]
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "verification": {
+                "type": "boolean"
+              },
+              "merkle_tree_root": {
+                "type": "string"
+              },
+              "fields": {
+                "description": "Each field is encoded in a tuple of [raw value, decoded value | null]",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "nb_dp": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  },
+                  "mid": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "itn1": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "description": "Hex string",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "itn2": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "description": "Hex string",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "itn3": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "description": "Hex string",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "itn4": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "description": "Hex string",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "npkt": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "ECDSA_P256",
+                          "ECDSA_P521",
+                          "OAM"
+                        ]
+                      }
+                    ]
+                  },
+                  "npkid": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "npk": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "description": "Hex string",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "p_dp": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "description": "Binary string",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
           }
         }
       },
       "authenticated_nav_data": {
-        "description": "Authenticated navigation data by using the OSNMA tags",
+        "description": "Authenticated navigation data by using the verified OSNMA tags.",
         "type": "object",
         "properties": {
           "ADKD0": {
@@ -426,12 +841,14 @@
                     "type": "integer"
                   },
                   "start_gst": {
+                    "description": "Reception Galileo Satellite Time of the authenticated data.",
                     "type": "array",
                     "items": {
                       "type": "integer"
                     }
                   },
                   "last_gst": {
+                    "description": "Last Galileo Satellite Time when the authenticated data was received.",
                     "type": "array",
                     "items": {
                       "type": "integer"
@@ -448,18 +865,21 @@
                 "type": "object",
                 "properties": {
                   "iod": {
+                    "description": "There is no IOD on the ADKD4 data.",
                     "type": "null"
                   },
                   "acc_length": {
                     "type": "integer"
                   },
                   "start_gst": {
+                    "description": "Reception Galileo Satellite Time of the authenticated data.",
                     "type": "array",
                     "items": {
                       "type": "integer"
                     }
                   },
                   "last_gst": {
+                    "description": "Last Galileo Satellite Time when the authenticated data was received.",
                     "type": "array",
                     "items": {
                       "type": "integer"
@@ -482,12 +902,14 @@
                     "type": "integer"
                   },
                   "start_gst": {
+                    "description": "Reception Galileo Satellite Time of the authenticated data.",
                     "type": "array",
                     "items": {
                       "type": "integer"
                     }
                   },
                   "last_gst": {
+                    "description": "Last Galileo Satellite Time when the authenticated data was received.",
                     "type": "array",
                     "items": {
                       "type": "integer"
