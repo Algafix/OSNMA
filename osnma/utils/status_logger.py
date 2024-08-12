@@ -295,7 +295,7 @@ class _StatusLogger:
                 "block_id": dsm_header[4:8].uint,
             }
 
-        osnma_hkroot_data["dsm_blocks"] = [True if block is not None else False for block in received_blocks[2:]]
+        osnma_hkroot_data["dsm_block_pages"] = [True if block is not None else False for block in received_blocks[2:]]
 
     def add_satellite(self, gst_sf: 'GST', satellite: 'Satellite'):
         svid = satellite.svid
@@ -312,7 +312,7 @@ class _StatusLogger:
         # initialize OSNMA data
         if satellite.subframe_with_osnma() and svid not in self.osnma_material_received:
             self.osnma_material_received[svid] = {
-                "hkroot_data": {"nma_header": None, "dsm_header": None, "dsm_blocks": []},
+                "hkroot_data": {"nma_header": None, "dsm_header": None, "dsm_block_pages": []},
                 "mack_data": {"tags": [], 'tesla_key': None},
             }
 

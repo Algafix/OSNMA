@@ -13,14 +13,20 @@
         "type": "object",
         "properties": {
           "GST_subframe": {
-            "description": "Galileo Satellite Time at the start of the reception of the subframe",
+            "description": "Galileo Satellite Time at the start of the reception of the subframe. [WN, ToW]",
             "type": "array",
-            "items": {
-              "type": "integer"
-            }
+            "additionalItems": false,
+            "items": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              }
+            ]
           },
           "input_module": {
-            "description": "OSNMAlib input module used to receive the navigation data",
+            "description": "OSNMAlib input module used to receive the navigation data.",
             "type": "string"
           },
           "OSNMAlib_status": {
@@ -37,14 +43,16 @@
         }
       },
       "OSNMA_status": {
-        "description": "Information on the last authenticated status of OSNMA",
+        "description": "Information on the last authenticated status of OSNMA.",
         "type": "object",
+        "additionalProperties": false,
         "properties": {
           "nma_status": {
+            "description": "Indicates the OSNMA status, the Chain in Force, and the Chain and Public Key status. It is null if the receiver has not yet fully started.",
             "type": "object",
             "properties": {
               "nmas": {
-                "description": "OSNMA status",
+                "description": "OSNMA status. It is updated from KROOT and Tag authentication.",
                 "type": [
                   "string",
                   "null"
@@ -57,14 +65,14 @@
                 ]
               },
               "cid": {
-                "description": "ID of the TESLA chain in force",
+                "description": "ID of the TESLA chain in force.",
                 "type": [
                   "integer",
                   "null"
                 ]
               },
               "cpks": {
-                "description": "Chain and public key status",
+                "description": "Chain and public key status.",
                 "type": [
                   "string",
                   "null"
@@ -150,16 +158,19 @@
         }
       },
       "OSNMA_material_received": {
-        "description": "OSNMA material received from each satellite transmitting OSNMA.",
+        "description": "OSNMA material (HKROOT and MACK) received from each satellite transmitting OSNMA. The list contains all OSNMA active satellites during the subframe: satellites with a page with the OSNMA bits different than 0.",
         "type": "object",
         "patternProperties": {
           "^[0-9]+$": {
             "type": "object",
             "properties": {
               "hkroot_data": {
+                "description": "The nma_header and dms_header are null if the pages containing them were not received. Note that these values may not be authenticated.",
                 "type": "object",
+                "additionalProperties": false,
                 "properties": {
                   "nma_header": {
+                    "description": "First page of the subframe which contains the Navigation Message Authentication (NMA) information.",
                     "type": [
                       "object",
                       "null"
@@ -194,6 +205,7 @@
                     }
                   },
                   "dsm_header": {
+                    "description": "Second page of the subframe, which contains the Digital Signature Message (DSM) information.",
                     "type": [
                       "object",
                       "null"
@@ -207,8 +219,11 @@
                       }
                     }
                   },
-                  "dsm_blocks": {
+                  "dsm_block_pages": {
+                    "description": "Last 13 pages that constitute a block of the Digital Signature Message. True if received, false otherwise.",
                     "type": "array",
+                    "minItems": 13,
+                    "maxItems": 13,
                     "items": {
                       "type": "boolean"
                     }
@@ -216,13 +231,12 @@
                 }
               },
               "mack_data": {
+                "description": "OSNMA information received in the MACK section. The TESLA Key and any of the tags may be null if not received.",
                 "type": "object",
                 "properties": {
                   "tesla_key": {
-                    "type": [
-                      "string",
-                      "null"
-                    ]
+                    "description": "Received TESLA Key in hex encoding.",
+                    "type": ["string", "null"]
                   },
                   "tags": {
                     "type": "array",
@@ -255,7 +269,7 @@
         }
       },
       "nav_data_received": {
-        "description": "OSNMA relevant navigation data received during this subframe from the tracked satellites",
+        "description": "OSNMA relevant navigation data received during this subframe from the tracked satellites. The list contains all satellites for which a page was received during the subframe, even if all OSNMA relevant pages were lost.",
         "type": "object",
         "patternProperties": {
           "^[0-9]+$": {
@@ -306,6 +320,7 @@
         "type": "object",
         "properties": {
           "tela_key": {
+            "description": "List of all verified (successfully or not) TESLA Keys on this subframe",
             "type": "array",
             "items": {
               "type": "object",
@@ -322,14 +337,21 @@
                 },
                 "GST": {
                   "type": "array",
-                  "items": {
-                    "type": "integer"
-                  }
+                  "additionalItems": false,
+                  "items": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
                 }
               }
             }
           },
           "macseq": {
+            "description": "List of all MACSeq tags verified on this subframe and the FLX tags they validate.",
             "type": "array",
             "items": {
               "type": "object",
@@ -342,9 +364,14 @@
                 },
                 "GST": {
                   "type": "array",
-                  "items": {
-                    "type": "integer"
-                  }
+                  "items": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
                 },
                 "flex_tags": {
                   "description": "Flex tags validated with the MACSeq verification.",
@@ -375,6 +402,7 @@
             }
           },
           "tags": {
+            "description": "List of all tags verified during this subframe.",
             "type": "array",
             "items": {
               "type": "object",
@@ -396,9 +424,14 @@
                 },
                 "GST": {
                   "type": "array",
-                  "items": {
-                    "type": "integer"
-                  }
+                  "items": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
                 }
               }
             }
@@ -843,16 +876,26 @@
                   "start_gst": {
                     "description": "Reception Galileo Satellite Time of the authenticated data.",
                     "type": "array",
-                    "items": {
-                      "type": "integer"
-                    }
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
                   },
                   "last_gst": {
                     "description": "Last Galileo Satellite Time when the authenticated data was received.",
                     "type": "array",
-                    "items": {
-                      "type": "integer"
-                    }
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
                   }
                 }
               }
@@ -874,16 +917,26 @@
                   "start_gst": {
                     "description": "Reception Galileo Satellite Time of the authenticated data.",
                     "type": "array",
-                    "items": {
-                      "type": "integer"
-                    }
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
                   },
                   "last_gst": {
                     "description": "Last Galileo Satellite Time when the authenticated data was received.",
                     "type": "array",
-                    "items": {
-                      "type": "integer"
-                    }
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
                   }
                 }
               }
@@ -904,16 +957,26 @@
                   "start_gst": {
                     "description": "Reception Galileo Satellite Time of the authenticated data.",
                     "type": "array",
-                    "items": {
-                      "type": "integer"
-                    }
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
                   },
                   "last_gst": {
                     "description": "Last Galileo Satellite Time when the authenticated data was received.",
                     "type": "array",
-                    "items": {
-                      "type": "integer"
-                    }
+                    "items": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
                   }
                 }
               }
