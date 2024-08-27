@@ -270,8 +270,11 @@ class _StatusLogger:
         }
         self.verified_osnma_material["last_pkr"] = dsm_pkr_dict
 
-    def log_nav_data(self, svid: int, adkd, word_type):
+    def log_nav_data(self, svid: int, adkd: int, word_type: int):
         self.nav_data_received[svid][ADKD(adkd).name][word_type] = True
+
+    def log_nav_data_iod(self, svid: int,  iod: 'BitArray'):
+        self.nav_data_received[svid]['IOD'] = iod.bin
 
     def log_mack_data(self, svid, tag_list: List['TagAndInfo'], tesla_key: 'TESLAKey'):
         osnma_mack_data = self.osnma_material_received[svid]['mack_data']
@@ -303,6 +306,7 @@ class _StatusLogger:
         # Initialize nav data
         if svid not in self.nav_data_received:
             self.nav_data_received[svid] = {
+                "IOD": None,
                 "ADKD0": {1: False, 2: False, 3: False, 4: False, 5: False},
                 "ADKD4": {6: False, 10: False},
             }

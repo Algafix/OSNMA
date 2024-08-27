@@ -224,10 +224,11 @@ class ADKD0DataManager(ADKDDataManager):
 
     def add_word(self, word_type: int, page: BitArray, gst_page: GST):
 
+        StatusLogger.log_nav_data(self.svid, self.adkd, word_type)
         adkd_data = self._get_adkd_data_from_word(page, word_type)
-
         if word_type != 5:
             iod = adkd_data[:10]
+            StatusLogger.log_nav_data_iod(self.svid, iod)
             if self._is_new_adkd0_data_block(iod, gst_page):
                 new_adkd0 = ADKD0DataBlock(gst_page)
                 new_adkd0.add_word(word_type, adkd_data, gst_page)
@@ -326,6 +327,8 @@ class ADKD4DataManager(ADKDDataManager):
         return f"{self.words_per_type}"
 
     def add_word(self, word_type: int, full_page: BitArray, gst_page: GST):
+
+        StatusLogger.log_nav_data(self.svid, self.adkd, word_type)
 
         new_adkd_data = self._get_adkd_data_from_word(full_page, word_type)
         saved_words = self.words_per_type[word_type]
@@ -431,10 +434,8 @@ class NavigationDataManager:
         if word_type not in self.active_words:
             return
         if word_type in WORDS_PER_ADKD[ADKD0]:
-            StatusLogger.log_nav_data(svid, ADKD0, word_type)
             self.adkd0_data_managers[svid].add_word(word_type, page, gst_page)
         else:
-            StatusLogger.log_nav_data(svid, ADKD4, word_type)
             self.adkd4_data_managers[svid].add_word(word_type, page, gst_page)
 
     def _calculate_TTFAF(self, auth_data: AuthenticatedData, gst_subframe: GST):
