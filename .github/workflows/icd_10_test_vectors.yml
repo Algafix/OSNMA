@@ -36,4 +36,4 @@ jobs:
     - name: Verify JSON output
       run: |
         npm install -g ajv-cli
-        ajv -s status_log_schema.json -d 'tests/logs/icd_test_logs/logs*/*.json'
+        ajv -s osnma/utils/json_schema/status_log_schema.json -d 'tests/logs/icd_test_logs/logs*/*.json'
