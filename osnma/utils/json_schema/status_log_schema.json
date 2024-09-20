@@ -427,6 +427,9 @@
                 "flx": {
                   "type": "boolean"
                 },
+                "verification": {
+                  "type": "boolean"
+                },
                 "GST": {
                   "type": "array",
                   "items": [

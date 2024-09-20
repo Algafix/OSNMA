@@ -73,7 +73,7 @@ class TagStateStructure:
                 self.nav_data_m.new_tag_verified(tag)
         else:
             logger.error(f"Tag FAILED\n\t{tag.get_log()}")
-            StatusLogger.log_auth_tag()
+            StatusLogger.log_auth_tag(tag)
 
     def verify_macseq(self, macseq: MACSeqObject):
         if macseq.authenticate(self.tesla_chain.mac_function):
