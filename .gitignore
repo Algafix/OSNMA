@@ -155,6 +155,8 @@ tests/test_corner_cases/*/OSNMA_last_KROOT.txt
 # pycharm runs
 .run/
 
+**/status_log.json
+
 # Test vectors extracted keys
 /tests/icd_test_vectors/nmt_step1/OSNMA_PublicKey_1.xml
 /tests/icd_test_vectors/nmt_step2/OSNMA_PublicKey_1.xml

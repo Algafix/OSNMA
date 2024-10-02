@@ -33,3 +33,7 @@ jobs:
     - name: ICD Test Vectors with pytest
       run: |
         pytest tests/icd_test_vectors.py
+    - name: Verify JSON output
+      run: |
+        npm install -g ajv-cli
+        ajv -s osnma/utils/json_schema/status_log_schema.json -d 'tests/logs/icd_test_logs/logs*/*.json'

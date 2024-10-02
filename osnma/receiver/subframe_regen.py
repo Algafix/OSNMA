@@ -26,6 +26,8 @@ from osnma.cryptographic.gst_class import GST
 import osnma.utils.logger_factory as log_factory
 logger = log_factory.get_logger(__name__)
 
+# Here due to circular input, to fix when this file is merged with DSM manager
+from osnma.utils.status_logger import StatusLogger
 
 NMA_HEADER = 0
 DSM_HEADER = 1
@@ -107,5 +109,7 @@ class SubFrameRegenerator:
         nma_status = None
         if nma_header := hkroot_subframe[NMA_HEADER]:
             nma_status = nma_header[:2]
+
+        StatusLogger.log_hkroot_data(svid, hkroot_subframe)
 
         return complete_block, nma_status

@@ -25,10 +25,8 @@ from osnma.osnma_core.receiver_state import ReceiverState
 from osnma.utils.config import Config
 from osnma.utils.exceptions import StoppedAtFAF
 from osnma.cryptographic.gst_class import GST
-from osnma.utils.status_logger import do_status_log
+from osnma.utils.status_logger import StatusLogger
 from osnma.utils.bits_logger import BitsLogger
-
-from bitstring import BitArray
 
 ######## logger ########
 import osnma.utils.logger_factory as log_factory
@@ -40,7 +38,8 @@ class OSNMAReceiver:
     def __init__(self, input_module: PageIterator, param_dict: dict):
 
         Config.load_configuration_parameters(param_dict)
-        log_factory.configure_loggers()
+        logs_path = log_factory.configure_loggers()
+        StatusLogger.initialize(logs_path)
 
         # Initialize all objects
         self.satellites: Dict[int, Satellite] = {}
@@ -67,7 +66,7 @@ class OSNMAReceiver:
     def _do_status_log(self):
         if Config.DO_STATUS_LOG:
             try:
-                do_status_log(self)
+                StatusLogger.do_status_log(self)
             except Exception as e:
                 logger.exception(f"Error doing status logging")
 
@@ -182,8 +181,11 @@ class OSNMAReceiver:
                 satellite = self.satellites[page.svid]
                 satellite.new_page(page)
 
+                # Log satellite
+                StatusLogger.add_satellite(gst_sf, satellite)
+
                 # Add nav data of the page to the navigation data manager
-                self.receiver_state.load_nav_data_page(page.nav_bits, page.gst_page, satellite)
+                self.receiver_state.load_nav_data_page(page.nav_bits, page.gst_page, satellite.svid)
 
                 # If we get the last subframe page of this satellite, process it now instead of waiting
                 if page.gst_page % 30 == 29:
@@ -193,3 +195,5 @@ class OSNMAReceiver:
         except StoppedAtFAF as e:
             self._do_status_log()
             return e.ttfaf, e.first_tow, e.faf_tow
+        finally:
+            StatusLogger.close()

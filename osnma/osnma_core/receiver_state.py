@@ -20,11 +20,9 @@ if TYPE_CHECKING:
     from osnma.receiver.satellite import Satellite
 
 ######## imports ########
-from enum import IntEnum
-
 from bitstring import BitArray
 
-from osnma.structures.fields_information import CPKS, NMAS, parse_nma_header
+from osnma.structures.fields_information import CPKS, NMAS, parse_nma_header, OSNMAlibSTATE
 from osnma.cryptographic.dsm_kroot import DSMKroot
 from osnma.cryptographic.dsm_pkr import DSMPKR
 from osnma.cryptographic.gst_class import GST
@@ -34,25 +32,21 @@ from osnma.osnma_core.dsm_manager import DigitalSignatureMessageManager, DSMType
 from osnma.utils.iohandler import IOHandler
 from osnma.utils.exceptions import PublicKeyObjectError, TeslaKeyVerificationFailed, MackParsingError, NMAStatusDontUseFromTag
 from osnma.utils.config import Config
+from osnma.utils.status_logger import StatusLogger
 
 ######## logger ########
 import osnma.utils.logger_factory as log_factory
 logger = log_factory.get_logger(__name__)
 
-class OSNMAlibSTATE(IntEnum):
-    COLD_START = 0
-    WARM_START = 1
-    HOT_START = 2
-    STARTED = 6
-    OSNMA_AM = 7
 
 class ReceiverState:
 
     def __init__(self):
 
         self.osnmalib_state = OSNMAlibSTATE.COLD_START
-        self.chain_status = CPKS.NOMINAL
-        self.nma_status = NMAS.TEST
+        self.nma_status = None
+        self.chain_id = None
+        self.chain_status = None
         self.last_received_nmas = BitArray(uint=NMAS.TEST.value, length=2)
 
         self.nma_header: Optional[BitArray] = None
@@ -70,9 +64,6 @@ class ReceiverState:
         self.dsm_manager = DigitalSignatureMessageManager()
 
         self.kroot_waiting_mack: List[Tuple[List[Optional[BitArray]], GST, int, BitArray]] = []
-
-        self.log_last_kroot_auth: Optional[DSMKroot] = None
-        self.log_last_pkr_auth: Optional[DSMPKR] = None
 
         self._initialize_status()
 
@@ -100,8 +91,7 @@ class ReceiverState:
                         dsm_kroot.set_value('NMA_H', nmah_bits)
                         dsm_kroot.process_data(kroot_bits)
                         if dsm_kroot.kroot_verification():
-                            # self._chain_status_handler(nmah_bits, dsm_kroot)
-                            self.nma_status, _, self.chain_status = parse_nma_header(nmah_bits)
+                            self.nma_status, self.chain_id, self.chain_status = parse_nma_header(nmah_bits)
                             self.last_received_nmas = nmah_bits[:2]
                             self.nma_header = nmah_bits
                             self.tesla_chain_force = TESLAChain(self.nav_data_structure, dsm_kroot)
@@ -116,13 +106,17 @@ class ReceiverState:
                         logger.warning('Saved Key Root PKID is not consistent with the stored Public Key. Not used.')
 
     def _subframe_actions(self, nma_header: BitArray):
-        if self.chain_status == CPKS.EOC and self.next_tesla_chain is not None:
+        if self.chain_status == CPKS.EOC:
             current_chain_in_force = nma_header[2:4].uint
-            if current_chain_in_force == self.next_tesla_chain.chain_id:
-                logger.info(f"New chain in force: CID {current_chain_in_force} GST0 "
-                            f"{self.next_tesla_chain.GST0}")
-                self.tesla_chain_force = self.next_tesla_chain
-                self.next_tesla_chain = None
+            if self.chain_id != current_chain_in_force:
+                logger.info(f"Change in Chain in Force: {self.chain_id} -> {current_chain_in_force}")
+                self.chain_id = current_chain_in_force
+                if self.next_tesla_chain and current_chain_in_force == self.next_tesla_chain.chain_id:
+                    logger.info(f"New chain in force loaded from memory: GST0 {self.next_tesla_chain.GST0}")
+                    self.tesla_chain_force = self.next_tesla_chain
+                    self.next_tesla_chain = None
+                else:
+                    logger.info(f"The chain in force is not saved in memory.")
 
     def _fallback_to_state(self, new_osnmalib_state: OSNMAlibSTATE, cpks: CPKS = CPKS.NOMINAL):
 
@@ -171,6 +165,7 @@ class ReceiverState:
 
         new_nmas, cid, new_cpks = parse_nma_header(nma_header)
         self.nma_status = new_nmas
+        self.chain_id = cid
         self.chain_status = new_cpks
         self.nma_header = nma_header
         cid_kroot = dsm_kroot.get_value('CIDKR').uint
@@ -257,7 +252,6 @@ class ReceiverState:
                 logger.info(f"KROOT with CID: {dsm_kroot.get_value('CIDKR').uint} - PKID: "
                             f"{dsm_kroot.get_value('PKID').uint} - GST0: WN {dsm_kroot.get_value('WN_K').uint} TOW "
                             f"{dsm_kroot.get_value('TOWH_K').uint*3600}\n\tAUTHENTICATED\n")
-                self.log_last_kroot_auth = dsm_kroot
                 self._chain_status_handler(nma_header, dsm_kroot)
             else:
                 logger.error(
@@ -266,6 +260,7 @@ class ReceiverState:
                     f"\n\tFAILED\n")
                 if self.osnmalib_state == OSNMAlibSTATE.WARM_START:
                     self._fallback_to_state(OSNMAlibSTATE.COLD_START)
+            StatusLogger.log_auth_kroot(dsm_kroot)
 
     def process_pkr_message(self, pkr: BitArray):
 
@@ -279,10 +274,10 @@ class ReceiverState:
 
         if dsm_pkr.pkr_verification():
             logger.info(f"PKR with NPKID {npkid} verified.")
-            self.log_last_pkr_auth = dsm_pkr
 
             if dsm_pkr.is_OAM:
                 logger.warning("OAM Detected - Please connect to the GSC OSNMA Server")
+                StatusLogger.log_auth_pkr(dsm_pkr)
                 self._fallback_to_state(OSNMAlibSTATE.OSNMA_AM, CPKS.AM)
                 return
 
@@ -297,6 +292,7 @@ class ReceiverState:
                 logger.info(f"Start status from {OSNMAlibSTATE.COLD_START.name} to {self.osnmalib_state.name}")
         else:
             logger.error(f"PKR verification failed! PRK received: NPKID {npkid}, NPKT {dsm_pkr.get_value('NPKT').uint}, MID {dsm_pkr.get_value('MID').uint}.")
+        StatusLogger.log_auth_pkr(dsm_pkr)
 
     def process_hkroot_subframe(self, hkroot_sf: BitArray, is_consecutive_hkroot=False):
 
@@ -328,11 +324,9 @@ class ReceiverState:
             try:
                 if self.kroot_waiting_mack:
                     for w_mack in self.kroot_waiting_mack:
-                        self.tesla_chain_force.parse_mack_message(w_mack[0], w_mack[1], w_mack[2], w_mack[3])
+                        self.tesla_chain_force.parse_mack_message(w_mack[0], w_mack[1], w_mack[2], w_mack[3], do_log = False)
                     self.kroot_waiting_mack = []
-                tags_log, tkey = self.tesla_chain_force.parse_mack_message(mack_subframe, gst_subframe, satellite.svid, self.last_received_nmas)
-                satellite.osnma_tags_log = tags_log
-                satellite.osnma_tesla_key_log = tkey
+                tesla_key = self.tesla_chain_force.parse_mack_message(mack_subframe, gst_subframe, satellite.svid, self.last_received_nmas)
             except NMAStatusDontUseFromTag as e:
                 logger.warning(f"Tag authenticated with NMA Status to Dont Use. Stopping navigation data processing.")
                 self.nma_status = NMAS.DONT_USE
@@ -353,7 +347,7 @@ class ReceiverState:
                     logger.warning("Deleting first mack message from waiting list")
                     self.kroot_waiting_mack = self.kroot_waiting_mack[1:]
             else:
-                if self.osnmalib_state == OSNMAlibSTATE.HOT_START and tkey is not None:
+                if self.osnmalib_state == OSNMAlibSTATE.HOT_START and tesla_key is not None:
                     self.osnmalib_state = OSNMAlibSTATE.STARTED
                     logger.info(f"One TESLA key verified. Start Status: {self.osnmalib_state.name}")
 
@@ -361,8 +355,8 @@ class ReceiverState:
         if nma_status is not None:
             self.last_received_nmas = nma_status
 
-    def load_nav_data_page(self, nav_bits: BitArray, gst_page: GST, satellite: 'Satellite'):
-        self.nav_data_structure.load_page(nav_bits, gst_page, satellite)
+    def load_nav_data_page(self, nav_bits: BitArray, gst_page: GST, svid: int):
+        self.nav_data_structure.load_page(nav_bits, gst_page, svid)
 
 
 if __name__ == '__main__':

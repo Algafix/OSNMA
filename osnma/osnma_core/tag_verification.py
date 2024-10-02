@@ -26,6 +26,7 @@ from osnma.structures.maclt import mac_lookup_table
 from osnma.structures.fields_information import NMAS
 from osnma.cryptographic.gst_class import GST
 from osnma.utils.config import Config
+from osnma.utils.status_logger import StatusLogger
 from osnma.utils.exceptions import NMAStatusDontUseFromTag
 
 ######## logger ########
@@ -65,12 +66,14 @@ class TagStateStructure:
     def verify_tag(self, tag: TagAndInfo):
         if tag.authenticate(self.tesla_chain.mac_function):
             logger.info(f"Tag AUTHENTICATED\n\t{tag.get_log()}")
+            StatusLogger.log_auth_tag(tag)
             if NMAS(tag.nma_status.uint) == NMAS.DONT_USE:
                 raise NMAStatusDontUseFromTag(f"Tag authenticated with NMA Status to Dont Use. {tag.get_log()}")
             if not tag.is_dummy:
                 self.nav_data_m.new_tag_verified(tag)
         else:
             logger.error(f"Tag FAILED\n\t{tag.get_log()}")
+            StatusLogger.log_auth_tag(tag)
 
     def verify_macseq(self, macseq: MACSeqObject):
         if macseq.authenticate(self.tesla_chain.mac_function):
@@ -80,6 +83,7 @@ class TagStateStructure:
         else:
             logger.error(f"MACSEQ FAILED\n\t{macseq.get_log()}")
         self.macseq_awaiting_key.remove(macseq)
+        StatusLogger.log_auth_macseq(macseq)
 
     def set_key_index_to_tags(self, tag_list: List[TagAndInfo]):
         for tag in tag_list:

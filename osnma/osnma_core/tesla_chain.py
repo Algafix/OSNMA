@@ -15,7 +15,7 @@
 #
 
 ######## type annotations ########
-from typing import Union, List, Optional, Tuple
+from typing import Union, List, Optional
 from osnma.osnma_core.nav_data_manager import NavigationDataManager
 from osnma.structures.mack_structures import MACSeqObject, TagAndInfo
 
@@ -26,6 +26,7 @@ from osnma.cryptographic.gst_class import GST
 from osnma.osnma_core.tag_verification import TagStateStructure
 from osnma.structures.fields_information import HF, KS_lt, TS_lt, MF
 from osnma.structures.mack_structures import TESLAKey
+from osnma.utils.status_logger import StatusLogger
 from osnma.utils.exceptions import FieldValueNotRecognized, TeslaKeyVerificationFailed, MackParsingError
 
 from Crypto.Hash import CMAC
@@ -145,8 +146,8 @@ class TESLAChain:
 
         return computed_tesla_key
 
-    def parse_mack_message(self, mack_message: List[BitArray], gst_sf: GST, prn_a: int, nma_status: BitArray)\
-            -> Tuple[List[Optional[TagAndInfo]], Optional[TESLAKey]]:
+    def parse_mack_message(self, mack_message: List[BitArray], gst_sf: GST, prn_a: int, nma_status: BitArray, do_log = True)\
+            -> Optional[TESLAKey]:
         """Parse a MACK message bit stream. Then handles the MACK object to the tag structure to add the new tags to the
         tag list. Finally, add the key(s) received to the TESLA key chain.
 
@@ -170,7 +171,10 @@ class TESLAChain:
                 verified, is_new_key = self.add_key(tesla_key)
                 if verified and is_new_key:
                     self.tags_structure.update_tag_lists(gst_sf)
-            return tags_log, tesla_key
+                StatusLogger.log_auth_tesla_key(tesla_key)
+            if do_log:
+                StatusLogger.log_mack_data(prn_a, tags_log, tesla_key)
+            return tesla_key
 
     def get_key_index(self, gst_sf: GST) -> int:
         """Computes the key index that would have a key received on the subframe specified and in the position specified
