@@ -179,6 +179,7 @@ class _StatusLogger:
     def log_auth_tesla_key(self, tesla_key: 'TESLAKey'):
         tesla_key_dict = {
             'svid': tesla_key.svid,
+            'value': tesla_key.key.hex,
             'verification': tesla_key.verified,
             'GST': [tesla_key.gst_sf.wn, tesla_key.gst_sf.tow],
             'reconstructed': tesla_key.reconstructed
