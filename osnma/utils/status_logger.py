@@ -34,6 +34,7 @@ from pathlib import Path
 from osnma.structures.maclt import mac_lookup_table
 from osnma.structures.fields_information import (mf_lt, hf_lt, npkt_lt, KS_lt, TS_lt, NMAS, CPKS, OSNMAlibSTATE,
                                                  parse_nma_header, NB_DP_lt, NB_DK_lt)
+from osnma.utils.api_logger import APISubframeLogger
 from osnma.utils.config import Config
 
 ######## logger ########
@@ -49,6 +50,7 @@ class _StatusLogger:
 
     def __init__(self, logs_path = None):
 
+        self.api_subframe_logger = APISubframeLogger()
         self.json_file_name: Optional[Path] = logs_path / 'status_log.json' if logs_path is not None else None
         self.json_file: Optional[TextIOWrapper] = None
 
@@ -373,9 +375,12 @@ class _StatusLogger:
 
         self._json_file_logging(status_dict)
 
-        if Config.DO_JSON_STATUS:
-            with open(Config.JSON_STATUS_PATH, 'w') as f:
+        if Config.DO_LAST_STATUS_LOGGING:
+            with open(Config.LAST_STATUS_FILE, 'w') as f:
                 json.dump(status_dict, f)
+
+        if Config.DO_API_LOGGING:
+            self.api_subframe_logger.do_api_subframe_logging(status_dict)
 
         self._subframe_reset()
 

@@ -40,10 +40,11 @@ class _Config:
         self.LOG_FILE = True
         self.DO_VERBOSE_LOG = True
         self.DO_STATUS_LOG = True
-        self.DO_JSON_STATUS = False
-        self.JSON_STATUS_PATH = 'last_state.json'
-        self.DO_SUBFRAME_BITS_LOG = False
-        self.SUBFRAME_BITS_FILE = 'last_subframe_bits.json'
+        self.DO_LAST_STATUS_LOGGING = False
+        self.LAST_STATUS_FILE = 'last_state.json'
+        self.DO_API_LOGGING = False
+        self.API_SUBFRAME_BITS_FILE = 'api_subframe_bits.json'
+        self.API_SUBFRAME_STATUS_FILE = 'api_subframe_status.json'
 
         self.SYNC_SOURCE = 0
         self.SYNC_TIME = None

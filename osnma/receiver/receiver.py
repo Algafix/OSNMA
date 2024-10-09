@@ -26,7 +26,7 @@ from osnma.utils.config import Config
 from osnma.utils.exceptions import StoppedAtFAF
 from osnma.cryptographic.gst_class import GST
 from osnma.utils.status_logger import StatusLogger
-from osnma.utils.bits_logger import BitsLogger
+from osnma.utils.api_logger import APIBitsLogger
 
 ######## logger ########
 import osnma.utils.logger_factory as log_factory
@@ -50,7 +50,7 @@ class OSNMAReceiver:
         self.receiver_state = ReceiverState()
         self.subframe_regenerator = SubFrameRegenerator()
         self.current_gst_subframe = GST()
-        self.bits_logger = BitsLogger()
+        self.bits_logger = APIBitsLogger()
 
         Config.FIRST_GST = None
 
@@ -71,9 +71,9 @@ class OSNMAReceiver:
                 logger.exception(f"Error doing status logging")
 
     def _do_bits_log(self):
-        if Config.DO_SUBFRAME_BITS_LOG:
+        if Config.DO_API_LOGGING:
             try:
-                self.bits_logger.do_subframe_bits_log(self.current_gst_subframe, self.satellites)
+                self.bits_logger.do_api_bits_logging(self.current_gst_subframe, self.satellites)
             except Exception as e:
                 logger.exception(f"Error doing subframe bits logging")
 
