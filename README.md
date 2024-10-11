@@ -7,7 +7,7 @@ OSNMAlib
 OSNMAlib is an open-source Python library that can be used for research purposes or be integrated into existing receivers and applications to incorporate navigation message authentication to the positioning process.
 It can read the Galileo I/NAV pages from an input, store the navigation and authentication data, perform the verification operations, and report the status.
 
-The software has been successfully tested using the official ICD test vectors and data from corner cases recorded by me. To our knowledge, it has also been used to verify other third-party OSNMA implementations and in research. 
+The software has been successfully tested using the official ICD test vectors and data from corner cases recorded by us. To our knowledge, it has also been used to verify other third-party OSNMA implementations and in research. 
 
 Note that the security of the OSNMA protocol can only be guaranteed if the receiver providing the navigation data is synchronized with TL seconds of error with the Galileo System Time.
 By default, OSNMAlib assumes a TL of 30s: the maximum to process all tags. However, it can be configured for a different TL depending on what your receiver can guarantee.
@@ -19,7 +19,7 @@ a non-spoofing scenario, feel free to report them.
 
 A live visualization of the output of OSNMAlib can be found at [OSNMAlib.eu](https://osnmalib.eu/).
 This web view uses a receiver located in KU Leuven, Belgium, and live aggregated data from [galmon](https://github.com/berthubert/galmon),
-to display the general state of OSNMA. It also provides the raw navigation bits received in json format.
+to display the general state of OSNMA. It also provides the [raw navigation bits](https://osnmalib.eu/septentrio/subframe_bits) received and the [OSNMAlib status](https://osnmalib.eu/septentrio/subframe_json) in JSON format.
 
 If you are using data from the OSNMA Test Phase (before 2023-08-03 11:00), use the [OSNMA_Test_Phase_ICD branch](https://github.com/Algafix/OSNMA/tree/OSNMA_Test_Phase_ICD).
 
@@ -28,7 +28,7 @@ Supports Python 3.8, 3.9, 3.10, and 3.11. Tested on Linux and Windows.
 Features
 ---
 
-Current OSNMA ICD **features supported**:
+Current OSNMA **features supported**:
 
   * Verification of the public key retrieved from the DSM-PKR message.
   * Verification of the TESLA root key retrieved from the DSM-KROOT message.
@@ -42,6 +42,7 @@ Current OSNMA ICD **features supported**:
   * Support for custom TL values.
   * Support for Cold Start, Warm Start and Hot Start.
   * Support for the following events: EOC, CREV, NPK, PKREV, NMT, and OAM.
+  * [JSON output](#osnmalib-logging-options) for monitoring and postprocessing with `json-schema` [[html](https://osnmalib.eu/json-schema)|[json](osnma/utils/json_schema/status_log_schema.json)].
   
 **Extra optimizations** for a faster TTFAF:
   * Reconstruct broken HKROOT messages.
@@ -63,7 +64,6 @@ Current data [formats supported](https://github.com/Algafix/OSNMA/wiki/Input-Dat
 
 Future development:
 
-  * Standard JSON output for monitoring
   * Time synchronization options for live execution.
   * IDD ICD implementation for authentication of cryptographic materials.
 
@@ -211,12 +211,13 @@ The **verbose** log outputs everything meaningful that happens in OSNMAlib in a 
 This means that OSNMAlib processes the data from the input and outputs what has managed to do with this data before
 reading the next.
 
-The **status** log, on the other hand, outputs information only at the end of a subframe. This logging modality can be useful
-to see the current state of OSNMAlib without having to scroll and get overwhelmed by it.
+The **status** log, on the other hand, outputs information only at the end of a subframe in JSON format.
+This logging modality is useful to see the current state of OSNMAlib and post-process OSNMA information logged in the
+JSON file. The description of the JSON structure can be found in the following `json-schema` [[html](https://osnmalib.eu/json-schema)|[json](osnma/utils/json_schema/status_log_schema.json)].   
 
 When enabling the console as logging destination, both logging modalities are merged in the console output.
 However, if you enable the file logging, a file is created for each modality.
-Finally, there is a beta logging mode that always outputs the last subframe status in JSON format to a file.
+Finally, there is a logging mode that only outputs the last subframe status in JSON format to a file.
 
 For more information on how to set these logging options, see the wiki page [OSNMAlib Configuration Options](https://github.com/Algafix/OSNMA/wiki/OSNMAlib-Configuration-Options).
 
@@ -231,14 +232,14 @@ I strongly believe in open-source software and free access to knowledge, and thi
 However, this approach by my side requires the uttermost respect to the research integrity and ethics by anyone accessing the repository. 
 
 Publication list:
-* "OSNMAlib: An Open Python Library for Galileo OSNMA," _NAVITEC_, Noordwijk, Netherlands, 2022. [[link](https://ieeexplore.ieee.org/document/9847548)]
-  * Some sections are a bit outdated.
+* "OSNMAlib Improvements and Real-Time Monitoring of Galileo OSNMA," _ICL-GNSS_, 2024. [[link](https://ieeexplore.ieee.org/document/10578487)]
+  * Description of the improvements on OSNMAlib such as the new input and logging formats.
 * "Improving Galileo OSNMA Time To First Authenticated Fix." _arXiv preprint_ arXiv:2403.14739, 2024. [[link](https://arxiv.org/abs/2403.14739)]
   * This work has been submitted to the IEEE for possible publication.
 * "GNSS Recordings for Galileo OSNMA Evaluation", _IEEE Dataport_, 2024. [[link](https://dx.doi.org/10.21227/a0nm-kn45)]
   * Dataset used for the "Improving Galileo OSNMA Time To First Authenticated Fix" manuscript.
-* "OSNMAlib Improvements and Real-Time Monitoring of Galileo OSNMA," _ICL-GNSS_, 2024.
-  * Will be linked after the conference takes place.
+* "OSNMAlib: An Open Python Library for Galileo OSNMA," _NAVITEC_, Noordwijk, Netherlands, 2022. [[link](https://ieeexplore.ieee.org/document/9847548)]
+  * Some sections are a bit outdated.
 
 In case of any doubt, contact me at aleix.galan[@]kuleuven.be
 
