@@ -354,7 +354,7 @@ class _StatusLogger:
             "OSNMA_status": self._get_osnma_status_dict(osnma_r),
             "OSNMA_material_received": dict(sorted(self.osnma_material_received.items())),
             "nav_data_received": dict(sorted(self.nav_data_received.items())),
-            "verified_OSNMA_material": self.verified_osnma_material,
+            "verified_OSNMA_material": dict(self.verified_osnma_material),
             "authenticated_nav_data": self._get_authenticated_nav_data(osnma_r),
         }
 
