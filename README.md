@@ -59,7 +59,7 @@ Current data [formats supported](https://github.com/Algafix/OSNMA/wiki/Input-Dat
   * u-blox UBX log files
   * u-blox live connection through COM port 
   * Live aggregated data from the [galmon](https://github.com/berthubert/galmon) project.
-  * GNSS-SDR project format through UDP socket
+  * [GNSS-SDR](https://gnss-sdr.org/) project format through UDP socket
   * Allows for custom data by implementing your iterator.
 
 Future development:
@@ -233,13 +233,13 @@ However, this approach by my side requires the uttermost respect to the research
 
 Publication list:
 * "OSNMAlib Improvements and Real-Time Monitoring of Galileo OSNMA," _ICL-GNSS_, 2024. [[link](https://ieeexplore.ieee.org/document/10578487)]
-  * Description of the improvements on OSNMAlib such as the new input and logging formats.
+  * Report on the latest OSNMAlib improvements including [osnmalib.eu](https://osnmalib.eu)
 * "Improving Galileo OSNMA Time To First Authenticated Fix." _arXiv preprint_ arXiv:2403.14739, 2024. [[link](https://arxiv.org/abs/2403.14739)]
-  * This work has been submitted to the IEEE for possible publication.
+  * Technical description of the optimization to reduce the TTFAF to 44 seconds and testing with live data recording.
 * "GNSS Recordings for Galileo OSNMA Evaluation", _IEEE Dataport_, 2024. [[link](https://dx.doi.org/10.21227/a0nm-kn45)]
   * Dataset used for the "Improving Galileo OSNMA Time To First Authenticated Fix" manuscript.
 * "OSNMAlib: An Open Python Library for Galileo OSNMA," _NAVITEC_, Noordwijk, Netherlands, 2022. [[link](https://ieeexplore.ieee.org/document/9847548)]
-  * Some sections are a bit outdated.
+  * Some sections are outdated.
 
 In case of any doubt, contact me at aleix.galan[@]kuleuven.be
 
