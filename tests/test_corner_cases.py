@@ -82,7 +82,8 @@ def test_change_of_word_type_5(log_level=logging.INFO):
         'scenario_path': Path(__file__).parent / 'test_corner_cases/change_of_word_type_5/change_wt5.sbf',
         'exec_path': Path(__file__).parent / 'test_corner_cases/change_of_word_type_5/',
         'pubk_name': 'OSNMA_PublicKey.xml',
-        'kroot_name': 'OSNMA_last_KROOT.txt'
+        'kroot_name': 'OSNMA_last_KROOT.txt',
+        'dual_frequency': True
     }
 
     expected_results = {
@@ -105,16 +106,17 @@ def test_tow_rollover(log_level=logging.INFO):
         'logs_path': LOGS_PATH,
         'scenario_path': Path(__file__).parent / 'test_corner_cases/tow_rollover/tow_rollover_only_inav.sbf',
         'exec_path': Path(__file__).parent / 'test_corner_cases/tow_rollover/',
-        'pubk_name': 'OSNMA_PublicKey.xml'
+        'pubk_name': 'OSNMA_PublicKey.xml',
+        'dual_frequency': True
     }
 
     expected_results = {
-        "tags_auth": 8975,
-        "data_auth": 7409,
+        "tags_auth": 8985,
+        "data_auth": 7413,
         "kroot_auth": 199,
         "broken_kroot": 43,
-        "crc_failed": 2498,
-        "warnings": 2541,
+        "crc_failed": 4164,
+        "warnings": 4207,
         "errors": 0
     }
 
@@ -129,7 +131,8 @@ def test_osnma_outage_and_wt5(log_level=logging.INFO):
         'scenario_path': Path(__file__).parent / 'test_corner_cases/osnma_outage/osnma_outage.sbf',
         'exec_path': Path(__file__).parent / 'test_corner_cases/osnma_outage/',
         'pubk_name': 'OSNMA_PublicKey.xml',
-        'kroot_name': 'OSNMA_start_KROOT.txt'
+        'kroot_name': 'OSNMA_start_KROOT.txt',
+        'dual_frequency': True
     }
 
     expected_results = {
@@ -137,8 +140,8 @@ def test_osnma_outage_and_wt5(log_level=logging.INFO):
         "data_auth": 3412,
         "kroot_auth": 50,
         "broken_kroot": 25,
-        "crc_failed": 49,
-        "warnings": 74,
+        "crc_failed": 88,
+        "warnings": 113,
         "errors": 0
     }
 
@@ -153,7 +156,8 @@ def test_osnma_after_outage(log_level=logging.INFO):
         'scenario_path': Path(__file__).parent / 'test_corner_cases/osnma_after_outage/after_outage.sbf',
         'exec_path': Path(__file__).parent / 'test_corner_cases/osnma_after_outage/',
         'pubk_name': 'OSNMA_PublicKey.xml',
-        'kroot_name': 'OSNMA_start_KROOT.txt'
+        'kroot_name': 'OSNMA_start_KROOT.txt',
+        'dual_frequency': True
     }
 
     expected_results = {
@@ -177,7 +181,8 @@ def test_svid_12_repeats_iod(log_level=logging.INFO):
         'scenario_path': Path(__file__).parent / 'test_corner_cases/svid_12_repeats_iod/tag_error_12.sbf',
         'exec_path': Path(__file__).parent / 'test_corner_cases/svid_12_repeats_iod/',
         'pubk_name': 'OSNMA_PublicKey_1.xml',
-        'kroot_name': 'OSNMA_start_KROOT.txt'
+        'kroot_name': 'OSNMA_start_KROOT.txt',
+        'dual_frequency': True
     }
 
     expected_results = {
@@ -200,16 +205,17 @@ def test_real_eoc(log_level=logging.INFO):
         'logs_path': LOGS_PATH,
         'scenario_path': Path(__file__).parent / 'test_corner_cases/real_eoc/real_eoc.sbf',
         'exec_path': Path(__file__).parent / 'test_corner_cases/real_eoc/',
-        'pubk_name': 'OSNMA_PublicKey_1.xml'
+        'pubk_name': 'OSNMA_PublicKey_1.xml',
+        'dual_frequency': True
     }
 
     expected_results = {
-        "tags_auth": 6339,
-        "data_auth": 4214,
+        "tags_auth": 6478,
+        "data_auth": 4293,
         "kroot_auth": 73,
         "broken_kroot": 44,
-        "crc_failed": 477,
-        "warnings": 521,
+        "crc_failed": 492,
+        "warnings": 536,
         "errors": 0
     }
 
@@ -223,16 +229,17 @@ def test_real_crev(log_level=logging.INFO):
         'logs_path': LOGS_PATH,
         'scenario_path': Path(__file__).parent / 'test_corner_cases/real_crev/real_crev.sbf',
         'exec_path': Path(__file__).parent / 'test_corner_cases/real_crev/',
-        'pubk_name': 'OSNMA_PublicKey_1.xml'
+        'pubk_name': 'OSNMA_PublicKey_1.xml',
+        'dual_frequency': True
     }
 
     expected_results = {
-        "tags_auth": 12289,
-        "data_auth": 8235,
+        "tags_auth": 12342,
+        "data_auth": 8266,
         "kroot_auth": 210,
         "broken_kroot": 108,
-        "crc_failed": 1802,
-        "warnings": 3302,
+        "crc_failed": 1903,
+        "warnings": 3403,
         "errors": 0
     }
 
@@ -246,16 +253,17 @@ def test_6_hours(log_level=logging.INFO):
         'logs_path': LOGS_PATH,
         'scenario_path': Path(__file__).parent / 'test_corner_cases/6_hours/6_hours.sbf',
         'exec_path': Path(__file__).parent / 'test_corner_cases/6_hours/',
-        'pubk_name': 'OSNMA_PublicKey_1.xml'
+        'pubk_name': 'OSNMA_PublicKey_1.xml',
+        'dual_frequency': True
     }
 
     expected_results = {
-        "tags_auth": 14600,
-        "data_auth": 10982,
+        "tags_auth": 14709,
+        "data_auth": 11069,
         "kroot_auth": 198,
         "broken_kroot": 61,
-        "crc_failed": 2619,
-        "warnings": 2680,
+        "crc_failed": 3268,
+        "warnings": 3329,
         "errors": 0
     }
 
@@ -269,16 +277,17 @@ def test_24_hours(log_level=logging.INFO):
         'logs_path': LOGS_PATH,
         'scenario_path': Path(__file__).parent / 'test_corner_cases/24_hours/24_hours.sbf',
         'exec_path': Path(__file__).parent / 'test_corner_cases/24_hours/',
-        'pubk_name': 'OSNMA_PublicKey_1.xml'
+        'pubk_name': 'OSNMA_PublicKey_1.xml',
+        'dual_frequency': True
     }
 
     expected_results = {
-        "tags_auth": 60983,
-        "data_auth": 45247,
+        "tags_auth": 62085,
+        "data_auth": 45875,
         "kroot_auth": 804,
         "broken_kroot": 200,
-        "crc_failed": 3730,
-        "warnings": 3930,
+        "crc_failed": 4407,
+        "warnings": 4607,
         "errors": 0
     }
 
@@ -292,15 +301,16 @@ def test_24_hours_cold_start(log_level=logging.INFO):
         'logs_path': LOGS_PATH,
         'scenario_path': Path(__file__).parent / 'test_corner_cases/24_hours/24_hours.sbf',
         'exec_path': Path(__file__).parent / 'test_corner_cases/24_hours/',
+        'dual_frequency': True
     }
 
     expected_results = {
-        "tags_auth": 60983,
-        "data_auth": 45247,
+        "tags_auth": 62085,
+        "data_auth": 45875,
         "kroot_auth": 802,
         "broken_kroot": 200,
-        "crc_failed": 3730,
-        "warnings": 3930,
+        "crc_failed": 4407,
+        "warnings": 4607,
         "errors": 0
     }
 

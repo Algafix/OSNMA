@@ -21,7 +21,7 @@ import pandas as pd
 
 from bitstring import BitArray
 
-from osnma.input_formats.base_classes import DataFormat, PageIterator
+from osnma.input_formats.base_classes import DataFormat, PageIterator, GAL_BAND
 
 
 SYNC = b'$@'
@@ -45,7 +45,7 @@ signal_type = {
     19: 'GAL_E6BC',
     20: 'GAL_E5a',
     21: 'GAL_E5b',
-    22: 'GAL_E4_AltBOC'
+    22: 'GAL_E5'
 }
 
 CRC16_XMODEM_TABLE = [
@@ -211,11 +211,16 @@ class SBF(PageIterator):
                     # We have a block and its a gal raw nav block
                     tow, wn_c, svid, crc_passed, band, nav_bits_hex = parse_GALRawINAV(block)
 
+                    if band == 'GAL_L1BC':
+                        band = GAL_BAND.E1B
+                    elif band == 'GAL_E5b':
+                        band = GAL_BAND.E5b
+
                     if self.use_satellites_list and svid not in self.use_satellites_list:
                         self.file_pos = self.file.tell()
                         continue
 
-                    if band == 'GAL_L1BC' and tow != 'DNU' and wn_c != 'DNU':
+                    if tow != 'DNU' and wn_c != 'DNU':
                         # print(f"WN: {wn_c} TOW: {tow} SVID: {svid} BAND: {band} CRC: {crc_passed}")
                         tow = tow // 1000 - 2
                         wn = wn_c - 1024
@@ -264,7 +269,13 @@ class SBFLive(PageIterator):
 
                 if block_id == 4023:
                     tow, wn_c, svid, crc_passed, band, nav_bits_hex = parse_GALRawINAV(block)
-                    if band == 'GAL_L1BC' and tow != 'DNU' and wn_c != 'DNU':
+
+                    if band == 'GAL_L1BC':
+                        band = GAL_BAND.E1B
+                    elif band == 'GAL_E5b':
+                        band = GAL_BAND.E5b
+
+                    if tow != 'DNU' and wn_c != 'DNU':
                         tow = tow // 1000 - 2
                         wn = wn_c - 1024
                         nav_bits = BitArray(hex="".join(nav_bits_hex))[:234]
@@ -317,7 +328,13 @@ class SBFLiveServer(PageIterator):
 
                 if block_id == 4023:
                     tow, wn_c, svid, crc_passed, band, nav_bits_hex = parse_GALRawINAV(block)
-                    if band == 'GAL_L1BC' and tow != 'DNU' and wn_c != 'DNU':
+
+                    if band == 'GAL_L1BC':
+                        band = GAL_BAND.E1B
+                    elif band == 'GAL_E5b':
+                        band = GAL_BAND.E5b
+
+                    if tow != 'DNU' and wn_c != 'DNU':
                         tow = tow // 1000 - 2
                         wn = wn_c - 1024
                         nav_bits = BitArray(hex="".join(nav_bits_hex))[:234]
@@ -369,8 +386,13 @@ class SBFAscii(PageIterator):
         # WN counts from GPS WN 0, and TOW counts at the end of the SF
         wn = row['WN']-1024
         tow = row['TOW']-2
-        band = row['signalType']
         crc = True if row['CRCPassed'] == 'Passed' else False
+        if row['signalType'] == 'GAL_L1BC':
+            band = GAL_BAND.E1B
+        elif row['signalType'] == 'GAL_E5b':
+            band = GAL_BAND.E5b
+        else:
+            band = row['signalType']
         data = DataFormat(row['SVID'], wn, tow, nav_bits, band=band, crc=crc)
 
         return data
@@ -427,7 +449,12 @@ class SBFMetrics(PageIterator):
                         self.file_pos = self.file.tell()
                         continue
 
-                    if band == 'GAL_L1BC' and tow != 'DNU' and wn_c != 'DNU':
+                    if band == 'GAL_L1BC':
+                        band = GAL_BAND.E1B
+                    elif band == 'GAL_E5b':
+                        band = GAL_BAND.E5b
+
+                    if tow != 'DNU' and wn_c != 'DNU':
                         # print(f"WN: {wn_c} TOW: {tow} SVID: {svid} BAND: {band} CRC: {crc_passed}")
                         tow = tow // 1000 - 2
                         wn = wn_c - 1024
