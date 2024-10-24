@@ -14,9 +14,13 @@
 # See the Licence for the specific language governing permissions and limitations under the Licence.
 #
 
+from enum import Enum
 from bitstring import BitArray
 from osnma.cryptographic.gst_class import GST
 
+class GAL_BAND(str, Enum):
+    E1B = 'E1-B'
+    E5b = 'E5b-I'
 
 class DataFormat:
     """
@@ -29,7 +33,7 @@ class DataFormat:
     mack_start = 146
     mack_length = 32
 
-    def __init__(self, svid: int, wn: int, tow: int, nav_bits: BitArray, band: str = 'GAL_L1BC', crc: bool = True):
+    def __init__(self, svid: int, wn: int, tow: int, nav_bits: BitArray, band: GAL_BAND = GAL_BAND.E1B, crc: bool = True):
 
         if len(nav_bits) != 240:
             raise ValueError(f"The DataFormat object accepts 1 nominal page (or double page) with 240 bits."
@@ -47,7 +51,7 @@ class DataFormat:
         self.dsm_id = None
         self.bid = None
 
-        self.has_osnma = self.nav_bits[self.osnma_start:self.osnma_end].uint != 0
+        self.has_osnma = False if self.band != GAL_BAND.E1B else self.nav_bits[self.osnma_start:self.osnma_end].uint != 0
 
         if self.has_osnma:
             if tow % 30 == 2:

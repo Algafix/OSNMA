@@ -15,9 +15,9 @@
 #
 
 ######## type annotations ########
-from typing import List, Optional
+from typing import List, Optional, Dict
 from bitstring import BitArray
-from osnma.input_formats.base_classes import DataFormat
+from osnma.input_formats.base_classes import DataFormat, GAL_BAND
 
 
 class Satellite:
@@ -34,13 +34,15 @@ class Satellite:
         self.osnma_subframe: bool = False
         self.active_on_this_subframe: bool = False
         self.already_processed: bool = False
-        self.pages_bits_log: List[Optional[str]] = [None for _ in range(15)]
+        self.pages_bits_log: Dict[GAL_BAND, List[Optional[str]]] = {
+            GAL_BAND.E1B: [None for _ in range(15)],
+            GAL_BAND.E5b: [None for _ in range(15)]
+        }
 
     def _load_osnma(self, page: DataFormat, page_number: int):
-        if page.has_osnma:
-            page_hkroot, page_mack = page.get_osnma()
-            self.hkroot_subframe[page_number] = page_hkroot
-            self.mack_subframe[page_number] = page_mack
+        page_hkroot, page_mack = page.get_osnma()
+        self.hkroot_subframe[page_number] = page_hkroot
+        self.mack_subframe[page_number] = page_mack
 
     def reset(self):
         self.hkroot_subframe = [None for _ in range(15)]
@@ -48,7 +50,10 @@ class Satellite:
         self.osnma_subframe = False
         self.active_on_this_subframe = False
         self.already_processed = False
-        self.pages_bits_log = [None for _ in range(15)]
+        self.pages_bits_log = {
+            GAL_BAND.E1B: [None for _ in range(15)],
+            GAL_BAND.E5b: [None for _ in range(15)]
+        }
 
     def is_already_processed(self):
         return self.already_processed
@@ -68,8 +73,9 @@ class Satellite:
 
         gst_page = page.gst_page
         page_number = (gst_page.tow % 30) // 2
-        self._load_osnma(page, page_number)
-        self.pages_bits_log[page_number] = page.nav_bits.hex
+        if page.has_osnma:
+            self._load_osnma(page, page_number)
+        self.pages_bits_log[page.band][page_number] = page.nav_bits.hex
 
     def get_mack_subframe(self) -> List[Optional[BitArray]]:
         return self.mack_subframe

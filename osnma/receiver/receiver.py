@@ -16,7 +16,7 @@
 
 ######## type annotations ########
 from typing import Dict, Tuple, Optional
-from osnma.input_formats.base_classes import PageIterator, DataFormat
+from osnma.input_formats.base_classes import PageIterator, DataFormat, GAL_BAND
 
 ######## imports ########
 from osnma.receiver.satellite import Satellite
@@ -61,7 +61,7 @@ class OSNMAReceiver:
         return data.nav_bits[1]
 
     def _get_gst_subframe(self, gst: GST):
-        return GST(wn=gst.wn, tow=gst.tow // 30 * 30)
+        return GST(wn=gst.wn, tow=(gst.tow - gst.tow % 30))
 
     def _do_status_log(self):
         if Config.DO_STATUS_LOG:
@@ -93,7 +93,10 @@ class OSNMAReceiver:
         if data.gst_page < Config.FIRST_GST:
             return True
 
-        if data.band != 'GAL_L1BC':
+        if data.band != GAL_BAND.E1B and data.band != GAL_BAND.E5b:
+            return True
+
+        if data.band != GAL_BAND.E1B and not Config.DUAL_FREQUENCY:
             return True
 
         if self._is_alert_page(data):
