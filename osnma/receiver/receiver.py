@@ -96,7 +96,7 @@ class OSNMAReceiver:
         if data.band != GAL_BAND.E1B and data.band != GAL_BAND.E5b:
             return True
 
-        if data.band != GAL_BAND.E1B and not Config.DUAL_FREQUENCY:
+        if data.band != GAL_BAND.E1B and not Config.DO_DUAL_FREQUENCY:
             return True
 
         if self._is_alert_page(data):
