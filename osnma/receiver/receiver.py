@@ -77,6 +77,21 @@ class OSNMAReceiver:
             except Exception as e:
                 logger.exception(f"Error doing subframe bits logging")
 
+    def _time_sync(self, data: DataFormat) -> bool:
+        """
+        Will control the Time Synchronization for live executions. Currently only updates the last GST.
+        """
+        if Config.LAST_GST is None:
+            Config.LAST_GST = data.gst_page
+
+        if data.gst_page < Config.LAST_GST:
+            logger.warning(f"Time is going backwards!")
+            return False
+
+        Config.LAST_GST = data.gst_page
+
+        return True
+
     def _filter_page(self, data: DataFormat):
         """
         Filter page if it is not useful for teh current OSNMA implementation.
@@ -179,6 +194,9 @@ class OSNMAReceiver:
                 if (gst_sf := self._get_gst_subframe(page.gst_page)) > self.current_gst_subframe:
                     self._end_of_subframe_global()
                     self.current_gst_subframe = gst_sf
+
+                if not self._time_sync(page):
+                    continue
 
                 # Add OSNMA data to satellite
                 satellite = self.satellites[page.svid]

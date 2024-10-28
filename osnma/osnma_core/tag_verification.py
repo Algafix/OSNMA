@@ -159,7 +159,7 @@ class TagStateStructure:
                 self.verify_tag(tag)
                 self.tags_with_key_awaiting_data.remove(tag)
 
-        self.nav_data_m.check_authenticated_data(gst_sf)
+        self.nav_data_m.check_authenticated_data()
 
     def _add_tags_waiting_key(self, tag_list: List[TagAndInfo]):
         """
@@ -187,7 +187,7 @@ class TagStateStructure:
         else:
             return False
 
-    def update_tag_lists(self, gst_subframe: GST):
+    def update_tag_lists(self):
         """
         Authenticates the MACSEQ of that key and adds the tags to the list. Then authenticates all tags that have
         a valid TESLA key and for which data has been received. If no data has been received, delete the tag.
@@ -220,7 +220,7 @@ class TagStateStructure:
                 self.tags_awaiting_key.remove(tag)
 
         # Check if any data can be authenticated
-        self.nav_data_m.check_authenticated_data(gst_subframe)
+        self.nav_data_m.check_authenticated_data()
 
     def load_mack_message(self, mack_message: MACKMessage) -> List[Optional[Dict]]:
         tag_list, flex_list, macseq, is_flx_tag_missing, tags_log = self.verify_maclt(mack_message)
