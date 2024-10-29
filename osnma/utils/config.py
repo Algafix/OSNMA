@@ -56,7 +56,7 @@ class _Config:
         self.ACTIVE_ADKD = {0, 4, 12}
 
         self.DO_HKROOT_REGEN = True
-        self.DO_CRC_FAILED_EXTRACTION = True
+        self.DO_MACK_PARTIAL_EXTRACTION = True
         self.DO_TESLA_KEY_REGEN = True
         self.DO_COP_LINK_OPTIMIZATION = False
         self.DO_DUAL_FREQUENCY = False
