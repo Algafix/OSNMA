@@ -150,7 +150,7 @@ class OSNMAReceiver:
                     for regen_hkroot_sf, bid in self.subframe_regenerator.get_regenerated_blocks():
                         logger.info(f'HKROOT regenerated. BID {bid}')
                         self.receiver_state.process_hkroot_subframe(regen_hkroot_sf)
-                if Config.DO_CRC_FAILED_EXTRACTION:
+                if Config.DO_MACK_PARTIAL_EXTRACTION:
                     mack_sf = satellite.get_mack_subframe()
                     self.receiver_state.process_mack_subframe(mack_sf, gst_sf, satellite)
         else:
