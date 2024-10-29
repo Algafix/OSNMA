@@ -438,15 +438,14 @@ class NavigationDataManager:
         else:
             self.adkd4_data_managers[svid].add_word(word_type, page, gst_page)
 
-    def _calculate_TTFAF(self, auth_data: AuthenticatedData, gst_subframe: GST):
+    def _calculate_TTFAF(self, auth_data: AuthenticatedData):
 
         if auth_data.adkd != 4 and auth_data.prn_d not in self.auth_sats_svid:
             self.auth_sats_svid.append(auth_data.prn_d)
             if len(self.auth_sats_svid) == 4:
-                # Everything is checked at the end of the SF, so add 30 seconds to the gst of the subframe
-                # Also, OSNMAlib works with pages timestamped with the GST of leading edge of the first page,
-                # but to receive the data of a page we have to wait until the page ends, hence +1 second.
-                gst_subframe_data_end = gst_subframe + 30 + 1
+                # OSNMAlib works with pages timestamped with the GST of leading edge of the first page,
+                # but to receive the data of a page we have to wait until the page ends, hence +2 seconds.
+                gst_subframe_data_end = Config.LAST_GST + 2
                 ttfaf = (gst_subframe_data_end - Config.FIRST_GST).tow
                 logger.info(f"First Authenticated Fix at GST {gst_subframe_data_end}")
                 logger.info(f"First GST {Config.FIRST_GST}")
@@ -468,7 +467,7 @@ class NavigationDataManager:
                 for data_block in list(data_manager.adkd0_data_blocks[:-1]):
                     data_manager.adkd0_data_blocks.remove(data_block)
 
-    def check_authenticated_data(self, gst_subframe: GST):
+    def check_authenticated_data(self):
         """
         Called every time a MACK message with a new TESLA key is received after verifying all possible tags.
         Authenticates any data blocks possible (according to tag length)
@@ -478,7 +477,7 @@ class NavigationDataManager:
             if auth_data.acc_length >= Config.TAG_LENGTH and auth_data.new_tags:
                 auth_data.log_authenticated()
                 auth_data.new_tags = False
-                self._calculate_TTFAF(auth_data, gst_subframe)
+                self._calculate_TTFAF(auth_data)
         self._clean_old_data()
 
     def update_navdata_based_on_cop(self, tag: TagAndInfo):

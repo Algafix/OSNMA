@@ -59,10 +59,11 @@ class _Config:
         self.DO_CRC_FAILED_EXTRACTION = True
         self.DO_TESLA_KEY_REGEN = True
         self.DO_COP_LINK_OPTIMIZATION = False
-        self.DUAL_FREQUENCY = False
-
+        self.DO_DUAL_FREQUENCY = False
         self.STOP_AT_FAF = False
+
         self.FIRST_GST = None
+        self.LAST_GST = None
 
     def load_configuration_parameters(self, param_dict: Dict[str, Any]):
         """
