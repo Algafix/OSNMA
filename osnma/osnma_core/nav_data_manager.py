@@ -15,7 +15,7 @@
 #
 
 ######## type annotations ########
-from typing import TYPE_CHECKING, List, Dict, Tuple, Optional, Union
+from typing import List, Dict, Tuple, Optional, Union
 
 ######## imports ########
 from osnma.structures.adkd import adkd_masks
@@ -24,6 +24,7 @@ from osnma.cryptographic.gst_class import GST
 from osnma.utils.config import Config
 from osnma.utils.status_logger import StatusLogger
 from osnma.utils.exceptions import StoppedAtFAF
+from osnma.utils.reed_solomon_recovery import REED_SOLOMON_WORDS, ReedSolomonRecovery
 
 from bitstring import BitArray
 
@@ -386,6 +387,10 @@ class NavigationDataManager:
         for adkd, words in WORDS_PER_ADKD.items():
             if adkd in Config.ACTIVE_ADKD:
                 self.active_words.update(words)
+        if Config.DO_REED_SOLOMON_RECOVERY:
+            self.active_words.update(REED_SOLOMON_WORDS)
+
+        self.rs_recovery = ReedSolomonRecovery()
 
     def _get_dummy_data(self, tag: TagAndInfo) -> Union[ADKD0DataBlock, ADKD4DataBlock]:
         """
@@ -435,8 +440,14 @@ class NavigationDataManager:
             return
         if word_type in WORDS_PER_ADKD[ADKD0]:
             self.adkd0_data_managers[svid].add_word(word_type, page, gst_page)
-        else:
+        elif word_type in WORDS_PER_ADKD[ADKD4]:
             self.adkd4_data_managers[svid].add_word(word_type, page, gst_page)
+
+        if Config.DO_REED_SOLOMON_RECOVERY:
+            self.rs_recovery.add_rs_word(word_type, page, svid)
+            new_pages = self.rs_recovery.recover_words(svid)
+            for wt, page in new_pages.items():
+                self.adkd0_data_managers[svid].add_word(wt, page, gst_page)
 
     def _calculate_TTFAF(self, auth_data: AuthenticatedData):
 

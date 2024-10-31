@@ -18,6 +18,10 @@ class FieldLengthNotCorrect(Exception):
     pass
 
 
+class ReedSolomonRecoveryError(Exception):
+    pass
+
+
 class MissingFieldDSM(Exception):
     pass
 
