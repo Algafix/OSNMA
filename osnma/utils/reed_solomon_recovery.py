@@ -154,7 +154,10 @@ class ReedSolomonSatellite:
         erasure_positions_lib = self._swap_erasure_format(erasure_positions)
 
         # Decode and addapt for the Galileo format
-        decoded_msg, decoded_msgecc, errata_pos = rs.decode(code_vector_lib, erase_pos=erasure_positions_lib)
+        try:
+            decoded_msg, decoded_msgecc, errata_pos = rs.decode(code_vector_lib, erase_pos=erasure_positions_lib)
+        except Exception:
+            raise ReedSolomonRecoveryError(f"Error when decoding. SVID {self.svid}.")
         decoded_msgecc_gal = self._swap_code_vector_format(decoded_msgecc)
 
         # Extract words and save them. Create fake pages for further OSNMAlib processing (will be modified)
@@ -193,7 +196,7 @@ class ReedSolomonSatellite:
 class ReedSolomonRecovery:
     def __init__(self):
         self.rs_data = {}
-        for svid in range(Config.NS):
+        for svid in range(Config.NS+1):
             self.rs_data[svid] = ReedSolomonSatellite(svid)
 
     def add_rs_word(self, wt: int, page: BitArray, svid: int):
