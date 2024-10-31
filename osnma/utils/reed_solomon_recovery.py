@@ -41,6 +41,7 @@ class ReedSolomonSatellite:
         """
         Information vector of 58 octets.
         WT1 has a special treatment and 16 octets (128 bits) in the information vector.
+        The first byte of the WT1 is always 0b000001 + iod_2_lsb
         WT2-4 have the same treatment and 14 octets (112 bits) in the information vector.
         """
         info_vector = BitArray(58 * 8)
@@ -48,6 +49,8 @@ class ReedSolomonSatellite:
             info_vector[0:128] = self.ced_words[0]
             info_vector[6:8] = self.ced_words[0][14:16]
             info_vector[8:16] = self.ced_words[0][6:14]
+        else:
+            info_vector[:8] = BitArray('0b000001') + self.partial_iod
         for i, word in enumerate(self.ced_words[1:]):
             if word is not None:
                 info_vector[128 + 112*i: 128 + 112*(i+1)] = word[16:128]
@@ -70,7 +73,7 @@ class ReedSolomonSatellite:
         for i, word in enumerate(self.ced_words):
             if word is None:
                 if i == 0:
-                    erasure_positions.extend(range(0,16))
+                    erasure_positions.extend(range(1,16))  # The first byte is always known. Type + iod_2_lsb
                 else:
                     erasure_positions.extend(range(16 + 14 * (i-1), 16 + 14 * i))
         for i, word in enumerate(self.rs_ced_words):
