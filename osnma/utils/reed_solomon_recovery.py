@@ -165,10 +165,7 @@ class ReedSolomonSatellite:
 
         # Extract words and save them. Create fake pages for further OSNMAlib processing (will be modified)
         return_ced_words = self._extract_and_update_words(decoded_msgecc_gal)
-        return_ced_pages = {}
-        for wt, word in return_ced_words.items():
-            return_ced_pages[wt] = BitArray('0b00') + word[:112] + BitArray(bin='0'*8) + word[112:] + BitArray(bin='0'*102)
-        return return_ced_pages
+        return return_ced_words
 
     def add_word(self, wt: int, word: BitArray):
         if wt in CED_WORDS:
@@ -202,8 +199,7 @@ class ReedSolomonRecovery:
         for svid in range(Config.NS+1):
             self.rs_data[svid] = ReedSolomonSatellite(svid)
 
-    def add_rs_word(self, wt: int, page: BitArray, svid: int):
-        word = page[2:114] + page[122:138]
+    def add_rs_word(self, wt: int, word: BitArray, svid: int):
         self.rs_data[svid].add_word(wt, word)
 
     def recover_words(self, svid: int):

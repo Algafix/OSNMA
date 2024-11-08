@@ -101,12 +101,8 @@ class ADKDDataManager:
         self.svid = svid
 
     def _get_adkd_data_from_word(self, full_page: BitArray, word_type: int):
-        data_mask = self.ADKD_MASKS[self.adkd]['adkd'][word_type]['bits']
-
-        adkd_word_data = BitArray()
-        for bit_block in data_mask:
-            adkd_word_data.append(full_page[bit_block[0]: bit_block[1]])
-
+        mask_start, mask_end  = self.ADKD_MASKS[self.adkd]['adkd'][word_type]['bits']
+        adkd_word_data = full_page[mask_start:mask_end]
         return adkd_word_data
 
     def add_word(self, word_type: int, data: BitArray, gst_page: GST):
@@ -409,6 +405,11 @@ class NavigationDataManager:
 
         return nav_data
 
+    def _get_word_type_and_data(self, full_page: BitArray):
+        word_type = full_page[2:8].uint
+        word_data = full_page[2:114] + full_page[122:138]
+        return word_type, word_data
+
     def get_data(self, tag: TagAndInfo):
         svid = tag.prn_d.uint
         adkd = tag.adkd.uint
@@ -434,20 +435,22 @@ class NavigationDataManager:
         else:
             self.authenticated_data_dict[tag.data_id] = AuthenticatedData(tag)
 
-    def load_page(self, page: BitArray, gst_page: GST, svid: int):
-        word_type = page[2:8].uint
+    def load_page(self, full_page: BitArray, gst_page: GST, svid: int):
+
+        word_type, word_data = self._get_word_type_and_data(full_page)
+
         if word_type not in self.active_words:
             return
         if word_type in WORDS_PER_ADKD[ADKD0]:
-            self.adkd0_data_managers[svid].add_word(word_type, page, gst_page)
+            self.adkd0_data_managers[svid].add_word(word_type, word_data, gst_page)
         elif word_type in WORDS_PER_ADKD[ADKD4]:
-            self.adkd4_data_managers[svid].add_word(word_type, page, gst_page)
+            self.adkd4_data_managers[svid].add_word(word_type, word_data, gst_page)
 
         if Config.DO_REED_SOLOMON_RECOVERY:
-            self.rs_recovery.add_rs_word(word_type, page, svid)
-            new_pages = self.rs_recovery.recover_words(svid)
-            for wt, page in new_pages.items():
-                self.adkd0_data_managers[svid].add_word(wt, page, gst_page)
+            self.rs_recovery.add_rs_word(word_type, word_data, svid)
+            new_words = self.rs_recovery.recover_words(svid)
+            for wt, word_data in new_words.items():
+                self.adkd0_data_managers[svid].add_word(wt, word_data, gst_page)
 
     def _calculate_TTFAF(self, auth_data: AuthenticatedData):
 
