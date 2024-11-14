@@ -5,7 +5,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-from metrics_auxiliar.run_and_extract import get_ttfaf_matrixSBF
+from metrics_auxiliar.run_and_extract import get_ttfaf_matrixSBF, normal_run_and_exit
 from metrics_auxiliar.predefined_plots import plot_ttfaf, plot_cdf, plot_per_subframe, print_pki
 # 2291 39804 -> 03/12/2023 - 11:03:24 UTC
 # 2291 42233 -> 03/12/2023 - 11:43:53 UTC
@@ -31,10 +31,22 @@ sim_params = {
 
 if __name__ == "__main__":
 
+    # normal_run_and_exit(sim_params)
+
     options = {
-        "IOD data link. TL 30s": {'do_crc_failed_extraction': False, 'do_tesla_key_regen': False, 'TL': 30},
-        "IOD data link and Page level processing. TL 25s": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 25},
-        "IOD and COP data link and Page level processing. TL 17s": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'DO_COP_LINK_OPTIMIZATION': True, 'TL': 17},
+        "IOD SotA. TL 30s": {'do_mack_partial_extraction': False, 'do_tesla_key_regen': False,
+                                       'do_cop_link_optimization': False, 'TL': 30},
+        "COP-IOD. Page proc. TL 17s": {'do_mack_partial_extraction': True, 'do_tesla_key_regen': True,
+                                       'do_cop_link_optimization': True, 'TL': 17},
+        "COP-IOD. Page proc. RS. TL 17s": {'do_mack_partial_extraction': True, 'do_tesla_key_regen': True,
+                                           'do_cop_link_optimization': True, 'do_dual_frequency': False,
+                                           'do_reed_solomon_recovery': True, 'TL': 17},
+        "COP-IOD. Page proc. Dual-Freq. TL 17s": {'do_mack_partial_extraction': True, 'do_tesla_key_regen': True,
+                                                  'do_cop_link_optimization': True, 'do_dual_frequency': True,
+                                                  'do_reed_solomon_recovery': False, 'TL': 17},
+        "COP-IOD. Page proc. Dual-Freq. RS. TL 17s": {'do_mack_partial_extraction': True, 'do_tesla_key_regen': True,
+                                                      'do_cop_link_optimization': True, 'do_dual_frequency': True,
+                                                      'do_reed_solomon_recovery': True, 'TL': 17},
     }
 
     #ttfaf_matrix = get_ttfaf_matrixSBF(sim_params, options.values(), True)

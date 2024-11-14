@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from osnma.input_formats.input_misc import ICDTestVectors
-from metrics_auxiliar.run_and_extract import get_ttfaf_matrix
+from metrics_auxiliar.run_and_extract import get_ttfaf_matrix, normal_run_and_exit
 from metrics_auxiliar.predefined_plots import plot_ttfaf, plot_cdf, plot_per_subframe, print_pki
 
 DATA_FOLDER = Path(__file__).parent / 'scenarios/configuration_2/'
@@ -31,14 +31,26 @@ sim_params = {
 
 if __name__ == "__main__":
 
+    #normal_run_and_exit(sim_params, test_vectors=True)
+
     options = {
-        "IOD data link. TL 30s": {'do_crc_failed_extraction': False, 'do_tesla_key_regen': False, 'TL': 30},
-        "IOD data link and Page level processing. TL 25s": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'TL': 25},
-        "IOD and COP data link and Page level processing. TL 17s": {'do_crc_failed_extraction': True, 'do_tesla_key_regen': True, 'DO_COP_LINK_OPTIMIZATION': True, 'TL': 17},
+        "IOD SotA. TL 30s": {'do_mack_partial_extraction': False, 'do_tesla_key_regen': False,
+                                       'do_cop_link_optimization': False, 'TL': 30},
+        "COP-IOD. Page proc. TL 17s": {'do_mack_partial_extraction': True, 'do_tesla_key_regen': True,
+                                       'do_cop_link_optimization': True, 'TL': 17},
+        "COP-IOD. Page proc. RS. TL 17s": {'do_mack_partial_extraction': True, 'do_tesla_key_regen': True,
+                                           'do_cop_link_optimization': True, 'do_dual_frequency': False,
+                                           'do_reed_solomon_recovery': True, 'TL': 17},
+        "COP-IOD. Page proc. Dual-Freq. TL 17s": {'do_mack_partial_extraction': True, 'do_tesla_key_regen': True,
+                                                  'do_cop_link_optimization': True, 'do_dual_frequency': True,
+                                                  'do_reed_solomon_recovery': False, 'TL': 17},
+        "COP-IOD. Page proc. Dual-Freq. RS. TL 17s": {'do_mack_partial_extraction': True, 'do_tesla_key_regen': True,
+                                                      'do_cop_link_optimization': True, 'do_dual_frequency': True,
+                                                      'do_reed_solomon_recovery': True, 'TL': 17},
     }
 
-    #ttfaf_matrix = get_ttfaf_matrix(sim_params, options.values(), True)
-    ttfaf_matrix = np.load(sim_params["numpy_file_name"])
+    ttfaf_matrix = get_ttfaf_matrix(sim_params, options.values(), True)
+    #ttfaf_matrix = np.load(sim_params["numpy_file_name"])
 
     plot_ttfaf(ttfaf_matrix, options.keys(), sim_params["name"], DATA_FOLDER)
     plot_per_subframe(ttfaf_matrix, options.keys(), sim_params["name"], DATA_FOLDER)

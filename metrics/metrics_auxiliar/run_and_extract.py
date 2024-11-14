@@ -4,7 +4,37 @@ import numpy as np
 from tqdm import tqdm
 
 from osnma.receiver.receiver import OSNMAReceiver
-from osnma.input_formats.input_sbf import SBFMetrics
+from osnma.input_formats.input_sbf import SBFMetrics, SBF
+from osnma.input_formats.input_misc import ICDTestVectors
+
+
+#########################################
+
+def normal_run_and_exit(sim_params, test_vectors=False):
+
+    # Select correct input module
+    if test_vectors:
+        input_module = ICDTestVectors(sim_params["config_dict"]["scenario_path"])
+    else:
+        input_module = SBF(sim_params["config_dict"]["scenario_path"])
+
+    # Overwrite configuration to not stop at faf and generate logs
+    run_config = sim_params["config_dict"]
+    run_config['stop_at_faf'] = False
+    run_config['log_console'] = True
+    run_config['log_file'] = True
+
+    # Select start time
+    wn = sim_params["WN"]
+    tow = sim_params["TOW_START"]
+
+    # Run
+    osnma_r = OSNMAReceiver(input_module, run_config)
+    osnma_r.start(start_at_gst=(wn, tow))
+
+    exit()
+
+#########################################
 
 def run_with_config(config_dict, input_class, start_at_gst: Tuple[int, int] = None):
 
