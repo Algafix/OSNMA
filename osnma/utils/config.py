@@ -25,7 +25,6 @@ import osnma.utils.logger_factory as log_factory
 class _Config:
 
     def __init__(self):
-        self.SCENARIO_PATH = ''  # Not needed, may be used for debug
         self.EXEC_PATH = ''
         self.MERKLE_NAME = 'OSNMA_MerkleTree.xml'
         self.PUBK_NAME = ''
@@ -46,21 +45,17 @@ class _Config:
         self.API_SUBFRAME_BITS_FILE = 'api_subframe_bits.json'
         self.API_SUBFRAME_STATUS_FILE = 'api_subframe_status.json'
 
-        self.SYNC_SOURCE = 0
-        self.SYNC_TIME = None
-        self.TL = 30
-        self.B = 1
-
         self.NS = 36
         self.TAG_LENGTH = 40
         self.ACTIVE_ADKD = {0, 4, 12}
 
+        self.TL = 30
         self.DO_HKROOT_REGEN = True
         self.DO_MACK_PARTIAL_EXTRACTION = True
         self.DO_TESLA_KEY_REGEN = True
+        self.DO_REED_SOLOMON_RECOVERY = True
         self.DO_COP_LINK_OPTIMIZATION = False
         self.DO_DUAL_FREQUENCY = False
-        self.DO_REED_SOLOMON_RECOVERY = False
         self.STOP_AT_FAF = False
 
         self.FIRST_GST = None
