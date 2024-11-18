@@ -203,10 +203,15 @@ class TESLAChain:
 
         # Calculate the index of the new key
         new_tesla_key.calculate_index(self.GST0)
-        is_new_key = (self.last_tesla_key.index < new_tesla_key.index)
+
+        if new_tesla_key.index < 0:
+            raise TeslaKeyVerificationFailed(f"TESLA key from svid {new_tesla_key.svid}: {new_tesla_key.key}"
+                                             f" received at {new_tesla_key.gst_sf} has a negative key index {new_tesla_key.index}"
+                                             f" and was transmitted before the Key ROOT {self.root_tesla_key.gst_sf}.")
 
         # Copy the key reference to iterate on it
         new_key_index = new_tesla_key.index
+        is_new_key = (self.last_tesla_key.index < new_key_index)
         tesla_key = new_tesla_key
 
         key_verified = False
@@ -217,12 +222,10 @@ class TESLAChain:
                 key_verified = True
                 break
             else:
-                logger.error("TESLA Key Failed Authentication")
-                e = TeslaKeyVerificationFailed(f"Tesla Key {new_tesla_key.index} from svid {new_tesla_key.svid}: {new_tesla_key.key}"
-                                                 f"{' Reconstructed' if new_tesla_key.reconstructed else ''},"
-                                                 f" received at {new_tesla_key.gst_sf}\n"
-                                                 f"Last authenticated key: {self.last_tesla_key.index} {self.last_tesla_key.key}"
-                                                 f"at {self.last_tesla_key.gst_sf}")
+                e = (f"Tesla Key {new_tesla_key.index} from svid {new_tesla_key.svid}: {new_tesla_key.key}"
+                    f"{' Reconstructed' if new_tesla_key.reconstructed else ''}, received at {new_tesla_key.gst_sf}\n"
+                    f"Last authenticated key: {self.last_tesla_key.index} {self.last_tesla_key.key}"
+                    f"at {self.last_tesla_key.gst_sf}")
                 logger.error(e)
                 break
 

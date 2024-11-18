@@ -83,7 +83,8 @@ def test_change_of_word_type_5(log_level=logging.INFO):
         'exec_path': Path(__file__).parent / 'test_corner_cases/change_of_word_type_5/',
         'pubk_name': 'OSNMA_PublicKey.xml',
         'kroot_name': 'OSNMA_last_KROOT.txt',
-        'do_dual_frequency': True
+        'do_dual_frequency': True,
+        'do_reed_solomon_recovery': True,
     }
 
     expected_results = {
@@ -107,7 +108,8 @@ def test_tow_rollover(log_level=logging.INFO):
         'scenario_path': Path(__file__).parent / 'test_corner_cases/tow_rollover/tow_rollover_only_inav.sbf',
         'exec_path': Path(__file__).parent / 'test_corner_cases/tow_rollover/',
         'pubk_name': 'OSNMA_PublicKey.xml',
-        'do_dual_frequency': True
+        'do_dual_frequency': True,
+        'do_reed_solomon_recovery': True,
     }
 
     expected_results = {
@@ -132,7 +134,8 @@ def test_osnma_outage_and_wt5(log_level=logging.INFO):
         'exec_path': Path(__file__).parent / 'test_corner_cases/osnma_outage/',
         'pubk_name': 'OSNMA_PublicKey.xml',
         'kroot_name': 'OSNMA_start_KROOT.txt',
-        'do_dual_frequency': True
+        'do_dual_frequency': True,
+        'do_reed_solomon_recovery': True,
     }
 
     expected_results = {
@@ -157,7 +160,8 @@ def test_osnma_after_outage(log_level=logging.INFO):
         'exec_path': Path(__file__).parent / 'test_corner_cases/osnma_after_outage/',
         'pubk_name': 'OSNMA_PublicKey.xml',
         'kroot_name': 'OSNMA_start_KROOT.txt',
-        'do_dual_frequency': True
+        'do_dual_frequency': True,
+        'do_reed_solomon_recovery': True,
     }
 
     expected_results = {
@@ -182,7 +186,8 @@ def test_svid_12_repeats_iod(log_level=logging.INFO):
         'exec_path': Path(__file__).parent / 'test_corner_cases/svid_12_repeats_iod/',
         'pubk_name': 'OSNMA_PublicKey_1.xml',
         'kroot_name': 'OSNMA_start_KROOT.txt',
-        'do_dual_frequency': True
+        'do_dual_frequency': True,
+        'do_reed_solomon_recovery': True,
     }
 
     expected_results = {
@@ -206,7 +211,8 @@ def test_real_eoc(log_level=logging.INFO):
         'scenario_path': Path(__file__).parent / 'test_corner_cases/real_eoc/real_eoc.sbf',
         'exec_path': Path(__file__).parent / 'test_corner_cases/real_eoc/',
         'pubk_name': 'OSNMA_PublicKey_1.xml',
-        'do_dual_frequency': True
+        'do_dual_frequency': True,
+        'do_reed_solomon_recovery': True,
     }
 
     expected_results = {
@@ -230,7 +236,8 @@ def test_real_crev(log_level=logging.INFO):
         'scenario_path': Path(__file__).parent / 'test_corner_cases/real_crev/real_crev.sbf',
         'exec_path': Path(__file__).parent / 'test_corner_cases/real_crev/',
         'pubk_name': 'OSNMA_PublicKey_1.xml',
-        'do_dual_frequency': True
+        'do_dual_frequency': True,
+        'do_reed_solomon_recovery': True,
     }
 
     expected_results = {
@@ -254,12 +261,13 @@ def test_6_hours(log_level=logging.INFO):
         'scenario_path': Path(__file__).parent / 'test_corner_cases/6_hours/6_hours.sbf',
         'exec_path': Path(__file__).parent / 'test_corner_cases/6_hours/',
         'pubk_name': 'OSNMA_PublicKey_1.xml',
-        'do_dual_frequency': True
+        'do_dual_frequency': True,
+        'do_reed_solomon_recovery': True,
     }
 
     expected_results = {
-        "tags_auth": 14709,
-        "data_auth": 11069,
+        "tags_auth": 14710,
+        "data_auth": 11070,
         "kroot_auth": 198,
         "broken_kroot": 61,
         "crc_failed": 3268,
@@ -278,7 +286,8 @@ def test_24_hours(log_level=logging.INFO):
         'scenario_path': Path(__file__).parent / 'test_corner_cases/24_hours/24_hours.sbf',
         'exec_path': Path(__file__).parent / 'test_corner_cases/24_hours/',
         'pubk_name': 'OSNMA_PublicKey_1.xml',
-        'do_dual_frequency': True
+        'do_dual_frequency': True,
+        'do_reed_solomon_recovery': True,
     }
 
     expected_results = {
@@ -301,7 +310,8 @@ def test_24_hours_cold_start(log_level=logging.INFO):
         'logs_path': LOGS_PATH,
         'scenario_path': Path(__file__).parent / 'test_corner_cases/24_hours/24_hours.sbf',
         'exec_path': Path(__file__).parent / 'test_corner_cases/24_hours/',
-        'do_dual_frequency': True
+        'do_dual_frequency': True,
+        'do_reed_solomon_recovery': True,
     }
 
     expected_results = {

@@ -35,12 +35,13 @@ def plot_ttfaf(plot_ttfaf_vectors: npt.NDArray, options, name, data_folder: Path
     plt.legend(loc='upper right')
 
     tikzplotlib_fix_ncols(fig)
-    tikzplotlib.save(f"{data_folder}/{data_folder.name}_time.tex")
+    Path(f"{data_folder}/tikz_plots/").mkdir(parents=True, exist_ok=True)
+    tikzplotlib.save(f"{data_folder}/tikz_plots/{data_folder.name}_time.tex")
 
 
 def plot_satellites_sf(tow_sf_values, name, data_folder: Path):
 
-    with open(data_folder / 'all_states.json', 'r') as f:
+    with open(data_folder / 'status_log.json', 'r') as f:
         states_json = json.load(f)
 
     satellites = []
@@ -54,8 +55,8 @@ def plot_satellites_sf(tow_sf_values, name, data_folder: Path):
     #### Get data from json ####
 
     for idx, sf_state_json in enumerate(states_json):
-        sf_tow = sf_state_json['Metadata']['GST Subframe'][1]
-        sf_osnma_status = sf_state_json['Metadata']['OSNMAlib Status']
+        sf_tow = sf_state_json['metadata']['GST_subframe'][1]
+        sf_osnma_status = sf_state_json['metadata']['OSNMAlib_status']
         if sf_tow < tow_sf_values[0]:
             continue
         elif sf_tow > tow_sf_values[-1]:
@@ -63,23 +64,23 @@ def plot_satellites_sf(tow_sf_values, name, data_folder: Path):
         elif sf_osnma_status != 'STARTED':
             print(f'tow with TTFAF but OSNMA not started: {sf_tow}')
             return
-        satellites.append(len(sf_state_json['Nav Data Received']))
-        osnma_satellites.append(len(sf_state_json['OSNMA Data']))
+        satellites.append(len(sf_state_json['nav_data_received']))
+        osnma_satellites.append(len(sf_state_json['OSNMA_material_received']))
 
-        for svid_s in sf_state_json['Nav Data Received'].keys():
+        for svid_s in sf_state_json['nav_data_received'].keys():
             sats_dict[int(svid_s)].append(sf_tow)
-        for svid_s in sf_state_json['OSNMA Data'].keys():
+        for svid_s in sf_state_json['OSNMA_material_received'].keys():
             osnma_sats_dict[int(svid_s)].append(sf_tow)
 
         tags_connected.append(0)
         tags_not_connected_view.append(0)
         tags_not_connected_lost.append(0)
-        for svid, sat_osnma in sf_state_json['OSNMA Data'].items():
-            for tag in sat_osnma["Tags"]:
+        for svid, sat_osnma in sf_state_json['OSNMA_material_received'].items():
+            for tag in sat_osnma['mack_data']['tags']:
                 if tag is not None and tag[1] == 0:
-                    if f"{tag[0]:02d}" in sf_state_json['OSNMA Data']:
+                    if str(tag[0]) in sf_state_json['OSNMA_material_received']:
                         tags_connected[-1] += 1
-                    elif f"{tag[0]:02d}" in sf_state_json['Nav Data Received']:
+                    elif str(tag[0]) in sf_state_json['nav_data_received']:
                         tags_not_connected_view[-1] += 1
                     else:
                         tags_not_connected_lost[-1] += 1
@@ -108,7 +109,8 @@ def plot_satellites_sf(tow_sf_values, name, data_folder: Path):
     plt.legend(loc='upper right')
 
     tikzplotlib_fix_ncols(fig)
-    tikzplotlib.save(f"{data_folder}/{data_folder.name}_satellites_scenario.tex")
+    Path(f"{data_folder}/tikz_plots/").mkdir(parents=True, exist_ok=True)
+    tikzplotlib.save(f"{data_folder}/tikz_plots/{data_folder.name}_satellites_scenario.tex")
 
 
     ### sf sats info ###
@@ -134,8 +136,10 @@ def plot_satellites_sf(tow_sf_values, name, data_folder: Path):
     max_value = np.max(np.concatenate((ax1.get_yticks(), ax2.get_yticks()))) + 2
     ax1.set_ylim(0, max_value)
     ax2.set_ylim(0, max_value)
+
     tikzplotlib_fix_ncols(fig)
-    tikzplotlib.save(f"{data_folder}/{data_folder.name}_satellites_sf.tex")
+    Path(f"{data_folder}/tikz_plots/").mkdir(parents=True, exist_ok=True)
+    tikzplotlib.save(f"{data_folder}/tikz_plots/{data_folder.name}_satellites_sf.tex")
 
 
 def plot_ttfaf_sf(tow_sf_values, ttfaf_sf_matrix, options, name, data_folder: Path):
@@ -157,7 +161,8 @@ def plot_ttfaf_sf(tow_sf_values, ttfaf_sf_matrix, options, name, data_folder: Pa
     #plt.legend(loc='upper right')
 
     tikzplotlib_fix_ncols(fig)
-    tikzplotlib.save(f"{data_folder}/{data_folder.name}_ttfaf_sf.tex")
+    Path(f"{data_folder}/tikz_plots/").mkdir(parents=True, exist_ok=True)
+    tikzplotlib.save(f"{data_folder}/tikz_plots/{data_folder.name}_ttfaf_sf.tex")
 
 
 def plot_per_subframe(plot_ttfaf_vectors: npt.NDArray, options, name, data_folder: Path):
@@ -203,7 +208,8 @@ def plot_cdf(plot_ttfaf_vectors: npt.NDArray, options, name, data_folder: Path):
     plt.legend(loc='upper left', bbox_to_anchor=(0, 1))
 
     tikzplotlib_fix_ncols(fig)
-    tikzplotlib.save(f"{data_folder}/{data_folder.name}_cdf.tex")
+    Path(f"{data_folder}/tikz_plots/").mkdir(parents=True, exist_ok=True)
+    tikzplotlib.save(f"{data_folder}/tikz_plots/{data_folder.name}_cdf.tex")
 
 
 def print_pki(plot_ttfaf_vectors: npt.NDArray, options, name, data_folder: Path):

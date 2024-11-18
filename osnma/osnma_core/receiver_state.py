@@ -331,7 +331,6 @@ class ReceiverState:
                 logger.warning(f"Tag authenticated with NMA Status to Dont Use. Stopping navigation data processing.")
                 self.nma_status = NMAS.DONT_USE
             except MackParsingError as e:
-                # Unable to parse the message correctly
                 logger.error(f"Unable to parse the MACK message correctly.\n{e}")
                 if self.osnmalib_state == OSNMAlibSTATE.HOT_START:
                     self._fallback_to_state(OSNMAlibSTATE.WARM_START)
@@ -339,15 +338,12 @@ class ReceiverState:
                     logger.warning("Deleting first mack message from waiting list")
                     self.kroot_waiting_mack = self.kroot_waiting_mack[1:]
             except TeslaKeyVerificationFailed as e:
-                # Unable to verify the TESLA key
                 logger.error(f"Failed authenticating a TESLA key.\n{e}")
                 if self.osnmalib_state == OSNMAlibSTATE.HOT_START:
                     self._fallback_to_state(OSNMAlibSTATE.WARM_START)
-                else:
-                    logger.warning("Deleting first mack message from waiting list")
-                    self.kroot_waiting_mack = self.kroot_waiting_mack[1:]
+                    self.kroot_waiting_mack.append((mack_subframe, gst_subframe, satellite.svid, self.last_received_nmas))
             else:
-                if self.osnmalib_state == OSNMAlibSTATE.HOT_START and tesla_key is not None:
+                if self.osnmalib_state == OSNMAlibSTATE.HOT_START and tesla_key is not None and tesla_key.verified:
                     self.osnmalib_state = OSNMAlibSTATE.STARTED
                     logger.info(f"One TESLA key verified. Start Status: {self.osnmalib_state.name}")
 
@@ -355,8 +351,8 @@ class ReceiverState:
         if nma_status is not None:
             self.last_received_nmas = nma_status
 
-    def load_nav_data_page(self, nav_bits: BitArray, gst_page: GST, svid: int):
-        self.nav_data_structure.load_page(nav_bits, gst_page, svid)
+    def load_nav_data_page(self, full_page: BitArray, gst_page: GST, svid: int):
+        self.nav_data_structure.load_page(full_page, gst_page, svid)
 
 
 if __name__ == '__main__':

@@ -11,7 +11,7 @@ The software has been successfully tested using the official ICD test vectors an
 
 Note that the security of the OSNMA protocol can only be guaranteed if the receiver providing the navigation data is synchronized with TL seconds of error with the Galileo System Time.
 By default, OSNMAlib assumes a TL of 30s: the maximum to process all tags. However, it can be configured for a different TL depending on what your receiver can guarantee.
-For more information about time synchronisation see the [OSNMA Receiver Guidelines](https://www.gsc-europa.eu/sites/default/files/sites/all/files/Galileo_OSNMA_Receiver_Guidelines_v1.1.pdf), and [Configuration Options](#osnmalib-configuration-options) to configure OSNMAlib.
+For more information about time synchronisation see the [OSNMA Receiver Guidelines](https://www.gsc-europa.eu/sites/default/files/sites/all/files/Galileo_OSNMA_Receiver_Guidelines_v1.3.pdf), and [Configuration Options](#osnmalib-configuration-options) to configure OSNMAlib.
 
 OSNMAlib implements several optimizations in the cryptographic material extraction and in the process of linking navigation data to tags [[link](https://arxiv.org/abs/2403.14739)].
 None of these optimizations imply trial-and-error on the verification process, so if you see authentication failures in 
@@ -48,6 +48,8 @@ Current OSNMA **features supported**:
   * Reconstruct broken HKROOT messages.
   * Reconstruct TESLA key from partial MACK messages.
   * Extract valid tags from broken MACK messages.
+  * Reed-Solomon recovery of I/NAV data using word types 17 to 20.
+  * Dual frequency reception of I/NAV data from the E5b-I signal.
   * Link and recover lost data using the IOD and the COP.
     * Obtain TTFAF as low as 44 seconds in hot start.
     * https://arxiv.org/abs/2403.14739
@@ -59,7 +61,8 @@ Current data [formats supported](https://github.com/Algafix/OSNMA/wiki/Input-Dat
   * u-blox UBX log files
   * u-blox live connection through COM port 
   * Live aggregated data from the [galmon](https://github.com/berthubert/galmon) project.
-  * [GNSS-SDR](https://gnss-sdr.org/) project format through UDP socket
+  * [GNSS-SDR](https://gnss-sdr.org/) project format through UDP socket.
+    * Note that GNSS-SDR [recently implemented OSNMA](https://gnss-sdr.org/osnma/) inside their GNSS receiver.
   * Allows for custom data by implementing your iterator.
 
 Future development:
@@ -74,7 +77,7 @@ OSNMAlib
   * This README file.
   * [Wiki](https://github.com/Algafix/OSNMA/wiki)
   * [OSNMAlib Paper ICL-GNSS 2024](OSNMAlib_ICL_GNSS_2024.pdf)
-  * [OSNMAlib Paper NAVITEC 2022 (old)](OSNMAlib_NAVITEC2022.pdf)
+  * [(Some information outdated) OSNMAlib Paper NAVITEC 2022](OSNMAlib_NAVITEC2022.pdf)
   * See later in the README for a list of publications using OSNMAlib.
 
 General OSNMA documentation
@@ -97,16 +100,21 @@ $ pip install -r requirements.txt
 Current configuration
 ---
 
-The folder `custom_run/` contains the current Merkle Tree and Public Key, both downloaded from the official [GSC](https://www.gsc-europa.eu/) website. It also contains the `current_config.sbf` file with the current configuration recorded by me. You can run it directly with the console with:
+The folder `custom_run/` contains the current Merkle Tree and Public Key, both downloaded from the official [GSC](https://www.gsc-europa.eu/) website.
+It also contains the `current_config.sbf` file with the current configuration recorded by me. You can run it directly with the console with:
 
 ```
 $ cd custom_run/
 $ python run.py
 ```
 
-**Beware** the console output will be huge, you can limit it in the configuration dictionary. A log folder will be created with the same logs for easy parsing.
+**Beware** the console output will be huge. A log folder will be created with the same logs for easy parsing.
 
-You can also run your own SBF files (if they contain the GALRawINAV block) by giving it the same name or passing the file as parameter. Mind to also update the Merkle Tree and Public Key files if they contain old data.
+The `run.py` file contains a dictionary with the configuration parameters that are more useful for a normal user.
+The parameters are set to their default value, feel free to modify them at will.
+
+You can also run your own SBF files by passing the file name as parameter.
+Mind to also update the Merkle Tree and Public Key files in the configuration dictionary of `run.py` appropriately.
 
 ```
 $ cd custom_run/
@@ -116,14 +124,15 @@ $ python run.py [filename]
 Real-time execution with data from Galmon
 ---
 
-If you want to see the library process data in real-time but don't have a receiver, I've integrated OSNMAlib with the [galmon](https://github.com/berthubert/galmon) project. You can find it under the folder `live_galmon_run/` and run it with:
+If you want to see the library process data in real-time but don't have a receiver, I've integrated OSNMAlib with the [galmon](https://github.com/berthubert/galmon) project.
+You can find it under the folder `live_galmon_run/` and run it with:
 
 ```
 $ cd live_galmon_run/
 $ python run.py
 ```
 
-You will see information printed about every 30s approximately.
+You will see information printed every 30s approximately.
 There may be some problems with the data received from galmon due to the P2P nature of this service.
 
 The IP and Port are defaulted to `86.82.68.237:10000`. You can specify your own in the Galmon input class constructor.
@@ -131,7 +140,8 @@ The IP and Port are defaulted to `86.82.68.237:10000`. You can specify your own 
 Real-time execution with a Septentrio receiver
 ---
 
-If you have access to a Septentrio receiver SBF log output, I have implemented a real-time input module for that. To tell the receiver to output the required navigation data send the following commands to it. Mind that `Stream2` or port `20000` may be in use. 
+If you have access to a Septentrio receiver SBF log output, I have implemented a real-time input module for that.
+To tell the receiver to output the required navigation data send the following commands to it. Mind that `Stream2` or port `20000` may be in use. 
 
 ```
 setSBFOutput, Stream2, IPS1, GALRawINAV, sec1
@@ -170,8 +180,8 @@ $ pytest icd_test_vectors.py
 $ pytest test_corner_cases.py 
 ```
 
-The tests can also be executed using the traditional Python interpreter. In that case, the following shell commands 
-should be executed.
+The tests can also be executed using the traditional Python interpreter.
+In that case, execute the following shell commands.
 
 ```
 $ pip install -r requirements.txt
@@ -184,8 +194,8 @@ $ python3 test_corner_cases.py
 OSNMAlib Configuration Options
 ===
 
-OSNMAlib has several configuration parameters that can be defined previous to execution. The parameters are defined in a dictionary and sent to the receiver when creating the receiver object.
-Note that you can create a script to read the parameters from a JSON and send it to the receiver.
+OSNMAlib has several configuration parameters that can be defined previous to execution.
+The parameters are defined in a dictionary and passed to the receiver when creating the receiver object.
 The receiver will load default values for the configuration parameters not specified.
 
 The most important parameters are:
@@ -197,8 +207,8 @@ The most important parameters are:
 
 Based on the cryptographic material provided to OSNMAlib in the configuration dictionary, it will be set in one of the 3 start states defined in the ICD.
 * **Cold Start**: OSNMAlib has no Public Key saved, it needs to be retrieved from the OSNMA message.
-* **Warm Start**: OSNMAlib has a Public Key saved and verified, but it is missing the Tesla KROOT. It needs to be retrieved from the OSNMA message.
-* **Hot Start**: OSNMAlib has a Public Key and a Tesla KROOT saved and verified, but it needs to be sure the KROOT is still useful.
+* **Warm Start**: OSNMAlib has a Public Key saved, but it is missing the Tesla KROOT. It needs to be retrieved from the OSNMA message.
+* **Hot Start**: OSNMAlib has a Public Key and a Tesla KROOT saved, but it needs to ensure the KROOT is still valid by verifying one TESLA Key.
 
 For a full description of the parameters and a diagram of the starting sequence, see the wiki page [OSNMAlib Configuration Options](https://github.com/Algafix/OSNMA/wiki/OSNMAlib-Configuration-Options).
 
@@ -268,11 +278,11 @@ About
 
 The research leading to this work was supported by European Commission contract SI2.823546/9 and by the Spanish Ministry of Science and Innovation project PID2020-118984GB-I00. 
 
-This research is partially funded by the Research Foundation Flanders (FWO) Frank de Winne PhD Fellowship, project number 1SH9424N.
+The current research is partially funded by the Research Foundation Flanders (FWO) Frank de Winne PhD Fellowship, project number 1SH9424N.
 
 Disclaimer
 ===
 
-OSNMAlib has not been developed or tested operationally. OSNMAlib users use it at their own risk, without any guarantee or liability from the code authors or the Galileo OSNMA signal provider.
+OSNMAlib has not been developed or tested operationally. OSNMAlib users use it at their own risk, without any guarantee or liability from the code authors or the Galileo signal provider.
 
 OSNMAlib is not under any private company.
