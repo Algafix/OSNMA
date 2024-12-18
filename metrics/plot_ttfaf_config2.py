@@ -17,7 +17,7 @@ sim_params = {
     "TOW_STOP": 345601 + 1800,
     "input_module": ICDTestVectors,
     "name": "Hot Start TTFAF - ICD Config 2",
-    "numpy_file_name": DATA_FOLDER / "ttfaf_matrix_config_2_COP.npy",
+    "numpy_file_name": DATA_FOLDER / "ttfaf_matrix_config_2_all.npy",
     "config_dict": {
         'scenario_path': DATA_FOLDER / '27_JUL_2023_GST_00_00_01_fixed.csv',
         'exec_path': DATA_FOLDER,
@@ -34,23 +34,35 @@ if __name__ == "__main__":
     #normal_run_and_exit(sim_params, test_vectors=True)
 
     options = {
-        "IOD SotA. TL 30s": {'do_mack_partial_extraction': False, 'do_tesla_key_regen': False,
-                                       'do_cop_link_optimization': False, 'TL': 30},
-        "COP-IOD. Page proc. TL 17s": {'do_mack_partial_extraction': True, 'do_tesla_key_regen': True,
-                                       'do_cop_link_optimization': True, 'TL': 17},
-        "COP-IOD. Page proc. RS. TL 17s": {'do_mack_partial_extraction': True, 'do_tesla_key_regen': True,
-                                           'do_cop_link_optimization': True, 'do_dual_frequency': False,
-                                           'do_reed_solomon_recovery': True, 'TL': 17},
-        "COP-IOD. Page proc. Dual-Freq. TL 17s": {'do_mack_partial_extraction': True, 'do_tesla_key_regen': True,
-                                                  'do_cop_link_optimization': True, 'do_dual_frequency': True,
-                                                  'do_reed_solomon_recovery': False, 'TL': 17},
-        "COP-IOD. Page proc. Dual-Freq. RS. TL 17s": {'do_mack_partial_extraction': True, 'do_tesla_key_regen': True,
-                                                      'do_cop_link_optimization': True, 'do_dual_frequency': True,
-                                                      'do_reed_solomon_recovery': True, 'TL': 17},
+        "IOD SotA. TL 30s": {
+            'do_mack_partial_extraction': False, 'do_tesla_key_regen': False, 'do_cop_link_optimization': False,
+            'do_dual_frequency': False, 'do_reed_solomon_recovery': False, 'TL': 30
+        },
+        "IOD SotA. Page proc. TL 25s": {
+            'do_mack_partial_extraction': True, 'do_tesla_key_regen': True, 'do_cop_link_optimization': False,
+            'do_dual_frequency': False, 'do_reed_solomon_recovery': False, 'TL': 25
+        },
+        "COP-IOD. Page proc. TL 17s": {
+            'do_mack_partial_extraction': True, 'do_tesla_key_regen': True, 'do_cop_link_optimization': True,
+            'do_dual_frequency': False, 'do_reed_solomon_recovery': False, 'TL': 17
+        },
+        "COP-IOD. Page proc. RS. TL 17s": {
+            'do_mack_partial_extraction': True, 'do_tesla_key_regen': True, 'do_cop_link_optimization': True,
+            'do_dual_frequency': False, 'do_reed_solomon_recovery': True, 'TL': 17
+        },
+        "COP-IOD. Page proc. Dual-Freq. TL 17s": {
+            'do_mack_partial_extraction': True, 'do_tesla_key_regen': True, 'do_cop_link_optimization': True,
+            'do_dual_frequency': True, 'do_reed_solomon_recovery': False, 'TL': 17
+        },
+        "COP-IOD. Page proc. Dual-Freq. RS. TL 17s": {
+            'do_mack_partial_extraction': True, 'do_tesla_key_regen': True, 'do_cop_link_optimization': True,
+            'do_dual_frequency': True, 'do_reed_solomon_recovery': True, 'TL': 17
+        },
     }
 
-    ttfaf_matrix = get_ttfaf_matrix(sim_params, options.values(), True)
-    #ttfaf_matrix = np.load(sim_params["numpy_file_name"])
+    # Rerun from scratch (will take a while) or load the saved matrix
+    #ttfaf_matrix = get_ttfaf_matrix(sim_params, options.values(), True)
+    ttfaf_matrix = np.load(sim_params["numpy_file_name"])
 
     plot_ttfaf(ttfaf_matrix, options.keys(), sim_params["name"], DATA_FOLDER)
     plot_per_subframe(ttfaf_matrix, options.keys(), sim_params["name"], DATA_FOLDER)
