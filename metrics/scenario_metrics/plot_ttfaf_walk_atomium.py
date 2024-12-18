@@ -1,23 +1,26 @@
-import sys
-sys.path.insert(0, '..')
 from pathlib import Path
+import sys
+OSNMALIB_PATH = Path(__file__).resolve().parents[2]
+sys.path.insert(1, str(OSNMALIB_PATH))
 
 import matplotlib.pyplot as plt
 import numpy as np
 
-from metrics_auxiliar.run_and_extract import get_ttfaf_matrixSBF, normal_run_and_exit
-from metrics_auxiliar.predefined_plots import plot_ttfaf, plot_cdf, plot_per_subframe, print_pki
+from metrics.metrics_auxiliar.run_and_extract import get_ttfaf_matrixSBF, normal_run_and_exit
+from metrics.metrics_auxiliar.predefined_plots import plot_ttfaf, plot_cdf, plot_per_subframe, print_pki
+# 2291 39804 -> 03/12/2023 - 11:03:24 UTC
+# 2291 42233 -> 03/12/2023 - 11:43:53 UTC
 
-DATA_FOLDER = Path(__file__).parent / 'scenarios/old_town/'
+DATA_FOLDER = OSNMALIB_PATH / 'metrics/scenarios/walk_atomium/'
 
 sim_params = {
     "WN": 1267,
-    "TOW_START": 48230,
-    "TOW_STOP": 49881,
-    "name": "Hot Start TTFAF - Walk in Old Town",
-    "numpy_file_name": DATA_FOLDER / "ttfaf_matrix_old_town_all.npy",
+    "TOW_START": 39804,
+    "TOW_STOP": 42233,
+    "name": "Hot Start TTFAF - Walk in Atomium",
+    "numpy_file_name": DATA_FOLDER / "ttfaf_matrix_walk_atomium_all.npy",
     "config_dict": {
-        'scenario_path': DATA_FOLDER / 'old_town_inav.sbf',
+        'scenario_path': DATA_FOLDER / 'walk_atomium_inav.sbf',
         'exec_path': DATA_FOLDER,
         'pubk_name': 'OSNMA_PublicKey.xml',
         'kroot_name': 'OSNMA_start_KROOT.txt',

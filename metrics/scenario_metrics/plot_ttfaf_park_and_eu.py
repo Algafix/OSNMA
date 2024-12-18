@@ -1,25 +1,26 @@
-import sys
-sys.path.insert(0, '..')
 from pathlib import Path
+import sys
+OSNMALIB_PATH = Path(__file__).resolve().parents[2]
+sys.path.insert(1, str(OSNMALIB_PATH))
 
 import matplotlib.pyplot as plt
 import numpy as np
 
-from metrics_auxiliar.run_and_extract import get_ttfaf_matrixSBF, normal_run_and_exit
-from metrics_auxiliar.predefined_plots import plot_ttfaf, plot_cdf, plot_per_subframe, print_pki
-# 2291 39804 -> 03/12/2023 - 11:03:24 UTC
-# 2291 42233 -> 03/12/2023 - 11:43:53 UTC
+from metrics.metrics_auxiliar.run_and_extract import get_ttfaf_matrixSBF, normal_run_and_exit
+from metrics.metrics_auxiliar.predefined_plots import plot_ttfaf, plot_cdf, plot_per_subframe, print_pki
 
-DATA_FOLDER = Path(__file__).parent / 'scenarios/walk_atomium/'
+DATA_FOLDER = OSNMALIB_PATH / 'metrics/scenarios/park_and_eu/'
+# 2291 35400 -> 03/12/2023 - 09:50:00 UTC
+# 2291 37350 -> 03/12/2023 - 10:22:30 UTC
 
 sim_params = {
     "WN": 1267,
-    "TOW_START": 39804,
-    "TOW_STOP": 42233,
-    "name": "Hot Start TTFAF - Walk in Atomium",
-    "numpy_file_name": DATA_FOLDER / "ttfaf_matrix_walk_atomium_all.npy",
+    "TOW_START": 35400,
+    "TOW_STOP": 37350,
+    "name": "Hot Start TTFAF - Park and EU District",
+    "numpy_file_name": DATA_FOLDER / "ttfaf_matrix_park_and_eu_all.npy",
     "config_dict": {
-        'scenario_path': DATA_FOLDER / 'walk_atomium_inav.sbf',
+        'scenario_path': DATA_FOLDER / 'park_and_eu_inav.sbf',
         'exec_path': DATA_FOLDER,
         'pubk_name': 'OSNMA_PublicKey.xml',
         'kroot_name': 'OSNMA_start_KROOT.txt',

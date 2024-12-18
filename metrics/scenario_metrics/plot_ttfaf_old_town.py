@@ -1,26 +1,26 @@
-import sys
-sys.path.insert(0, '..')
 from pathlib import Path
+import sys
+OSNMALIB_PATH = Path(__file__).resolve().parents[2]
+sys.path.insert(1, str(OSNMALIB_PATH))
 
 import matplotlib.pyplot as plt
 import numpy as np
 
-from metrics_auxiliar.run_and_extract import get_ttfaf_matrixSBF, normal_run_and_exit
-from metrics_auxiliar.predefined_plots import plot_ttfaf, plot_cdf, plot_per_subframe, print_pki
+from metrics.metrics_auxiliar.run_and_extract import get_ttfaf_matrixSBF, normal_run_and_exit
+from metrics.metrics_auxiliar.predefined_plots import plot_ttfaf, plot_cdf, plot_per_subframe, print_pki
 
-DATA_FOLDER = Path(__file__).parent / 'scenarios/open_sky/'
-# 2293 313200 -> 20/12/2023 - 14:00:00 UTC
+DATA_FOLDER = OSNMALIB_PATH / 'metrics/scenarios/old_town/'
 
 sim_params = {
-    "WN": 1269,
-    "TOW_START": 313200,
-    "TOW_STOP": 313200 + 3600,
-    "name": "Hot Start TTFAF - Open Sky",
-    "numpy_file_name": DATA_FOLDER / "ttfaf_matrix_open_sky_all.npy",
+    "WN": 1267,
+    "TOW_START": 48230,
+    "TOW_STOP": 49881,
+    "name": "Hot Start TTFAF - Walk in Old Town",
+    "numpy_file_name": DATA_FOLDER / "ttfaf_matrix_old_town_all.npy",
     "config_dict": {
-        'scenario_path': DATA_FOLDER / 'open_sky_inav.sbf',
+        'scenario_path': DATA_FOLDER / 'old_town_inav.sbf',
         'exec_path': DATA_FOLDER,
-        'pubk_name': 'OSNMA_PublicKey_2.xml',
+        'pubk_name': 'OSNMA_PublicKey.xml',
         'kroot_name': 'OSNMA_start_KROOT.txt',
         'stop_at_faf': True,
         'log_console': False,
@@ -30,7 +30,7 @@ sim_params = {
 
 if __name__ == "__main__":
 
-    #normal_run_and_exit(sim_params)
+    # normal_run_and_exit(sim_params)
 
     options = {
         "IOD SotA. TL 30s": {
@@ -69,4 +69,3 @@ if __name__ == "__main__":
     print_pki(ttfaf_matrix, options.keys(), sim_params["name"], DATA_FOLDER)
 
     plt.show()
-

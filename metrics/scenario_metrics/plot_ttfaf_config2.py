@@ -1,15 +1,16 @@
-import sys
-sys.path.insert(0, '..')
 from pathlib import Path
+import sys
+OSNMALIB_PATH = Path(__file__).resolve().parents[2]
+sys.path.insert(1, str(OSNMALIB_PATH))
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 from osnma.input_formats.input_misc import ICDTestVectors
-from metrics_auxiliar.run_and_extract import get_ttfaf_matrix, normal_run_and_exit
-from metrics_auxiliar.predefined_plots import plot_ttfaf, plot_cdf, plot_per_subframe, print_pki
+from metrics.metrics_auxiliar.run_and_extract import get_ttfaf_matrix, normal_run_and_exit
+from metrics.metrics_auxiliar.predefined_plots import plot_ttfaf, plot_cdf, plot_per_subframe, print_pki
 
-DATA_FOLDER = Path(__file__).parent / 'scenarios/configuration_2/'
+DATA_FOLDER = OSNMALIB_PATH / 'metrics/scenarios/configuration_2/'
 
 sim_params = {
     "WN": 1248,
