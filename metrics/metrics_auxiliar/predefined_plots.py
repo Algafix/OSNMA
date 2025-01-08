@@ -36,12 +36,12 @@ def plot_ttfaf(plot_ttfaf_vectors: npt.NDArray, options, name, data_folder: Path
 
     tikzplotlib_fix_ncols(fig)
     Path(f"{data_folder}/tikz_plots/").mkdir(parents=True, exist_ok=True)
-    tikzplotlib.save(f"{data_folder}/tikz_plots/{data_folder.name}_time.tex")
+    tikzplotlib.save(f"{data_folder}/tikz_plots/{data_folder.absolute().name}_time.tex")
 
 
-def plot_satellites_sf(tow_sf_values, name, data_folder: Path):
+def plot_satellites_sf(tow_sf_values, name, data_folder: Path, json_status_file: str):
 
-    with open(data_folder / 'status_log.json', 'r') as f:
+    with open(data_folder / json_status_file, 'r') as f:
         states_json = json.load(f)
 
     satellites = []
@@ -110,7 +110,7 @@ def plot_satellites_sf(tow_sf_values, name, data_folder: Path):
 
     tikzplotlib_fix_ncols(fig)
     Path(f"{data_folder}/tikz_plots/").mkdir(parents=True, exist_ok=True)
-    tikzplotlib.save(f"{data_folder}/tikz_plots/{data_folder.name}_satellites_scenario.tex")
+    tikzplotlib.save(f"{data_folder}/tikz_plots/{data_folder.absolute().name}_satellites_scenario.tex")
 
 
     ### sf sats info ###
@@ -139,7 +139,7 @@ def plot_satellites_sf(tow_sf_values, name, data_folder: Path):
 
     tikzplotlib_fix_ncols(fig)
     Path(f"{data_folder}/tikz_plots/").mkdir(parents=True, exist_ok=True)
-    tikzplotlib.save(f"{data_folder}/tikz_plots/{data_folder.name}_satellites_sf.tex")
+    tikzplotlib.save(f"{data_folder}/tikz_plots/{data_folder.absolute().name}_satellites_sf.tex")
 
 
 def plot_ttfaf_sf(tow_sf_values, ttfaf_sf_matrix, options, name, data_folder: Path):
@@ -162,10 +162,10 @@ def plot_ttfaf_sf(tow_sf_values, ttfaf_sf_matrix, options, name, data_folder: Pa
 
     tikzplotlib_fix_ncols(fig)
     Path(f"{data_folder}/tikz_plots/").mkdir(parents=True, exist_ok=True)
-    tikzplotlib.save(f"{data_folder}/tikz_plots/{data_folder.name}_ttfaf_sf.tex")
+    tikzplotlib.save(f"{data_folder}/tikz_plots/{data_folder.absolute().name}_ttfaf_sf.tex")
 
 
-def plot_per_subframe(plot_ttfaf_vectors: npt.NDArray, options, name, data_folder: Path):
+def plot_per_subframe(plot_ttfaf_vectors: npt.NDArray, options, name, data_folder: Path, json_status_file = 'status_log.json'):
     tow_vector = plot_ttfaf_vectors[0]
     ttfaf_matrix = plot_ttfaf_vectors[1:]
 
@@ -174,7 +174,7 @@ def plot_per_subframe(plot_ttfaf_vectors: npt.NDArray, options, name, data_folde
     tow_sf_values = tow_vector[sf_start_offset:sf_end_offset:30]
     ttfaf_sf_matrix = np.split(ttfaf_matrix[:, sf_start_offset:sf_end_offset], len(tow_sf_values), axis=1)
 
-    plot_satellites_sf(tow_sf_values, name, data_folder)
+    plot_satellites_sf(tow_sf_values, name, data_folder, json_status_file)
 
     plot_ttfaf_sf(tow_sf_values, ttfaf_sf_matrix, options, name, data_folder)
 
@@ -209,7 +209,7 @@ def plot_cdf(plot_ttfaf_vectors: npt.NDArray, options, name, data_folder: Path):
 
     tikzplotlib_fix_ncols(fig)
     Path(f"{data_folder}/tikz_plots/").mkdir(parents=True, exist_ok=True)
-    tikzplotlib.save(f"{data_folder}/tikz_plots/{data_folder.name}_cdf.tex")
+    tikzplotlib.save(f"{data_folder}/tikz_plots/{data_folder.absolute().name}_cdf.tex")
 
 
 def print_pki(plot_ttfaf_vectors: npt.NDArray, options, name, data_folder: Path):
