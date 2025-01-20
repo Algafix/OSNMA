@@ -61,7 +61,7 @@ if __name__ == "__main__":
     }
 
     # Rerun from scratch (will take a while) or load the saved matrix
-    #ttfaf_matrix = get_ttfaf_matrixSBF(sim_params, options.values(), True)
+    #ttfaf_matrix = get_ttfaf_matrixSBF(sim_params, options, True)
     ttfaf_matrix = np.load(sim_params["numpy_file_name"])
 
     plot_ttfaf(ttfaf_matrix, options.keys(), sim_params["name"], DATA_FOLDER)
