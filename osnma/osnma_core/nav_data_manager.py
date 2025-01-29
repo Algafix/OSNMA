@@ -23,7 +23,7 @@ from osnma.structures.mack_structures import TagAndInfo
 from osnma.cryptographic.gst_class import GST
 from osnma.utils.config import Config
 from osnma.utils.status_logger import StatusLogger
-from osnma.utils.exceptions import StoppedAtFAF
+from osnma.utils.exceptions import StoppedAtFAF, ReedSolomonRecoveryError
 from osnma.utils.reed_solomon_recovery import REED_SOLOMON_WORDS, ReedSolomonRecovery
 
 from bitstring import BitArray
@@ -447,8 +447,12 @@ class NavigationDataManager:
             self.adkd4_data_managers[svid].add_word(word_type, word_data, gst_page)
 
         if Config.DO_REED_SOLOMON_RECOVERY:
-            self.rs_recovery.add_rs_word(word_type, word_data, svid)
-            new_words = self.rs_recovery.recover_words(svid)
+            self.rs_recovery.add_rs_word(word_type, word_data, svid, gst_page)
+            try:
+                new_words = self.rs_recovery.recover_words(svid)
+            except ReedSolomonRecoveryError as e:
+                logger.error(f"Reed Solomon Recovery Error: {e}")
+                new_words = {}
             for wt, word_data in new_words.items():
                 self.adkd0_data_managers[svid].add_word(wt, word_data, gst_page)
 

@@ -5,6 +5,7 @@ import reedsolo
 from bitstring import BitArray
 
 from osnma.utils.config import Config
+from osnma.cryptographic.gst_class import GST
 from osnma.utils.exceptions import ReedSolomonRecoveryError
 
 import osnma.utils.logger_factory as log_factory
@@ -26,6 +27,7 @@ rs = reedsolo.RSCodec(60, nsize=255, fcr=1, prim=0x11d)
 class ReedSolomonSatellite:
     def __init__(self, svid: int):
         self.svid: int = svid
+        self.last_update_gst: GST = GST(wn=0, tow=0)
         self.full_iod: Optional[BitArray] = None
         self.iod_2_lsb: Optional[BitArray] = None
         self.ced_words: List[Optional[BitArray]] = [None, None, None, None]
@@ -41,6 +43,9 @@ class ReedSolomonSatellite:
         elif iod_2_lsb:
             self.full_iod = None
             self.iod_2_lsb = iod_2_lsb
+        else:
+            self.full_iod = None
+            self.iod_2_lsb = None
         self.ced_words = [None, None, None, None]
         self.rs_ced_words = [None, None, None, None]
 
@@ -174,7 +179,7 @@ class ReedSolomonSatellite:
             if saved_word is None:
                 self.rs_ced_words[i] = decoded_word
             elif saved_word != decoded_word:
-                raise ReedSolomonRecoveryError(f"Decoded WT {i+1} from SVID {self.svid:02d} does not match the saved one.")
+                raise ReedSolomonRecoveryError(f"Decoded WT {i+16} from SVID {self.svid:02d} does not match the saved one.")
 
         return return_ced_words
 
@@ -203,10 +208,15 @@ class ReedSolomonSatellite:
         return_ced_words = self._extract_and_update_words(decoded_msgecc_gal)
         return return_ced_words
 
-    def add_word(self, wt: int, word: BitArray):
+    def add_word(self, wt: int, word: BitArray, gst: GST):
         """
         Add a new word to the buffer. Check the IOD to determine if the decoding buffer should be reset.
         """
+        # Avoid collision on the iod value, reset the buffers after 30 minutes of not seeing the satellite
+        if gst > self.last_update_gst + 1800:
+            self._reset_decoding_buffer()
+        self.last_update_gst = gst
+
         if wt in CED_WORDS:
             full_iod = word[6:16]
             iod_2_lsb = full_iod[-2:]
@@ -242,11 +252,11 @@ class ReedSolomonRecovery:
         for svid in range(Config.NS+1):
             self.rs_data[svid] = ReedSolomonSatellite(svid)
 
-    def add_rs_word(self, wt: int, word: BitArray, svid: int):
+    def add_rs_word(self, wt: int, word: BitArray, svid: int, gst: GST):
         """
         Add a new word to the buffer. Check the IOD to determine if the decoding buffer should be reset.
         """
-        self.rs_data[svid].add_word(wt, word)
+        self.rs_data[svid].add_word(wt, word, gst)
 
     def recover_words(self, svid: int) -> Dict[int, BitArray]:
         """
