@@ -58,13 +58,13 @@ def run(input_module, config_dict, expected_results_dict):
         warnings = len(re.findall('WARNING', log_text))
         errors = len(re.findall('ERROR', log_text))
 
-    # print(f'{tags_auth} vs {expected_results_dict["tags_auth"]}')
-    # print(f'{data_auth} vs {expected_results_dict["data_auth"]}')
-    # print(f'{kroot_auth} vs {expected_results_dict["kroot_auth"]}')
-    # print(f'{broken_kroot} vs {expected_results_dict["broken_kroot"]}')
-    # print(f'{crc_failed} vs {expected_results_dict["crc_failed"]}')
-    # print(f'{warnings} vs {expected_results_dict["warnings"]}')
-    # print(f'{errors} vs {expected_results_dict["errors"]}')
+    print(f'{tags_auth} vs {expected_results_dict["tags_auth"]}')
+    print(f'{data_auth} vs {expected_results_dict["data_auth"]}')
+    print(f'{kroot_auth} vs {expected_results_dict["kroot_auth"]}')
+    print(f'{broken_kroot} vs {expected_results_dict["broken_kroot"]}')
+    print(f'{crc_failed} vs {expected_results_dict["crc_failed"]}')
+    print(f'{warnings} vs {expected_results_dict["warnings"]}')
+    print(f'{errors} vs {expected_results_dict["errors"]}')
 
     assert tags_auth == expected_results_dict["tags_auth"]
     assert data_auth == expected_results_dict["data_auth"]
@@ -253,6 +253,32 @@ def test_real_crev(log_level=logging.INFO):
     input_module = SBF(config_dict['scenario_path'])
     run(input_module, config_dict, expected_results)
 
+def test_reed_solomon_collision(log_level=logging.INFO):
+
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'test_corner_cases/reed_solomon_collision/reedsolomon_error_inav.sbf',
+        'exec_path': Path(__file__).parent / 'test_corner_cases/reed_solomon_collision/',
+        'pubk_name': 'OSNMA_PublicKey_1.xml',
+        'kroot_name': 'OSNMA_start_KROOT.txt',
+        'do_dual_frequency': True,
+        'do_reed_solomon_recovery': True,
+    }
+
+    expected_results = {
+        "tags_auth": 39751,
+        "data_auth": 26474,
+        "kroot_auth": 473,
+        "broken_kroot": 281,
+        "crc_failed": 2527,
+        "warnings": 2808,
+        "errors": 0
+    }
+
+    input_module = SBF(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
 def test_6_hours(log_level=logging.INFO):
 
     config_dict = {
@@ -380,6 +406,17 @@ if __name__ == "__main__":
     print(f"\nSVID 12 repeats IOD")
     try:
         test_svid_12_repeats_iod(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
+    print(f"\nReed-Solomon collision")
+    try:
+        test_reed_solomon_collision(general_log_level)
     except AssertionError:
         print(f"\tFAILED")
     else:
