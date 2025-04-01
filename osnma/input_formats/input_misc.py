@@ -17,8 +17,13 @@
 import pandas as pd
 from bitstring import BitArray
 import datetime
+from enum import Enum
 
 from osnma.input_formats.base_classes import DataFormat, PageIterator, PAGE_TOW_E1B_LOOKUP_TABLE
+
+class GnssChipset(Enum):
+    BROADCOM = 1
+    MEDIATEK = 2
 
 class AndroidGNSSLog(PageIterator):
 
@@ -29,11 +34,16 @@ class AndroidGNSSLog(PageIterator):
     # Actually it was 13 seconds before that, but its only relevant for GNSS time. This is easier for WN and TOW
     LEAP_SECONDS = 18  # Could be extracted from raw or agc, but I have never seen that field populated
 
-    def __init__(self, path):
+    def __init__(self, path, gnss_chipset='BROADCOM'):
+        """
+        :param path: Path to the log file
+        :param gnss_chipset: String indicating the smartphone's GNSS chipset manufacturer (broadcom or mediatek)
+        """
         super().__init__()
         self.file = open(path, 'r')
         self.tow = None
         self.wn = None
+        self.gnss_chipset = GnssChipset[gnss_chipset.upper()]
 
     def line_is_gal_inav(self, line):
         if not line[0] == AndroidGNSSLog.NAV_PREFIX:
@@ -49,7 +59,12 @@ class AndroidGNSSLog(PageIterator):
         raw_bits = BitArray()
         for byte in str_bits:
             raw_bits += BitArray(int=byte, length=8)
-        data_format_bits = raw_bits[4:118] + BitArray('0b000000') + raw_bits[118:] + BitArray('0b000000')
+        if self.gnss_chipset == GnssChipset.BROADCOM:
+            data_format_bits = raw_bits[4:118] + BitArray('0b000000') + raw_bits[118:] + BitArray('0b000000')
+        elif self.gnss_chipset == GnssChipset.MEDIATEK:
+            data_format_bits = raw_bits[:114] + BitArray('0b000000') + raw_bits[114:-4] + BitArray('0b000000')
+        else:
+            raise Exception(f'Chipset {self.gnss_chipset} not supported.')
         return data_format_bits
 
     def get_GST_from_utc(self, utcmillis):
