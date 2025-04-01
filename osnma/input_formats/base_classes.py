@@ -81,3 +81,24 @@ class PageIterator:
 
     def __next__(self) -> 'DataFormat':
         pass
+
+# Not fully reliable: The ICD structure is only indicative
+PAGE_TOW_E1B_LOOKUP_TABLE = {
+    2:  [1],
+    4:  [3],
+    6:  [5],
+    7:  [7],
+    9:  [7],
+    8:  [9],
+    10: [9],
+    17: [11],
+    18: [11],
+    19: [13],
+    20: [13],
+    16: [15, 29],
+    0:  [17, 27],
+    22: [19],
+    1:  [19],
+    3:  [23],
+    5:  [25]
+}

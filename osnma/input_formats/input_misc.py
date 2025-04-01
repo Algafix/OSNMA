@@ -16,9 +16,107 @@
 
 import pandas as pd
 from bitstring import BitArray
+import datetime
+from enum import Enum
 
-from osnma.input_formats.base_classes import DataFormat, PageIterator
+from osnma.input_formats.base_classes import DataFormat, PageIterator, PAGE_TOW_E1B_LOOKUP_TABLE
 
+class GnssChipset(Enum):
+    BROADCOM = 1
+    MEDIATEK = 2
+
+class AndroidGNSSLog(PageIterator):
+
+    NAV_PREFIX = 'Nav'
+    GAL_INAV_TYPE = '1537'
+    UTC_TIME_LOGS = ['Raw', 'Agc']  # I have only found raw and agc to be more or less reliable for timing
+    GST_START_EPOCH = datetime.datetime(1999, 8, 22, 0, 0, 0)
+    # Actually it was 13 seconds before that, but its only relevant for GNSS time. This is easier for WN and TOW
+    LEAP_SECONDS = 18  # Could be extracted from raw or agc, but I have never seen that field populated
+
+    def __init__(self, path, gnss_chipset='BROADCOM'):
+        """
+        :param path: Path to the log file
+        :param gnss_chipset: String indicating the smartphone's GNSS chipset manufacturer (broadcom or mediatek)
+        """
+        super().__init__()
+        self.file = open(path, 'r')
+        self.tow = None
+        self.wn = None
+        self.gnss_chipset = GnssChipset[gnss_chipset.upper()]
+
+    def line_is_gal_inav(self, line):
+        if not line[0] == AndroidGNSSLog.NAV_PREFIX:
+            return False
+        if not line[2] == AndroidGNSSLog.GAL_INAV_TYPE:
+            return False
+        if not line[3] == '1':
+            return False
+        return True
+
+    def _get_formatted_bits(self, inav_line):
+        str_bits = inav_line[6:]
+        raw_bits = BitArray()
+        for byte in str_bits:
+            raw_bits += BitArray(int=byte, length=8)
+        if self.gnss_chipset == GnssChipset.BROADCOM:
+            data_format_bits = raw_bits[4:118] + BitArray('0b000000') + raw_bits[118:] + BitArray('0b000000')
+        elif self.gnss_chipset == GnssChipset.MEDIATEK:
+            data_format_bits = raw_bits[:114] + BitArray('0b000000') + raw_bits[114:-4] + BitArray('0b000000')
+        else:
+            raise Exception(f'Chipset {self.gnss_chipset} not supported.')
+        return data_format_bits
+
+    def get_GST_from_utc(self, utcmillis):
+        utcmillis = int(utcmillis)
+        utc_timestamp = datetime.datetime.utcfromtimestamp(round(utcmillis / 1000) + AndroidGNSSLog.LEAP_SECONDS)
+        time_diff = utc_timestamp - AndroidGNSSLog.GST_START_EPOCH
+        wn = time_diff.days // 7
+        week_days = time_diff - datetime.timedelta(days=wn*7)
+        tow = int(week_days.total_seconds())
+
+        return wn, tow
+
+    def _fix_1_second_misalignment(self, page):
+        current_tow_offset = (self.tow-2)%30
+        possible_page_offsets = PAGE_TOW_E1B_LOOKUP_TABLE[page]
+        for possible_offset in possible_page_offsets:
+            misalignment = current_tow_offset - possible_offset
+            if abs(misalignment) == 1:
+                self.tow = self.tow - misalignment
+                return True
+        return False
+
+    def __next__(self):
+
+        data_format = None
+        while line := self.file.readline():
+            line = line.strip().split(',')
+
+            if line[0] in AndroidGNSSLog.UTC_TIME_LOGS:
+                wn, tow = self.get_GST_from_utc(line[1])
+                self.wn = wn
+                self.tow = tow
+                continue
+
+            if self.line_is_gal_inav(line):
+                if self.tow is None:
+                    continue
+                svid = int(line[1])
+                page = int(line[5])
+                if (self.tow-2)%2 == 0:
+                    # Lazy check for 1 second misalignment using the page structure. If not possible, remove page.
+                    if not self._fix_1_second_misalignment(page):
+                        continue
+
+                data_format_bits = self._get_formatted_bits(line)
+                data_format = DataFormat(svid, self.wn, self.tow-2, data_format_bits)
+                break
+
+        if data_format is None:
+            raise StopIteration
+
+        return data_format
 
 class ICDTestVectors(PageIterator):
 
