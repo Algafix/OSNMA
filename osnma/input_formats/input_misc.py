@@ -94,7 +94,7 @@ class AndroidGNSSLog(PageIterator):
             line = line.strip().split(',')
 
             if line[0] in AndroidGNSSLog.UTC_TIME_LOGS:
-                if line[1] is '':
+                if line[1] == '':
                     continue
                 wn, tow = self.get_GST_from_utc(line[1])
                 self.wn = wn
