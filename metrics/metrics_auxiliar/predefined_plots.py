@@ -2,17 +2,7 @@ import json
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
-import tikzplotlib
 from pathlib import Path
-
-def tikzplotlib_fix_ncols(obj):
-    """
-    workaround for matplotlib 3.6 renamed legend's _ncol to _ncols, which breaks tikzplotlib
-    """
-    if hasattr(obj, "_ncols"):
-        obj._ncol = obj._ncols
-    for child in obj.get_children():
-        tikzplotlib_fix_ncols(child)
 
 
 def plot_ttfaf(plot_ttfaf_vectors: npt.NDArray, options, name, data_folder: Path):
@@ -33,10 +23,6 @@ def plot_ttfaf(plot_ttfaf_vectors: npt.NDArray, options, name, data_folder: Path
     plt.title(name)
     plt.grid()
     plt.legend(loc='upper right')
-
-    tikzplotlib_fix_ncols(fig)
-    Path(f"{data_folder}/tikz_plots/").mkdir(parents=True, exist_ok=True)
-    tikzplotlib.save(f"{data_folder}/tikz_plots/{data_folder.absolute().name}_time.tex")
 
 
 def plot_satellites_sf(tow_sf_values, name, data_folder: Path, json_status_file: str):
@@ -108,10 +94,6 @@ def plot_satellites_sf(tow_sf_values, name, data_folder: Path, json_status_file:
     plt.ylabel('SVID')
     plt.legend(loc='upper right')
 
-    tikzplotlib_fix_ncols(fig)
-    Path(f"{data_folder}/tikz_plots/").mkdir(parents=True, exist_ok=True)
-    tikzplotlib.save(f"{data_folder}/tikz_plots/{data_folder.absolute().name}_satellites_scenario.tex")
-
 
     ### sf sats info ###
     fig, ax1 = plt.subplots(1, 1, figsize=(16, 9))
@@ -137,10 +119,6 @@ def plot_satellites_sf(tow_sf_values, name, data_folder: Path, json_status_file:
     ax1.set_ylim(0, max_value)
     ax2.set_ylim(0, max_value)
 
-    tikzplotlib_fix_ncols(fig)
-    Path(f"{data_folder}/tikz_plots/").mkdir(parents=True, exist_ok=True)
-    tikzplotlib.save(f"{data_folder}/tikz_plots/{data_folder.absolute().name}_satellites_sf.tex")
-
 
 def plot_ttfaf_sf(tow_sf_values, ttfaf_sf_matrix, options, name, data_folder: Path):
 
@@ -150,19 +128,14 @@ def plot_ttfaf_sf(tow_sf_values, ttfaf_sf_matrix, options, name, data_folder: Pa
     fig, ax1 = plt.subplots(1, 1, figsize=(16, 9))
 
     for min_sf_vector, max_sf_vector, config_name in zip(min_sf_ttfaf_matrix, max_sf_ttfaf_matrix, options):
-        color = next(ax1._get_lines.prop_cycler)['color']
-        plt.plot(tow_sf_values, min_sf_vector, 'v', color=color)
-        plt.plot(tow_sf_values, min_sf_vector, '-', label=config_name, color=color)
+        line, = plt.plot(tow_sf_values, min_sf_vector, 'v')
+        plt.plot(tow_sf_values, min_sf_vector, '-', label=config_name, color=line.get_color())
 
     plt.ylabel('TTFAF (s)')
     plt.xlabel('Time of Week (s)')
     plt.title(f"Minimum TTFAF per Subframe - {name}")
     plt.grid()
     #plt.legend(loc='upper right')
-
-    tikzplotlib_fix_ncols(fig)
-    Path(f"{data_folder}/tikz_plots/").mkdir(parents=True, exist_ok=True)
-    tikzplotlib.save(f"{data_folder}/tikz_plots/{data_folder.absolute().name}_ttfaf_sf.tex")
 
 
 def plot_per_subframe(plot_ttfaf_vectors: npt.NDArray, options, name, data_folder: Path, json_status_file = 'status_log.json'):
@@ -195,10 +168,6 @@ def plot_cdf(plot_ttfaf_vectors: npt.NDArray, options, name, data_folder: Path):
     plt.title(f"Cumulative Distribution Plot (CDF) - {name}")
     plt.grid()
     plt.legend(loc='upper left', bbox_to_anchor=(0, 1))
-
-    tikzplotlib_fix_ncols(fig)
-    Path(f"{data_folder}/tikz_plots/").mkdir(parents=True, exist_ok=True)
-    tikzplotlib.save(f"{data_folder}/tikz_plots/{data_folder.absolute().name}_cdf.tex")
 
 
 def print_pki(plot_ttfaf_vectors: npt.NDArray, options, name, data_folder: Path):
