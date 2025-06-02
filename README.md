@@ -76,8 +76,9 @@ Documentation
 OSNMAlib
   * This README file.
   * [Wiki](https://github.com/Algafix/OSNMA/wiki)
-  * [OSNMAlib Paper ICL-GNSS 2024](OSNMAlib_ICL_GNSS_2024.pdf)
-  * [(Some information outdated) OSNMAlib Paper NAVITEC 2022](OSNMAlib_NAVITEC2022.pdf)
+  * OSNMAlib Journal Paper IEEE JISPN - [[local]](papers/OSNMAlib_JOURNAL_ICL_GNSS_2024_EXPANDED.pdf) - [[online]](https://ieeexplore.ieee.org/document/10955685) 
+  * OSNMAlib Paper ICL-GNSS 2024 - [[local]](papers/OSNMAlib_ICL_GNSS_2024.pdf) - [[online]](https://ieeexplore.ieee.org/document/10578487)
+  * OSNMAlib Paper NAVITEC 2022 (outdated) - [[local]](papers/OSNMAlib_NAVITEC2022.pdf) - [[online]](https://ieeexplore.ieee.org/document/9847548)
   * See later in the README for a list of publications using OSNMAlib.
 
 General OSNMA documentation
@@ -241,15 +242,23 @@ I strongly believe in open-source software and free access to knowledge, and thi
 
 However, this approach by my side requires the uttermost respect to the research integrity and ethics by anyone accessing the repository. 
 
-Publication list:
-* "OSNMAlib Improvements and Real-Time Monitoring of Galileo OSNMA," _ICL-GNSS_, 2024. [[link](https://ieeexplore.ieee.org/document/10578487)]
-  * Report on the latest OSNMAlib improvements including [osnmalib.eu](https://osnmalib.eu)
+Publication list
+---
+
+Select the appropriate manuscripts to cite in your research.
+Note that the conference paper from 2022 is quite outdated.
+I recommend citing the 2025 journal paper if you want to reference OSNMAlib as a whole.
+
+* "Improving OSNMAlib: New Formats, Features, and Monitoring Capabilities," in _IEEE Journal of Indoor and Seamless Positioning and Navigation_, 2025. [[link](https://ieeexplore.ieee.org/document/10955685)]
+  * Journal extension of the conference paper to ICL-GNSS 2024 [[link](https://ieeexplore.ieee.org/document/10578487)]
+  * Report on the new additions to OSNMAlib: new input formats, JSON logging, [osnmalib.eu](https://osnmalib.eu), Reed-Solomon, dual-frequency...
+  * Includes TTFAF benchmark of Reed-Solomon and dual-frequency reception in urban scenarios.
 * "Improving Galileo OSNMA Time To First Authenticated Fix." _arXiv preprint_ arXiv:2403.14739, 2024. [[link](https://arxiv.org/abs/2403.14739)]
   * Technical description of the optimization to reduce the TTFAF to 44 seconds and testing with live data recording.
 * "GNSS Recordings for Galileo OSNMA Evaluation", _IEEE Dataport_, 2024. [[link](https://dx.doi.org/10.21227/a0nm-kn45)]
   * Dataset used for the "Improving Galileo OSNMA Time To First Authenticated Fix" manuscript.
 * "OSNMAlib: An Open Python Library for Galileo OSNMA," _NAVITEC_, Noordwijk, Netherlands, 2022. [[link](https://ieeexplore.ieee.org/document/9847548)]
-  * Some sections are outdated.
+  * Original OSNMAlib paper, some sections are outdated.
 
 In case of any doubt, contact me at aleix.galan[@]kuleuven.be
 
