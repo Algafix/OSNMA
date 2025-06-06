@@ -241,8 +241,8 @@ def test_real_crev(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 12342,
-        "data_auth": 8266,
+        "tags_auth": 12341,
+        "data_auth": 8265,
         "kroot_auth": 210,
         "broken_kroot": 108,
         "crc_failed": 1903,
@@ -267,12 +267,38 @@ def test_reed_solomon_collision(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 39751,
-        "data_auth": 26474,
+        "tags_auth": 39750,
+        "data_auth": 26473,
         "kroot_auth": 473,
         "broken_kroot": 281,
         "crc_failed": 2527,
         "warnings": 2808,
+        "errors": 0
+    }
+
+    input_module = SBF(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
+def test_WT10_change_mid_subframe_E5b(log_level=logging.INFO):
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(
+            __file__).parent / 'test_corner_cases/WT10_change_mid_subframe_E5b/WT10_change_mid_subframe_E5b.sbf',
+        'exec_path': Path(__file__).parent / 'test_corner_cases/WT10_change_mid_subframe_E5b/',
+        'pubk_name': 'OSNMA_PublicKey_1.xml',
+        'kroot_name': 'OSNMA_start_KROOT.txt',
+        'do_dual_frequency': True,
+        'do_reed_solomon_recovery': True,
+    }
+
+    expected_results = {
+        "tags_auth": 44507,
+        "data_auth": 30467,
+        "kroot_auth": 538,
+        "broken_kroot": 863,
+        "crc_failed": 2446,
+        "warnings": 3310,
         "errors": 0
     }
 
@@ -292,8 +318,8 @@ def test_6_hours(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 14710,
-        "data_auth": 11070,
+        "tags_auth": 14708,
+        "data_auth": 11068,
         "kroot_auth": 198,
         "broken_kroot": 61,
         "crc_failed": 3268,
@@ -317,8 +343,8 @@ def test_24_hours(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 62085,
-        "data_auth": 45875,
+        "tags_auth": 62084,
+        "data_auth": 45874,
         "kroot_auth": 804,
         "broken_kroot": 200,
         "crc_failed": 4407,
@@ -341,8 +367,8 @@ def test_24_hours_cold_start(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 62085,
-        "data_auth": 45875,
+        "tags_auth": 62084,
+        "data_auth": 45874,
         "kroot_auth": 802,
         "broken_kroot": 200,
         "crc_failed": 4407,

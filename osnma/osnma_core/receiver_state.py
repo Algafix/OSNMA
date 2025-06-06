@@ -17,7 +17,7 @@
 ######## type annotations ########
 from typing import TYPE_CHECKING, List, Optional, Tuple, Dict
 if TYPE_CHECKING:
-    from osnma.receiver.satellite import Satellite
+    from osnma.receiver.satellite import Satellite, DataFormat
 
 ######## imports ########
 from bitstring import BitArray
@@ -351,8 +351,8 @@ class ReceiverState:
         if nma_status is not None:
             self.last_received_nmas = nma_status
 
-    def load_nav_data_page(self, full_page: BitArray, gst_page: GST, svid: int):
-        self.nav_data_structure.load_page(full_page, gst_page, svid)
+    def load_nav_data_page(self, page: 'DataFormat'):
+        self.nav_data_structure.load_page(page)
 
 
 if __name__ == '__main__':
