@@ -28,7 +28,7 @@ Supports Python 3.8, 3.9, 3.10, and 3.11. Tested on Linux and Windows.
 Features
 ---
 
-Current OSNMA **features supported**:
+### Current OSNMA features supported:
 
   * Verification of the public key retrieved from the DSM-PKR message.
   * Verification of the TESLA root key retrieved from the DSM-KROOT message.
@@ -44,7 +44,7 @@ Current OSNMA **features supported**:
   * Support for the following events: EOC, CREV, NPK, PKREV, NMT, and OAM.
   * [JSON output](#osnmalib-logging-options) for monitoring and postprocessing with `json-schema` [[html](https://osnmalib.eu/json-schema)|[json](osnma/utils/json_schema/status_log_schema.json)].
   
-**Extra optimizations** for a faster TTFAF:
+### Extra optimizations for a faster TTFAF:
   * Reconstruct broken HKROOT messages.
   * Reconstruct TESLA key from partial MACK messages.
   * Extract valid tags from broken MACK messages.
@@ -54,7 +54,7 @@ Current OSNMA **features supported**:
     * Obtain TTFAF as low as 44 seconds in hot start.
     * https://arxiv.org/abs/2403.14739
 
-Current data [formats supported](https://github.com/Algafix/OSNMA/wiki/Input-Data):
+### Current [input formats](https://github.com/Algafix/OSNMA/wiki/Input-Data) supported:
 
   * Septentrio Binary Format (SBF) log files.
   * Septentrio receiver live connection through IP port.
@@ -66,7 +66,7 @@ Current data [formats supported](https://github.com/Algafix/OSNMA/wiki/Input-Dat
     * Note that GNSS-SDR [recently implemented OSNMA](https://gnss-sdr.org/osnma/) inside their GNSS receiver.
   * Allows for custom data by implementing your iterator.
 
-Future development:
+### Future development:
 
   * Time synchronization options for live execution.
   * IDD ICD implementation for authentication of cryptographic materials.
