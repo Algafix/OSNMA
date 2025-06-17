@@ -15,9 +15,12 @@
 #
 
 ######## type annotations ########
-from typing import List, Dict, Tuple, Optional, Union
+from typing import TYPE_CHECKING, List, Dict, Tuple, Optional, Union
+if TYPE_CHECKING:
+    from osnma.receiver.satellite import DataFormat
 
 ######## imports ########
+from osnma.receiver.satellite import GAL_BAND, DataFormat
 from osnma.structures.adkd import adkd_masks
 from osnma.structures.mack_structures import TagAndInfo
 from osnma.cryptographic.gst_class import GST
@@ -435,16 +438,25 @@ class NavigationDataManager:
         else:
             self.authenticated_data_dict[tag.data_id] = AuthenticatedData(tag)
 
-    def load_page(self, full_page: BitArray, gst_page: GST, svid: int):
+    def load_page(self, page: 'DataFormat'):
 
-        word_type, word_data = self._get_word_type_and_data(full_page)
+        word_type, word_data = self._get_word_type_and_data(page.nav_bits)
+        svid = page.svid
+        gst_page = page.gst_page
 
         if word_type not in self.active_words:
             return
         if word_type in WORDS_PER_ADKD[ADKD0]:
             self.adkd0_data_managers[svid].add_word(word_type, word_data, gst_page)
         elif word_type in WORDS_PER_ADKD[ADKD4]:
-            self.adkd4_data_managers[svid].add_word(word_type, word_data, gst_page)
+            if page.band == GAL_BAND.E5b and word_type == 10:
+                """
+                According to the ICD 1.1, WT10 can only be retrieved from E1B.
+                WT10 can change mid subframe and E5b is transmitted with the wrong value.
+                """
+                pass
+            else:
+                self.adkd4_data_managers[svid].add_word(word_type, word_data, gst_page)
 
         if Config.DO_REED_SOLOMON_RECOVERY:
             self.rs_recovery.add_rs_word(word_type, word_data, svid, gst_page)
