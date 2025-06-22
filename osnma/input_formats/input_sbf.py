@@ -255,7 +255,7 @@ class SBFLive(PageIterator):
 
         while sync := self.s.recv(2):
             if sync == SYNC:
-                header = sync + self.s.recv(6)
+                header = sync + self.s.recv(6, socket.MSG_WAITALL)
                 crc, block_id, length, block_num, rev_num = parse_header(header)
 
                 if length % 4 != 0:
@@ -314,7 +314,7 @@ class SBFLiveServer(PageIterator):
 
         while sync := self.s.recv(2):
             if sync == SYNC:
-                header = sync + self.s.recv(6)
+                header = sync + self.s.recv(6, socket.MSG_WAITALL)
                 crc, block_id, length, block_num, rev_num = parse_header(header)
 
                 if length % 4 != 0:
