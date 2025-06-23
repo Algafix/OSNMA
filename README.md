@@ -277,15 +277,6 @@ Contribution
 If you want a protocol to be supported as an input for OSNMAlib you can kindly request it in the GitHub Issues page, providing its documentation and possible ways to test it. 
 Or you can create a Pull Request with your implementation. I will help you with any question that you may have about the interface class.
 
-### Contributors
-#### Internal
-* Aleix Galan-Figueras
-* Ignacio Fernandez-Hernandez
-* Gonzalo Seco-Granados
-* Cristian Iñiguez
-#### External
-* [cicco84](https://github.com/cicco84)
-
 License
 ===
 
