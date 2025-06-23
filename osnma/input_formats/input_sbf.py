@@ -253,7 +253,7 @@ class SBFLive(PageIterator):
 
         data_format = None
 
-        while sync := self.s.recv(2):
+        while sync := self.s.recv(2, socket.MSG_WAITALL):
             if sync == SYNC:
                 header = sync + self.s.recv(6, socket.MSG_WAITALL)
                 crc, block_id, length, block_num, rev_num = parse_header(header)
@@ -261,7 +261,7 @@ class SBFLive(PageIterator):
                 if length % 4 != 0:
                     continue
 
-                block = header + self.s.recv(length - 8)
+                block = header + self.s.recv(length - 8, socket.MSG_WAITALL)
                 calculated_crc = crc_calculation(block[4:])
 
                 if calculated_crc != crc:
@@ -312,7 +312,7 @@ class SBFLiveServer(PageIterator):
 
         data_format = None
 
-        while sync := self.s.recv(2):
+        while sync := self.s.recv(2, socket.MSG_WAITALL):
             if sync == SYNC:
                 header = sync + self.s.recv(6, socket.MSG_WAITALL)
                 crc, block_id, length, block_num, rev_num = parse_header(header)
@@ -320,7 +320,7 @@ class SBFLiveServer(PageIterator):
                 if length % 4 != 0:
                     continue
 
-                block = header + self.s.recv(length - 8)
+                block = header + self.s.recv(length - 8, socket.MSG_WAITALL)
                 calculated_crc = crc_calculation(block[4:])
 
                 if calculated_crc != crc:
