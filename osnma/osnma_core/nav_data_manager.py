@@ -172,7 +172,7 @@ class ADKD0DataManager(ADKDDataManager):
         self.adkd0_data_blocks must not be empty
         """
         last_adkd0_block = self.adkd0_data_blocks[-1]
-        if gst_page - last_adkd0_block.last_gst_updated < 30:
+        if gst_page.subframe == last_adkd0_block.last_gst_updated.subframe:
             return True
         return False
 

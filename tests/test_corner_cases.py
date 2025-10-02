@@ -58,13 +58,13 @@ def run(input_module, config_dict, expected_results_dict):
         warnings = len(re.findall('WARNING', log_text))
         errors = len(re.findall('ERROR', log_text))
 
-    print(f'{tags_auth} vs {expected_results_dict["tags_auth"]}')
-    print(f'{data_auth} vs {expected_results_dict["data_auth"]}')
-    print(f'{kroot_auth} vs {expected_results_dict["kroot_auth"]}')
-    print(f'{broken_kroot} vs {expected_results_dict["broken_kroot"]}')
-    print(f'{crc_failed} vs {expected_results_dict["crc_failed"]}')
-    print(f'{warnings} vs {expected_results_dict["warnings"]}')
-    print(f'{errors} vs {expected_results_dict["errors"]}')
+    # print(f'{tags_auth} vs {expected_results_dict["tags_auth"]}')
+    # print(f'{data_auth} vs {expected_results_dict["data_auth"]}')
+    # print(f'{kroot_auth} vs {expected_results_dict["kroot_auth"]}')
+    # print(f'{broken_kroot} vs {expected_results_dict["broken_kroot"]}')
+    # print(f'{crc_failed} vs {expected_results_dict["crc_failed"]}')
+    # print(f'{warnings} vs {expected_results_dict["warnings"]}')
+    # print(f'{errors} vs {expected_results_dict["errors"]}')
 
     assert tags_auth == expected_results_dict["tags_auth"]
     assert data_auth == expected_results_dict["data_auth"]
@@ -318,8 +318,8 @@ def test_6_hours(log_level=logging.INFO):
     }
 
     expected_results = {
-        "tags_auth": 14708,
-        "data_auth": 11068,
+        "tags_auth": 14707,
+        "data_auth": 11067,
         "kroot_auth": 198,
         "broken_kroot": 61,
         "crc_failed": 3268,
@@ -378,6 +378,33 @@ def test_24_hours_cold_start(log_level=logging.INFO):
 
     input_module = SBF(config_dict['scenario_path'])
     run(input_module, config_dict, expected_results)
+
+def test_wt5_change_ambiguous(log_level=logging.INFO):
+
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'test_corner_cases/wt5_change_ambiguous/wt5_change_ambiguous.sbf',
+        'exec_path': Path(__file__).parent / 'test_corner_cases/wt5_change_ambiguous/',
+        'pubk_name': 'OSNMA_PublicKey_1.xml',
+        'kroot_name': 'OSNMA_start_KROOT.txt',
+        'do_dual_frequency': True,
+        'do_reed_solomon_recovery': True,
+    }
+
+    expected_results = {
+        "tags_auth": 6947,
+        "data_auth": 5108,
+        "kroot_auth": 91,
+        "broken_kroot": 80,
+        "crc_failed": 397,
+        "warnings": 477,
+        "errors": 0
+    }
+
+    input_module = SBF(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
 
 if __name__ == "__main__":
 
@@ -465,6 +492,17 @@ if __name__ == "__main__":
     print(f"\n24 hours")
     try:
         test_24_hours(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
+    print(f"\nWT5 change ambiguous")
+    try:
+        test_wt5_change_ambiguous(general_log_level)
     except AssertionError:
         print(f"\tFAILED")
     else:

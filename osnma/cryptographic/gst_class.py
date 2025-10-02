@@ -153,6 +153,10 @@ class GST:
     def total_seconds(self):
         return (self.wn * (MAX_TOW+1)) + self.tow
 
+    @property
+    def subframe(self):
+        return GST(wn=self.wn, tow=self.tow - self.tow % 30)
+
 
 if __name__ == '__main__':
 
