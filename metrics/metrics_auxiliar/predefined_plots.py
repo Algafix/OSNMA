@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
 from pathlib import Path
+from typing import List, Dict
 
 
 def plot_ttfaf(plot_ttfaf_vectors: npt.NDArray, options, name, data_folder: Path):
@@ -30,46 +31,62 @@ def plot_satellites_sf(tow_sf_values, name, data_folder: Path, json_status_file:
     with open(data_folder / json_status_file, 'r') as f:
         states_json = json.load(f)
 
-    satellites = []
-    osnma_satellites = []
-    tags_connected = []
-    tags_not_connected_view = []
-    tags_not_connected_lost = []
+    satellites = np.zeros(len(tow_sf_values))
+    osnma_satellites = np.zeros(len(tow_sf_values))
+    tags_connected = np.zeros(len(tow_sf_values))
+    tags_not_connected_view = np.zeros(len(tow_sf_values))
+    tags_not_connected_lost = np.zeros(len(tow_sf_values))
     sats_dict = {k: [] for k in range(40)}
     osnma_sats_dict = {k: [] for k in range(40)}
 
-    #### Get data from json ####
-
-    for idx, sf_state_json in enumerate(states_json):
-        sf_tow = sf_state_json['metadata']['GST_subframe'][1]
-        sf_osnma_status = sf_state_json['metadata']['OSNMAlib_status']
-        if sf_tow < tow_sf_values[0]:
+    ## Remove extra subframes and fill in gaps
+    start_sf = tow_sf_values[0]
+    end_sf = tow_sf_values[-1]
+    previous_sf_tow = None
+    curated_states_json: List[Dict] = []
+    for state_json in states_json:
+        sf_tow = state_json['metadata']['GST_subframe'][1]
+        if sf_tow < start_sf:
             continue
-        elif sf_tow > tow_sf_values[-1]:
+        elif sf_tow > end_sf:
             break
-        elif sf_osnma_status != 'STARTED':
+        elif state_json['metadata']['OSNMAlib_status'] != 'STARTED':
             print(f'tow with TTFAF but OSNMA not started: {sf_tow}')
             return
-        satellites.append(len(sf_state_json['nav_data_received']))
-        osnma_satellites.append(len(sf_state_json['OSNMA_material_received']))
+
+        if previous_sf_tow is None:
+            curated_states_json.append(state_json)
+        elif sf_tow == previous_sf_tow + 30:
+            curated_states_json.append(state_json)
+        else:
+            missed_sf = (sf_tow - previous_sf_tow) // 30 - 1
+            curated_states_json.extend([None]*missed_sf)
+            curated_states_json.append(state_json)
+        previous_sf_tow = sf_tow
+
+    ## Extract data
+    for i, tow_sf in enumerate(tow_sf_values):
+        sf_state_json = curated_states_json[i]
+        if sf_state_json is None:
+            continue
+
+        satellites[i] = (len(sf_state_json['nav_data_received']))
+        osnma_satellites[i] = (len(sf_state_json['OSNMA_material_received']))
 
         for svid_s in sf_state_json['nav_data_received'].keys():
-            sats_dict[int(svid_s)].append(sf_tow)
+            sats_dict[int(svid_s)].append(tow_sf)
         for svid_s in sf_state_json['OSNMA_material_received'].keys():
-            osnma_sats_dict[int(svid_s)].append(sf_tow)
+            osnma_sats_dict[int(svid_s)].append(tow_sf)
 
-        tags_connected.append(0)
-        tags_not_connected_view.append(0)
-        tags_not_connected_lost.append(0)
         for svid, sat_osnma in sf_state_json['OSNMA_material_received'].items():
             for tag in sat_osnma['mack_data']['tags']:
                 if tag is not None and tag[1] == 0:
                     if str(tag[0]) in sf_state_json['OSNMA_material_received']:
-                        tags_connected[-1] += 1
+                        tags_connected[i] += 1
                     elif str(tag[0]) in sf_state_json['nav_data_received']:
-                        tags_not_connected_view[-1] += 1
+                        tags_not_connected_view[i] += 1
                     else:
-                        tags_not_connected_lost[-1] += 1
+                        tags_not_connected_lost[i] += 1
 
     #### Plots ####
 
