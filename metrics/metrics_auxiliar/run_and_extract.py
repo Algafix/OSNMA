@@ -100,14 +100,16 @@ def run_with_config(config_dict, input_class, start_at_gst: Tuple[int, int] = No
     input_module = input_class(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
     try:
-        ttfaf, first_tow, faf_tow = osnma_r.start(start_at_gst=start_at_gst)
+        ttfaf, ttff, first_tow, faf_tow = osnma_r.start(start_at_gst=start_at_gst)
     except TypeError as e:
         # No TTFAF, probably due to file length
         ttfaf = None
+        ttff = None
     except Exception as e:
         print(e)
         ttfaf = None
-    return ttfaf
+        ttff = None
+    return ttfaf, ttff
 
 def get_ttfaf_matrix(sim_params, optimizations, save):
 
@@ -140,14 +142,16 @@ def run_with_configSBF(config_dict, sbfmetric_input, start_at_gst: Tuple[int, in
 
     osnma_r = OSNMAReceiver(sbfmetric_input, config_dict)
     try:
-        ttfaf, first_tow, faf_tow = osnma_r.start(start_at_gst=start_at_gst)
+        ttfaf, ttff, first_tow, faf_tow = osnma_r.start(start_at_gst=start_at_gst)
     except TypeError as e:
         # No TTFAF, probably due to file length
         ttfaf = None
+        ttff = None
     except Exception as e:
         print(e)
         ttfaf = None
-    return ttfaf
+        ttff = None
+    return ttfaf, ttff
 
 def get_ttfaf_matrixSBF(sim_params, optimizations, save):
 
@@ -182,3 +186,40 @@ def get_ttfaf_matrixSBF(sim_params, optimizations, save):
 
     return ttfaf_no_nan_matrix
 
+def get_ttfaf_and_ttff_matrixSBF(sim_params, optimizations, save):
+
+    wn = sim_params["WN"]
+    tow_range = range(sim_params["TOW_START"], sim_params["TOW_STOP"])
+    sim_params["config_dict"].update({'stop_at_faf': True, 'log_console': False, 'log_file': False})
+    optimizations_list = list(optimizations.values())
+    optimizations_names = list(optimizations.keys())
+
+    ttfaf_matrix = np.zeros([len(optimizations_list)+1, tow_range.stop-tow_range.start])
+    ttfaf_matrix[0] = tow_range
+    ttff_matrix = ttfaf_matrix.copy()
+
+    file_handler = open(sim_params["config_dict"]["scenario_path"], 'br')
+    sbfmetric_input = SBFMetrics(file_handler)
+
+    for i, config in enumerate(tqdm(optimizations_list), start=1):
+        sbfmetric_input.file_goto(0)
+        run_config = sim_params["config_dict"].copy()
+        run_config.update(config)
+        for j, tow in enumerate(tqdm(tow_range, leave=False)):
+            sbfmetric_input.start_tow = tow
+            ttfaf, ttff = run_with_configSBF(run_config, sbfmetric_input, (wn, tow))
+            ttfaf_matrix[i][j] = ttfaf
+            ttff_matrix[i][j] = ttff
+            sbfmetric_input.file_goto(sbfmetric_input.start_pos)
+    file_handler.close()
+
+    ttfaf_no_nan_matrix = filter_nan_in_ttfaf(ttfaf_matrix, sim_params, optimizations_names)
+    ttff_no_nan_matrix = filter_nan_in_ttfaf(ttff_matrix, sim_params, optimizations_names)
+
+    if save:
+        ttfaf_matrix_file_name = sim_params["numpy_file_name"] if save else "ttfaf_matrix_last_run.npy"
+        ttff_matrix_file_name = sim_params["numpy_ttff_file_name"] if save else "ttff_matrix_last_run.npy"
+        np.save(ttfaf_matrix_file_name, ttfaf_no_nan_matrix)
+        np.save(ttff_matrix_file_name, ttff_no_nan_matrix)
+
+    return ttfaf_no_nan_matrix, ttff_no_nan_matrix

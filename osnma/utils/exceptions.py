@@ -51,8 +51,9 @@ class NMAStatusDontUseFromTag(Exception):
 
 
 class StoppedAtFAF(Exception):
-    def __init__(self, message, ttfaf: int, first_tow, faf_tow):
+    def __init__(self, message, ttfaf: int, ttff: int, first_tow, faf_tow):
         super().__init__(message)
         self.ttfaf = ttfaf
+        self.ttff = ttff
         self.first_tow = first_tow
         self.faf_tow = faf_tow
