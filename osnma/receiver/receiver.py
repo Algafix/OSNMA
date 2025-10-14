@@ -85,7 +85,7 @@ class OSNMAReceiver:
             Config.LAST_GST = data.gst_page
 
         if data.gst_page < Config.LAST_GST:
-            logger.warning(f"Time is going backwards!")
+            logger.error(f"Time is going backwards!")
             return False
 
         Config.LAST_GST = data.gst_page
@@ -215,6 +215,6 @@ class OSNMAReceiver:
 
         except StoppedAtFAF as e:
             self._do_status_log()
-            return e.ttfaf, e.first_tow, e.faf_tow
+            return e.ttfaf, e.ttff, e.first_tow, e.faf_tow
         finally:
             StatusLogger.close()

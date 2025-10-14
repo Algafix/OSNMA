@@ -15,7 +15,7 @@
 #
 
 ######## type annotations ########
-from typing import TYPE_CHECKING, List, Dict, Tuple, Optional, Union
+from typing import TYPE_CHECKING, List, Dict, Set, Tuple, Optional, Union
 if TYPE_CHECKING:
     from osnma.receiver.satellite import DataFormat
 
@@ -162,6 +162,7 @@ class ADKD0DataManager(ADKDDataManager):
     def __init__(self, svid: int):
         super().__init__(ADKD0, svid)
         self.adkd0_data_blocks: List[ADKD0DataBlock] = []
+        self.satellite_has_ced = False
 
     def __repr__(self):
         return f"\n\t{self.adkd0_data_blocks}\n"
@@ -222,6 +223,10 @@ class ADKD0DataManager(ADKDDataManager):
             new_adkd0data_block.add_word(5, word_5_data, gst_page)
             self.adkd0_data_blocks.append(new_adkd0data_block)
 
+    def _check_ced(self):
+        if not self.satellite_has_ced:
+            self.satellite_has_ced = any([adkd_data for adkd_data in self.adkd0_data_blocks if adkd_data.gst_completed])
+
     def add_word(self, word_type: int, page: BitArray, gst_page: GST):
 
         StatusLogger.log_nav_data(self.svid, self.adkd, word_type)
@@ -239,6 +244,7 @@ class ADKD0DataManager(ADKDDataManager):
             self._handle_word_type_5(adkd_data, gst_page)
 
         self._clean_old_data()
+        self._check_ced()
 
     def get_nav_data(self, tag: TagAndInfo) -> Optional[ADKD0DataBlock]:
         data = None
@@ -273,17 +279,6 @@ class ADKD0DataManager(ADKDDataManager):
                 data = last_data_block
 
         return data
-
-    def get_complete_iod(self, tag: TagAndInfo) -> Optional[BitArray]:
-        gst_tag = tag.gst_subframe
-        iod = None
-        for nav_data in self.adkd0_data_blocks:
-            if nav_data.gst_start < gst_tag:
-                iod = nav_data.iod
-            else:
-                break
-
-        return iod
 
     def update_gst_start_with_cop(self, tag: TagAndInfo):
         """
@@ -373,7 +368,10 @@ class NavigationDataManager:
 
         It also has a function to log the updated status of the data.
         """
-        self.auth_sats_svid: List[int] = []
+        self.sats_with_auth_ced: Set[int] = set()
+        self.ttfaf: Optional[int] = None
+        self.sats_with_ced: Set[int] = set()
+        self.ttff: Optional[int] = None
         self.authenticated_data_dict: Dict[Tuple[int, int, BitArray], AuthenticatedData] = {}
 
         self.adkd0_data_managers: Dict[int, ADKD0DataManager] = {}
@@ -448,6 +446,7 @@ class NavigationDataManager:
             return
         if word_type in WORDS_PER_ADKD[ADKD0]:
             self.adkd0_data_managers[svid].add_word(word_type, word_data, gst_page)
+            self._calculate_TTFF()
         elif word_type in WORDS_PER_ADKD[ADKD4]:
             if page.band == GAL_BAND.E5b and word_type == 10:
                 """
@@ -468,20 +467,41 @@ class NavigationDataManager:
             for wt, word_data in new_words.items():
                 self.adkd0_data_managers[svid].add_word(wt, word_data, gst_page)
 
-    def _calculate_TTFAF(self, auth_data: AuthenticatedData):
+    def _calculate_TTFF(self):
+        """
+        Calculate the Time To Fist Fix (TTFF) as time for at least 4 satellites to obtain a set of CED words (WT1-5)
+        belonging to the same IOD. Theoretically, we should check that these words are not 4 hours old (time of
+        applicability as per the Galileo OS SDD), but that case is quite rare.
 
-        if auth_data.adkd != 4 and auth_data.prn_d not in self.auth_sats_svid:
-            self.auth_sats_svid.append(auth_data.prn_d)
-            if len(self.auth_sats_svid) == 4:
-                # OSNMAlib works with pages timestamped with the GST of leading edge of the first page,
-                # but to receive the data of a page we have to wait until the page ends, hence +2 seconds.
-                gst_subframe_data_end = Config.LAST_GST + 2
-                ttfaf = (gst_subframe_data_end - Config.FIRST_GST).tow
-                logger.info(f"First Authenticated Fix at GST {gst_subframe_data_end}")
+        The satellites with a full set of CED words are saved in a variable as it could be useful in the future.
+        """
+        for svid, adkd0_data_manager in self.adkd0_data_managers.items():
+            if svid not in self.sats_with_ced and adkd0_data_manager.satellite_has_ced:
+                self.sats_with_ced.add(svid)
+        if self.ttff is None and len(self.sats_with_ced) >= 4:
+            gst_page_end = Config.LAST_GST + 2  # +2 seconds because we have to receive the full page
+            self.ttff = (gst_page_end - Config.FIRST_GST).tow
+            logger.info(f"First Fix at GST {gst_page_end}")
+            logger.info(f"First GST {Config.FIRST_GST}")
+            logger.info(f"TTFF {self.ttff} seconds\n")
+
+    def _calculate_TTFAF(self, auth_data: AuthenticatedData):
+        """
+        Calculate the Time To First Authenticated Fix (TTFAF) as the time for at least 4 satellites to obtain a set of
+        CED words (WT1-5, or ADKD0) authenticated. Theoretically, we should check that these words are not 4 hours old
+        (time of applicability as per the Galileo OS SDD), but that case is quite rare.
+        """
+        if auth_data.adkd != 4 and auth_data.prn_d not in self.sats_with_auth_ced:
+            self.sats_with_auth_ced.add(auth_data.prn_d)
+            if len(self.sats_with_auth_ced) == 4:
+                gst_page_end = Config.LAST_GST + 2  # +2 seconds because we have to receive the full page
+                self.ttfaf = (gst_page_end - Config.FIRST_GST).tow
+                logger.info(f"First Authenticated Fix at GST {gst_page_end}")
                 logger.info(f"First GST {Config.FIRST_GST}")
-                logger.info(f"TTFAF {ttfaf} seconds\n")
+                logger.info(f"TTFAF {self.ttfaf} seconds")
+                logger.info(f"TTFF {self.ttff} seconds\n")
                 if Config.STOP_AT_FAF:
-                    raise StoppedAtFAF(f"Stopped by FAF", ttfaf, Config.FIRST_GST.tow, gst_subframe_data_end.tow)
+                    raise StoppedAtFAF(f"Stopped by FAF", self.ttfaf, self.ttff, Config.FIRST_GST.tow, gst_page_end.tow)
 
     def _clean_old_data(self):
         """
