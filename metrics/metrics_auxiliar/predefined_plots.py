@@ -197,3 +197,32 @@ def print_pki(plot_ttfaf_vectors: npt.NDArray, options, name, data_folder: Path)
         print(f"Average:\t{np.average(ttfaf_vector)}")
         print(f"P95:\t\t{np.percentile(ttfaf_vector, 95)}")
         print("")
+
+def plot_ttff_vs_ttfaf(ttfaf_matrix: npt.NDArray, ttff_matrix: npt.NDArray, options, name, data_folder: Path):
+
+    tow_vector = ttfaf_matrix[0]
+    tow_sf_divisions = [t for t in tow_vector if t % 30 == 0]
+    for ttfaf_vector, ttff_vector, config_name in zip(ttfaf_matrix[1:], ttff_matrix[1:], options):
+
+        fig, ax1 = plt.subplots(1, 1, figsize=(16, 9))
+        plt.plot(tow_vector, ttfaf_vector, '.', label="TTFAF")
+        plt.plot(tow_vector, ttff_vector, '.', label="TTFF")
+        for tow in tow_sf_divisions:
+            plt.axvline(x=tow, ymin=0.01, ymax=0.99, color='r', ls='-', alpha=0.5)
+
+        plt.ylabel('Time [s]')
+        plt.title(config_name)
+        plt.grid()
+        plt.legend(loc='upper right')
+
+        # Print KPIs
+        print(f"{config_name}")
+        print(f"\tTTFAF")
+        print(f"Best:\t\t{np.min(ttfaf_vector)}")
+        print(f"Average:\t{np.average(ttfaf_vector)}")
+        print(f"P95:\t\t{np.percentile(ttfaf_vector, 95)}")
+        print(f"\tTTFF")
+        print(f"Best:\t\t{np.min(ttff_vector)}")
+        print(f"Average:\t{np.average(ttff_vector)}")
+        print(f"P95:\t\t{np.percentile(ttff_vector, 95)}")
+        print("")
