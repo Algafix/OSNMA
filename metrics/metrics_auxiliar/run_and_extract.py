@@ -95,7 +95,7 @@ def filter_nan_in_ttfaf(ttfaf_matrix, sim_params, optimizations):
 
     return ttfaf_no_nan_matrix
 
-def run_with_config(config_dict, input_class, start_at_gst: Tuple[int, int] = None):
+def run_with_config(config_dict, input_class, start_at_gst: Tuple[int, int] = None, report_ttff=False):
 
     input_module = input_class(config_dict['scenario_path'])
     osnma_r = OSNMAReceiver(input_module, config_dict)
@@ -109,7 +109,8 @@ def run_with_config(config_dict, input_class, start_at_gst: Tuple[int, int] = No
         print(e)
         ttfaf = None
         ttff = None
-    return ttfaf, ttff
+    return_tuple = (ttfaf, ttff) if report_ttff else ttfaf
+    return return_tuple
 
 def get_ttfaf_matrix(sim_params, optimizations, save):
 
@@ -138,7 +139,7 @@ def get_ttfaf_matrix(sim_params, optimizations, save):
 
 #########################################
 
-def run_with_configSBF(config_dict, sbfmetric_input, start_at_gst: Tuple[int, int]):
+def run_with_configSBF(config_dict, sbfmetric_input, start_at_gst: Tuple[int, int], report_ttff=False):
 
     osnma_r = OSNMAReceiver(sbfmetric_input, config_dict)
     try:
@@ -151,7 +152,8 @@ def run_with_configSBF(config_dict, sbfmetric_input, start_at_gst: Tuple[int, in
         print(e)
         ttfaf = None
         ttff = None
-    return ttfaf, ttff
+    return_tuple = (ttfaf, ttff) if report_ttff else ttfaf
+    return return_tuple
 
 def get_ttfaf_matrixSBF(sim_params, optimizations, save):
 
@@ -207,7 +209,7 @@ def get_ttfaf_and_ttff_matrixSBF(sim_params, optimizations, save):
         run_config.update(config)
         for j, tow in enumerate(tqdm(tow_range, leave=False)):
             sbfmetric_input.start_tow = tow
-            ttfaf, ttff = run_with_configSBF(run_config, sbfmetric_input, (wn, tow))
+            ttfaf, ttff = run_with_configSBF(run_config, sbfmetric_input, (wn, tow), True)
             ttfaf_matrix[i][j] = ttfaf
             ttff_matrix[i][j] = ttff
             sbfmetric_input.file_goto(sbfmetric_input.start_pos)
