@@ -17,7 +17,8 @@ sim_params = {
     "TOW_START": 313200,
     "TOW_STOP": 313200 + 3600,
     "name": "Hot Start TTFAF - Open Sky",
-    "numpy_file_name": DATA_FOLDER / "ttfaf_matrix_open_sky_all.npy",
+    "numpy_ttfaf_file_name": DATA_FOLDER / "ttfaf_matrix_open_sky_all.npy",
+    "numpy_ttff_file_name": DATA_FOLDER / "ttff_matrix_open_sky_all.npy",
     "config_dict": {
         'scenario_path': DATA_FOLDER / 'open_sky_inav.sbf',
         'exec_path': DATA_FOLDER,
@@ -62,7 +63,7 @@ if __name__ == "__main__":
 
     # Rerun from scratch (will take a while) or load the saved matrix
     #ttfaf_matrix = get_ttfaf_matrixSBF(sim_params, options, True)
-    ttfaf_matrix = np.load(sim_params["numpy_file_name"])
+    ttfaf_matrix = np.load(sim_params["numpy_ttfaf_file_name"])
 
     plot_ttfaf(ttfaf_matrix, options.keys(), sim_params["name"], DATA_FOLDER)
     plot_per_subframe(ttfaf_matrix, options.keys(), sim_params["name"], DATA_FOLDER)

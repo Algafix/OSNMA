@@ -183,8 +183,8 @@ def get_ttfaf_matrixSBF(sim_params, optimizations, save):
     ttfaf_no_nan_matrix = filter_nan_in_ttfaf(ttfaf_matrix, sim_params, optimizations_names)
 
     if save:
-        numpy_file_name = sim_params["numpy_file_name"] if save else "ttfaf_matrix_last_run.npy"
-        np.save(numpy_file_name, ttfaf_no_nan_matrix)
+        ttfaf_matrix_file_name = sim_params.get("numpy_ttfaf_file_name", "ttfaf_matrix_last_run.npy")
+        np.save(ttfaf_matrix_file_name, ttfaf_no_nan_matrix)
 
     return ttfaf_no_nan_matrix
 
@@ -219,8 +219,8 @@ def get_ttfaf_and_ttff_matrixSBF(sim_params, optimizations, save):
     ttff_no_nan_matrix = filter_nan_in_ttfaf(ttff_matrix, sim_params, optimizations_names)
 
     if save:
-        ttfaf_matrix_file_name = sim_params["numpy_file_name"] if save else "ttfaf_matrix_last_run.npy"
-        ttff_matrix_file_name = sim_params["numpy_ttff_file_name"] if save else "ttff_matrix_last_run.npy"
+        ttfaf_matrix_file_name = sim_params.get("numpy_ttfaf_file_name", "ttfaf_matrix_last_run.npy")
+        ttff_matrix_file_name = sim_params.get("numpy_ttff_file_name", "ttff_matrix_last_run.npy")
         np.save(ttfaf_matrix_file_name, ttfaf_no_nan_matrix)
         np.save(ttff_matrix_file_name, ttff_no_nan_matrix)
 

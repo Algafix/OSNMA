@@ -28,7 +28,8 @@ sim_params = {
     "TOW_START": 319280,
     "TOW_STOP": 320300,
     "name": "Custom Metrics",
-    "numpy_file_name": DATA_FOLDER / "ttfaf_matrix_custom_metrics.npy",
+    "numpy_ttfaf_file_name": DATA_FOLDER / "ttfaf_matrix_custom_metrics.npy",
+    "numpy_ttff_file_name": DATA_FOLDER / "ttff_matrix_custom_metrics.npy",
     "json_status_file": "example_status_log.json",
     "config_dict": {
         'scenario_path': DATA_FOLDER / 'custom_metrics.sbf',
@@ -90,7 +91,7 @@ if __name__ == '__main__':
     Uncomment ONLY one of them
     """
     # ttfaf_matrix = get_ttfaf_matrixSBF(sim_params, options.values(), True)
-    ttfaf_matrix = np.load(sim_params["numpy_file_name"])
+    ttfaf_matrix = np.load(sim_params["numpy_ttfaf_file_name"])
 
     """
     Possible plots, all of them active by default

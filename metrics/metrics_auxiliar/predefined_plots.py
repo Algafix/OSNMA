@@ -184,7 +184,7 @@ def plot_cdf(plot_ttfaf_vectors: npt.NDArray, options, name, data_folder: Path):
     plt.xlabel('TTFAF (s)')
     plt.title(f"Cumulative Distribution Plot (CDF) - {name}")
     plt.grid()
-    plt.legend(loc='upper left', bbox_to_anchor=(0, 1))
+    plt.legend(loc='lower right')
 
 
 def print_pki(plot_ttfaf_vectors: npt.NDArray, options, name, data_folder: Path):
