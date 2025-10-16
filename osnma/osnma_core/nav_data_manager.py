@@ -14,11 +14,6 @@
 # See the Licence for the specific language governing permissions and limitations under the Licence.
 #
 
-######## type annotations ########
-from typing import TYPE_CHECKING, List, Dict, Set, Tuple, Optional, Union
-if TYPE_CHECKING:
-    from osnma.receiver.satellite import DataFormat
-
 ######## imports ########
 from osnma.receiver.satellite import GAL_BAND, DataFormat
 from osnma.structures.adkd import adkd_masks
@@ -119,9 +114,9 @@ class ADKD0DataBlock:
 
     def __init__(self, gst_start: GST):
         self.gst_start = gst_start
-        self.iod: Optional[BitArray] = None
-        self.words: Dict[int, BitArray] = {}
-        self.nav_data_stream: Optional[BitArray] = None
+        self.iod: BitArray | None = None
+        self.words: dict[int, BitArray] = {}
+        self.nav_data_stream: BitArray | None = None
         self.last_gst_updated = gst_start
         self.gst_completed = GST()
         self.last_cop = 0
@@ -147,7 +142,7 @@ class ADKD0DataBlock:
             self.gst_completed = gst_page
             self._compute_data_stream()
 
-    def get_word(self, word_type: int) -> Optional[BitArray]:
+    def get_word(self, word_type: int) -> BitArray | None:
         return self.words.get(word_type)
 
     def _compute_data_stream(self):
@@ -161,7 +156,7 @@ class ADKD0DataManager(ADKDDataManager):
 
     def __init__(self, svid: int):
         super().__init__(ADKD0, svid)
-        self.adkd0_data_blocks: List[ADKD0DataBlock] = []
+        self.adkd0_data_blocks: list[ADKD0DataBlock] = []
         self.satellite_has_ced = False
 
     def __repr__(self):
@@ -246,7 +241,7 @@ class ADKD0DataManager(ADKDDataManager):
         self._clean_old_data()
         self._check_ced()
 
-    def get_nav_data(self, tag: TagAndInfo) -> Optional[ADKD0DataBlock]:
+    def get_nav_data(self, tag: TagAndInfo) -> ADKD0DataBlock | None:
         data = None
         tag_data_gst_sf_limit = tag.gst_subframe-30*tag.cop.uint
         gst_start_tesla_key = tag.tesla_key.gst_start
@@ -316,7 +311,7 @@ class ADKD4DataManager(ADKDDataManager):
 
     def __init__(self, svid: int):
         super().__init__(ADKD4, svid)
-        self.words_per_type: Dict[int, List[ADKD4SingleWord]] = {6: [], 10: []}
+        self.words_per_type: dict[int, list[ADKD4SingleWord]] = {6: [], 10: []}
 
     def __repr__(self):
         return f"{self.words_per_type}"
@@ -368,14 +363,14 @@ class NavigationDataManager:
 
         It also has a function to log the updated status of the data.
         """
-        self.sats_with_auth_ced: Set[int] = set()
-        self.ttfaf: Optional[int] = None
-        self.sats_with_ced: Set[int] = set()
-        self.ttff: Optional[int] = None
-        self.authenticated_data_dict: Dict[Tuple[int, int, BitArray], AuthenticatedData] = {}
+        self.sats_with_auth_ced: set[int] = set()
+        self.ttfaf: int | None= None
+        self.sats_with_ced: set[int] = set()
+        self.ttff: int | None = None
+        self.authenticated_data_dict: dict[tuple[int, int, BitArray], AuthenticatedData] = {}
 
-        self.adkd0_data_managers: Dict[int, ADKD0DataManager] = {}
-        self.adkd4_data_managers: Dict[int, ADKD4DataManager] = {}
+        self.adkd0_data_managers: dict[int, ADKD0DataManager] = {}
+        self.adkd4_data_managers: dict[int, ADKD4DataManager] = {}
         for i in range(1, Config.NS+1):
             self.adkd0_data_managers[i] = ADKD0DataManager(i)
             self.adkd4_data_managers[i] = ADKD4DataManager(i)
@@ -389,7 +384,7 @@ class NavigationDataManager:
 
         self.rs_recovery = ReedSolomonRecovery()
 
-    def _get_dummy_data(self, tag: TagAndInfo) -> Union[ADKD0DataBlock, ADKD4DataBlock]:
+    def _get_dummy_data(self, tag: TagAndInfo) -> ADKD0DataBlock | ADKD4DataBlock:
         """
         For dummy tags, the navigation data has to a zero array of the ADKD size.
         """

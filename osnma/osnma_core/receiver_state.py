@@ -15,7 +15,7 @@
 #
 
 ######## type annotations ########
-from typing import TYPE_CHECKING, List, Optional, Tuple, Dict
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from osnma.receiver.satellite import Satellite, DataFormat
 
@@ -49,21 +49,21 @@ class ReceiverState:
         self.chain_status = None
         self.last_received_nmas = BitArray(uint=NMAS.TEST.value, length=2)
 
-        self.nma_header: Optional[BitArray] = None
+        self.nma_header: BitArray | None = None
 
-        self.pkr_dict: Dict[int, DSMPKR] = {}
-        self.current_pkid: Optional[int] = None
-        self.merkle_root: Optional[BitArray] = None
-        self.new_merkle_root: Optional[BitArray] = None
-        self.tesla_chain_force: Optional[TESLAChain] = None
-        self.next_tesla_chain: Optional[TESLAChain] = None
+        self.pkr_dict: dict[int, DSMPKR] = {}
+        self.current_pkid: int | None = None
+        self.merkle_root: BitArray | None = None
+        self.new_merkle_root: BitArray | None = None
+        self.tesla_chain_force: TESLAChain | None = None
+        self.next_tesla_chain: TESLAChain | None = None
 
         self.nav_data_structure = NavigationDataManager()
         self.io_handler = IOHandler(Config.EXEC_PATH)
 
         self.dsm_manager = DigitalSignatureMessageManager()
 
-        self.kroot_waiting_mack: List[Tuple[List[Optional[BitArray]], GST, int, BitArray]] = []
+        self.kroot_waiting_mack: list[tuple[list[BitArray | None], GST, int, BitArray]] = []
 
         self._initialize_status()
 
@@ -311,7 +311,7 @@ class ReceiverState:
             else:
                 self.process_pkr_message(dsm.get_message())
 
-    def process_mack_subframe(self, mack_subframe: List[Optional[BitArray]], gst_subframe: GST, satellite: 'Satellite'):
+    def process_mack_subframe(self, mack_subframe: list[BitArray | None], gst_subframe: GST, satellite: 'Satellite'):
 
         if self.nma_status == NMAS.DONT_USE:
             logger.warning(f"NMA Status: Don't Use. Navigation data authentication not performed.")

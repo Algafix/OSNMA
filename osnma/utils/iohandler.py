@@ -15,7 +15,7 @@
 #
 
 ######## type annotations ########
-from typing import TextIO, Tuple
+from typing import TextIO
 from pathlib import Path
 
 ######## imports ########
@@ -62,7 +62,7 @@ class IOHandler:
             exit(1)
         return merkle_root
 
-    def read_pubk(self, file_name: str) -> Tuple[DSMPKR, int]:
+    def read_pubk(self, file_name: str) -> tuple[DSMPKR, int]:
         try:
             with open(self.path / file_name, 'r') as pubk_file:
                 file_text = self._handle_input_file_format(pubk_file)

@@ -14,8 +14,6 @@
 # See the Licence for the specific language governing permissions and limitations under the Licence.
 #
 
-######## type annotations ########
-from typing import List, Optional, Dict
 from bitstring import BitArray
 from osnma.input_formats.base_classes import DataFormat, GAL_BAND
 
@@ -29,12 +27,12 @@ class Satellite:
         the subframe regenerator and the MACK message is processed (partially if crc extraction is on).
         """
         self.svid = svid
-        self.hkroot_subframe: List[Optional[BitArray]] = [None for _ in range(15)]
-        self.mack_subframe: List[Optional[BitArray]] = [None for _ in range(15)]
+        self.hkroot_subframe: list[BitArray | None] = [None for _ in range(15)]
+        self.mack_subframe: list[BitArray | None] = [None for _ in range(15)]
         self.osnma_subframe: bool = False
         self.active_on_this_subframe: bool = False
         self.already_processed: bool = False
-        self.pages_bits_log: Dict[GAL_BAND, List[Optional[str]]] = {
+        self.pages_bits_log: dict[GAL_BAND, list[str | None]] = {
             GAL_BAND.E1B: [None for _ in range(15)],
             GAL_BAND.E5b: [None for _ in range(15)]
         }
@@ -77,8 +75,8 @@ class Satellite:
             self._load_osnma(page, page_number)
         self.pages_bits_log[page.band][page_number] = page.nav_bits.hex
 
-    def get_mack_subframe(self) -> List[Optional[BitArray]]:
+    def get_mack_subframe(self) -> list[BitArray | None]:
         return self.mack_subframe
 
-    def get_hkroot_subframe(self) -> List[Optional[BitArray]]:
+    def get_hkroot_subframe(self) -> list[BitArray | None]:
         return self.hkroot_subframe

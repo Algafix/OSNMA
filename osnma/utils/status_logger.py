@@ -15,7 +15,7 @@
 #
 
 ######## type annotations ########
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from bitstring import BitArray
     from osnma.receiver.receiver import OSNMAReceiver
@@ -51,8 +51,8 @@ class _StatusLogger:
     def __init__(self, logs_path = None):
 
         self.api_subframe_logger = APISubframeLogger()
-        self.json_file_name: Optional[Path] = logs_path / 'status_log.json' if logs_path is not None else None
-        self.json_file: Optional[TextIOWrapper] = None
+        self.json_file_name: Path | None = logs_path / 'status_log.json' if logs_path is not None else None
+        self.json_file: TextIOWrapper | None = None
 
         self.osnma_material_received = {}
         self.nav_data_received = {}
@@ -64,8 +64,8 @@ class _StatusLogger:
             "last_pkr": None,
         }
 
-        self.last_verified_kroot: Optional['DSMKroot'] = None
-        self.last_verified_pkr: Optional['DSMPKR'] = None
+        self.last_verified_kroot: DSMKroot | None = None
+        self.last_verified_pkr: DSMPKR | None = None
 
     def _get_nma_status(self, osnma_r: 'OSNMAReceiver'):
         nma_status = {
@@ -125,7 +125,7 @@ class _StatusLogger:
         osnma_chain_dict["maclt_sequence"] = maclt_sequence
         return osnma_chain_dict
 
-    def _get_osnma_status_dict(self, osnma_r: 'OSNMAReceiver') -> Dict:
+    def _get_osnma_status_dict(self, osnma_r: 'OSNMAReceiver') -> dict:
         osnma_status_dict = {
             "nma_status": self._get_nma_status(osnma_r),
             "tesla_chain_in_force": self._get_chain_in_force(osnma_r),
@@ -134,7 +134,7 @@ class _StatusLogger:
 
         return osnma_status_dict
 
-    def _get_authenticated_nav_data(self, osnma_r: 'OSNMAReceiver') -> Dict:
+    def _get_authenticated_nav_data(self, osnma_r: 'OSNMAReceiver') -> dict:
         osnma_data_dict = {"ADKD0": {}, "ADKD4": {}, "ADKD12": {}}
 
         auth_data_dict_handler = osnma_r.receiver_state.nav_data_structure.authenticated_data_dict
@@ -279,12 +279,12 @@ class _StatusLogger:
     def log_nav_data_iod(self, svid: int,  iod: 'BitArray'):
         self.nav_data_received[svid]['IOD'] = iod.bin
 
-    def log_mack_data(self, svid, tag_list: List['TagAndInfo'], tesla_key: 'TESLAKey'):
+    def log_mack_data(self, svid, tag_list: list['TagAndInfo'], tesla_key: 'TESLAKey'):
         osnma_mack_data = self.osnma_material_received[svid]['mack_data']
         osnma_mack_data["tags"] = tag_list
         osnma_mack_data["tesla_key"] = tesla_key if tesla_key is None else tesla_key.key.hex
 
-    def log_hkroot_data(self, svid: int, received_blocks: List[Optional['BitArray']]):
+    def log_hkroot_data(self, svid: int, received_blocks: list['BitArray | None']):
         osnma_hkroot_data = self.osnma_material_received[svid]['hkroot_data']
 
         if nma_header := received_blocks[0]:

@@ -15,7 +15,6 @@
 #
 
 import logging
-from typing import Dict, Any
 from pathlib import Path
 from enum import IntEnum
 
@@ -61,7 +60,7 @@ class _Config:
         self.FIRST_GST = None
         self.LAST_GST = None
 
-    def load_configuration_parameters(self, param_dict: Dict[str, Any]):
+    def load_configuration_parameters(self, param_dict: dict[str, ...]):
         """
         Re-loads the default configuration and adds the configuration defined in `param_dict`.
         """

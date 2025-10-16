@@ -15,9 +15,10 @@
 #
 
 ######## type annotations ########
-from typing import Union, List, Optional
-from osnma.osnma_core.nav_data_manager import NavigationDataManager
-from osnma.structures.mack_structures import MACSeqObject, TagAndInfo
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from osnma.osnma_core.nav_data_manager import NavigationDataManager
+    from osnma.structures.mack_structures import MACSeqObject, TagAndInfo
 
 ######## imports ########
 from osnma.cryptographic.dsm_kroot import DSMKroot
@@ -50,7 +51,7 @@ class TESLAChain:
 
     """
 
-    def __init__(self, nav_data_structure: NavigationDataManager, dsm_kroot: DSMKroot):
+    def __init__(self, nav_data_structure: 'NavigationDataManager', dsm_kroot: DSMKroot):
         """Initialize a TESLAChain object. Set the :class:`TESLAChain` attributes to those in the :class:`DSMKroot` and
         stores a pointer to the object. At the end, a :class:`TESLAKey` object is created for the KROOT with the GST_sf
         30s less than GST0.
@@ -146,8 +147,8 @@ class TESLAChain:
 
         return computed_tesla_key
 
-    def parse_mack_message(self, mack_message: List[BitArray], gst_sf: GST, prn_a: int, nma_status: BitArray, do_log = True)\
-            -> Optional[TESLAKey]:
+    def parse_mack_message(self, mack_message: list[BitArray], gst_sf: GST, prn_a: int, nma_status: BitArray, do_log = True)\
+            -> TESLAKey | None:
         """Parse a MACK message bit stream. Then handles the MACK object to the tag structure to add the new tags to the
         tag list. Finally, add the key(s) received to the TESLA key chain.
 
@@ -252,7 +253,7 @@ class TESLAChain:
 
         return return_tesla_key
 
-    def key_check(self, mack_structure: Union[MACSeqObject, TagAndInfo]) -> bool:
+    def key_check(self, mack_structure: 'MACSeqObject | TagAndInfo') -> bool:
         """Checks if the key belonging to the index argument is verified or not. Simply checks if
         the index provided in less than the last verified index.
 

@@ -15,8 +15,9 @@
 #
 
 ######## type annotations ########
-from typing import Dict, Tuple, Optional
-from osnma.input_formats.base_classes import PageIterator, DataFormat, GAL_BAND
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from osnma.input_formats.base_classes import PageIterator, DataFormat
 
 ######## imports ########
 from osnma.receiver.satellite import Satellite
@@ -27,6 +28,7 @@ from osnma.utils.exceptions import StoppedAtFAF
 from osnma.cryptographic.gst_class import GST
 from osnma.utils.status_logger import StatusLogger
 from osnma.utils.api_logger import APIBitsLogger
+from osnma.input_formats.base_classes import GAL_BAND
 
 ######## logger ########
 import osnma.utils.logger_factory as log_factory
@@ -35,14 +37,14 @@ logger = log_factory.get_logger(__name__)
 
 class OSNMAReceiver:
 
-    def __init__(self, input_module: PageIterator, param_dict: dict):
+    def __init__(self, input_module: 'PageIterator', param_dict: dict):
 
         Config.load_configuration_parameters(param_dict)
         logs_path = log_factory.configure_loggers()
         StatusLogger.initialize(logs_path)
 
         # Initialize all objects
-        self.satellites: Dict[int, Satellite] = {}
+        self.satellites: dict[int, Satellite] = {}
         for svid in range(Config.NS):
             self.satellites[svid + 1] = Satellite(svid + 1)
 
@@ -54,10 +56,10 @@ class OSNMAReceiver:
 
         Config.FIRST_GST = None
 
-    def _is_dummy_page(self, data: DataFormat) -> bool:
+    def _is_dummy_page(self, data: 'DataFormat') -> bool:
         return data.nav_bits[2:8].uint == 63
 
-    def _is_alert_page(self, data: DataFormat) -> bool:
+    def _is_alert_page(self, data: 'DataFormat') -> bool:
         return data.nav_bits[1]
 
     def _get_gst_subframe(self, gst: GST):
@@ -77,7 +79,7 @@ class OSNMAReceiver:
             except Exception as e:
                 logger.exception(f"Error doing subframe bits logging")
 
-    def _time_sync(self, data: DataFormat) -> bool:
+    def _time_sync(self, data: 'DataFormat') -> bool:
         """
         Will control the Time Synchronization for live executions. Currently only updates the last GST.
         """
@@ -92,7 +94,7 @@ class OSNMAReceiver:
 
         return True
 
-    def _filter_page(self, data: DataFormat):
+    def _filter_page(self, data: 'DataFormat'):
         """
         Filter page if it is not useful for teh current OSNMA implementation.
         Checks for CRC, alert pages, dummy pages, other signals aside from E1BC, etc.
@@ -173,7 +175,7 @@ class OSNMAReceiver:
             if satellite.is_active():
                 satellite.reset()
 
-    def start(self, start_at_gst: Optional[Tuple[int, int]] = None):
+    def start(self, start_at_gst: tuple[int, int] = None):
         """
         Start the processing of data from the defined input module.
 

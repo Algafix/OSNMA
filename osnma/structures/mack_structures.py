@@ -15,7 +15,7 @@
 #
 
 ######## type annotations ########
-from typing import Union, List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from osnma.osnma_core.nav_data_manager import ADKD0DataBlock, ADKD4DataBlock
 
@@ -29,7 +29,7 @@ class TESLAKey:
     when the TESLA Chain is created.
     """
 
-    def __init__(self, gst_sf: GST, key: Union[BitArray, str, bytes],
+    def __init__(self, gst_sf: GST, key: BitArray | str | bytes,
                  svid: int = None, index: int = None, gst_start: GST = GST(), reconstructed: bool = False, is_kroot: bool = False):
         """Instantiates the TESLAKey object. If the Telsa Key is_kroot, index and svid are set to 0.
 
@@ -107,13 +107,13 @@ class TESLAKey:
 
 class MACSeqObject:
 
-    def __init__(self, gst: GST, svid: BitArray, macseq_value: BitArray, flex_list: List['TagAndInfo'] = None, key_id: int = None):
+    def __init__(self, gst: GST, svid: BitArray, macseq_value: BitArray, flex_list: list['TagAndInfo'] = None, key_id: int = None):
         self.gst = gst
         self.svid = svid
         self.macseq_value = macseq_value
         self.flex_list = flex_list
         self.key_id = key_id
-        self.tesla_key: Optional[TESLAKey] = None
+        self.tesla_key: TESLAKey | None = None
         self.is_verified: bool = False
 
     def _get_macseq_auth_data(self):
@@ -152,11 +152,11 @@ class TagAndInfo:
         self.id = (self.prn_d.uint, self.adkd.uint)
         self.is_dummy = (self.cop.uint == 0)
         self.is_verified: bool = False
-        self.key_id: Optional[int] = None
-        self.tesla_key: Optional[TESLAKey] = None
+        self.key_id: int | None = None
+        self.tesla_key: TESLAKey | None = None
         self.is_tag0 = False
         self.is_flx = False
-        self.nav_data: Optional[Union['ADKD0DataBlock', 'ADKD4DataBlock']] = None
+        self.nav_data: 'ADKD0DataBlock | ADKD4DataBlock | None' = None
 
     def __repr__(self) -> str:
         return f"{{ID: ({self.id[0]:02}, {self.id[1]:02}, {self.cop.uint:02}) PRN_A: {self.prn_a.uint:02}}}"
@@ -216,22 +216,22 @@ class Tag0AndSeq(TagAndInfo):
 
 class MACKMessage:
 
-    def __init__(self, gst_sf: GST, chain_id: int, svid: BitArray, nr_tags: int, tags: List[TagAndInfo] = None, tesla_key: TESLAKey = None):
+    def __init__(self, gst_sf: GST, chain_id: int, svid: BitArray, nr_tags: int, tags: list[TagAndInfo] = None, tesla_key: TESLAKey = None):
 
         self.svid = svid
         self.gst_sf = gst_sf
         self.chain_id = chain_id
         self.nr_tags = nr_tags
         self.tesla_key = tesla_key
-        self.tags: List[TagAndInfo] = tags if tags else []
+        self.tags: list[TagAndInfo] = tags if tags else []
 
-        self.tag0_and_seq: Optional[Tag0AndSeq] = None
-        self.macseq: Optional[MACSeqObject] = None
+        self.tag0_and_seq: Tag0AndSeq | None = None
+        self.macseq: MACSeqObject | None = None
 
     def add_key(self, key: TESLAKey):
         self.tesla_key = key
 
-    def add_tag(self, tag: Optional[TagAndInfo]):
+    def add_tag(self, tag: TagAndInfo | None):
         if len(self.tags) >= self.nr_tags:
             raise ValueError(f"No more tags can be added to this MACKMessage. Block tags: {self.nr_tags};"
                              f" current tags: {len(self.tags)}.")
@@ -246,7 +246,7 @@ class MACKMessage:
         else:
             raise ValueError(f"Tag0 of this MACKMessage already filled.")
 
-    def get_macseq(self, tag_list: List[TagAndInfo]) -> MACSeqObject:
+    def get_macseq(self, tag_list: list[TagAndInfo]) -> MACSeqObject:
         if self.macseq:
             self.macseq.flex_list = tag_list
         return self.macseq
