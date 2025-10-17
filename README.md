@@ -23,12 +23,12 @@ to display the general state of OSNMA. It also provides the [raw navigation bits
 
 If you are using data from the OSNMA Test Phase (before 2023-08-03 11:00), use the [OSNMA_Test_Phase_ICD branch](https://github.com/Algafix/OSNMA/tree/OSNMA_Test_Phase_ICD).
 
-Supports Python 3.8, 3.9, 3.10, and 3.11. Tested on Linux and Windows.
+Supports Python 3.10, 3.11 and 3.12. For older Python versions, check the branches. Tested on Linux and Windows.
 
-Features
+OSNMAlib Features
 ---
 
-### Current OSNMA features supported:
+### Features supported:
 
   * Verification of the public key retrieved from the DSM-PKR message.
   * Verification of the TESLA root key retrieved from the DSM-KROOT message.
@@ -39,11 +39,12 @@ Features
     * FLX tags.
   * Verification of the ADKD 0, ADKD 4 and ADKD 12 tags.
   * Authentication of the navigation data.
-  * Support for custom TL values.
+  * Support for custom Time Synchronization values.
   * Support for Cold Start, Warm Start and Hot Start.
   * Support for the following events: EOC, CREV, NPK, PKREV, NMT, and OAM.
   * [JSON output](#osnmalib-logging-options) for monitoring and postprocessing with `json-schema` [[html](https://osnmalib.eu/json-schema)|[json](osnma/utils/json_schema/status_log_schema.json)].
-  
+  * Report the Time To First Authenticated Fix (TTFAF) and Time To First Fix (TTFF) in terms of navigation data.  
+
 ### Extra optimizations for a faster TTFAF:
   * Reconstruct broken HKROOT messages.
   * Reconstruct TESLA key from partial MACK messages.
@@ -52,7 +53,7 @@ Features
   * Dual frequency reception of I/NAV data from the E5b-I signal.
   * Link and recover lost data using the IOD and the COP.
     * Obtain TTFAF as low as 44 seconds in hot start.
-    * https://arxiv.org/abs/2403.14739
+    * IEEE TAES article: [accepted](papers/OSNMA_TTFAF_TAES_2025.pdf) version, [published](https://ieeexplore.ieee.org/document/11004420) version.
 
 ### Current [input formats](https://github.com/Algafix/OSNMA/wiki/Input-Data) supported:
 
@@ -77,10 +78,9 @@ Documentation
 OSNMAlib
   * This README file.
   * [Wiki](https://github.com/Algafix/OSNMA/wiki)
-  * OSNMAlib Journal Paper IEEE JISPN - [[local]](papers/OSNMAlib_JOURNAL_ICL_GNSS_2024_EXPANDED.pdf) - [[online]](https://ieeexplore.ieee.org/document/10955685) 
-  * OSNMAlib Paper ICL-GNSS 2024 - [[local]](papers/OSNMAlib_ICL_GNSS_2024.pdf) - [[online]](https://ieeexplore.ieee.org/document/10578487)
-  * OSNMAlib Paper NAVITEC 2022 (outdated) - [[local]](papers/OSNMAlib_NAVITEC2022.pdf) - [[online]](https://ieeexplore.ieee.org/document/9847548)
-  * See later in the README for a list of publications using OSNMAlib.
+  * OSNMAlib Journal Paper IEEE JISPN - [[local]](papers/OSNMAlib_JOURNAL_ICL_GNSS_2024_EXPANDED.pdf) - [[online]](https://ieeexplore.ieee.org/document/10955685)
+  * OSNMAlib Conference Paper NAVITEC 2022 (outdated) - [[local]](papers/OSNMAlib_NAVITEC2022.pdf) - [[online]](https://ieeexplore.ieee.org/document/9847548)
+  * See later in the README for a complete list of publications using OSNMAlib.
 
 General OSNMA documentation
   * [GSC website with the reference documents](https://www.gsc-europa.eu/electronic-library/programme-reference-documents)
@@ -246,7 +246,7 @@ However, this approach by my side requires the uttermost respect to the research
 Publication list
 ---
 
-Select the appropriate manuscripts to cite in your research.
+Select the appropriate manuscripts to cite in your research. You will find a local copy of each in the [papers](papers) folder.
 Note that the conference paper from 2022 is quite outdated.
 I recommend citing the 2025 journal paper if you want to reference OSNMAlib as a whole.
 
@@ -254,7 +254,7 @@ I recommend citing the 2025 journal paper if you want to reference OSNMAlib as a
   * Journal extension of the conference paper to ICL-GNSS 2024 [[link](https://ieeexplore.ieee.org/document/10578487)]
   * Report on the new additions to OSNMAlib: new input formats, JSON logging, [osnmalib.eu](https://osnmalib.eu), Reed-Solomon, dual-frequency...
   * Includes TTFAF benchmark of Reed-Solomon and dual-frequency reception in urban scenarios.
-* "Improving Galileo OSNMA Time To First Authenticated Fix." _arXiv preprint_ arXiv:2403.14739, 2024. [[link](https://arxiv.org/abs/2403.14739)]
+* "Improving Galileo OSNMA Time To First Authenticated Fix," in _IEEE Transactions on Aerospace and Electronic Systems_, 2025. [[link](https://ieeexplore.ieee.org/document/11004420)]
   * Technical description of the optimization to reduce the TTFAF to 44 seconds and testing with live data recording.
 * "GNSS Recordings for Galileo OSNMA Evaluation", _IEEE Dataport_, 2024. [[link](https://dx.doi.org/10.21227/a0nm-kn45)]
   * Dataset used for the "Improving Galileo OSNMA Time To First Authenticated Fix" manuscript.
@@ -292,6 +292,6 @@ The current research is partially funded by the Research Foundation Flanders (FW
 Disclaimer
 ===
 
-OSNMAlib has not been developed or tested operationally. OSNMAlib users use it at their own risk, without any guarantee or liability from the code authors or the Galileo signal provider.
+OSNMAlib users use it at their own risk, without any guarantee or liability from the code authors or the Galileo signal provider.
 
 OSNMAlib is not under any private company.
