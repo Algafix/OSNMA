@@ -15,11 +15,11 @@
 #
 
 ######## type annotations ########
-from typing import TYPE_CHECKING, List, Optional, Dict, Tuple
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from osnma.osnma_core.tesla_chain import TESLAChain
-from osnma.structures.mack_structures import MACKMessage, TagAndInfo, MACSeqObject
-from osnma.osnma_core.nav_data_manager import NavigationDataManager
+    from osnma.structures.mack_structures import MACKMessage, TagAndInfo, MACSeqObject
+    from osnma.osnma_core.nav_data_manager import NavigationDataManager
 
 ######## imports ########
 from osnma.structures.maclt import mac_lookup_table
@@ -34,7 +34,7 @@ import osnma.utils.logger_factory as logger_factory
 logger = logger_factory.get_logger(__name__)
 
 
-def verify_maclt_slot(tag: TagAndInfo, slot: str):
+def verify_maclt_slot(tag: 'TagAndInfo', slot: str):
     slot_adkd = int(slot[:2])
     slot_type = slot[2]
 
@@ -54,16 +54,16 @@ def verify_maclt_slot(tag: TagAndInfo, slot: str):
 
 class TagStateStructure:
 
-    def __init__(self, tesla_chain: 'TESLAChain', nav_data_m: NavigationDataManager):
+    def __init__(self, tesla_chain: 'TESLAChain', nav_data_m: 'NavigationDataManager'):
         self.tesla_chain = tesla_chain
         self.nav_data_m = nav_data_m
         self.maclt_dict = mac_lookup_table[tesla_chain.maclt]
-        self.macseq_awaiting_key: List[MACSeqObject] = []
-        self.tags_awaiting_key: List[TagAndInfo] = []
-        self.tags_with_key_awaiting_data: List[TagAndInfo] = []
+        self.macseq_awaiting_key: list['MACSeqObject'] = []
+        self.tags_awaiting_key: list['TagAndInfo'] = []
+        self.tags_with_key_awaiting_data: list['TagAndInfo'] = []
         """ This list contains tags only for a subframe for the COP optimization """
 
-    def verify_tag(self, tag: TagAndInfo):
+    def verify_tag(self, tag: 'TagAndInfo'):
         if tag.authenticate(self.tesla_chain.mac_function):
             logger.info(f"Tag AUTHENTICATED\n\t{tag.get_log()}")
             StatusLogger.log_auth_tag(tag)
@@ -75,7 +75,7 @@ class TagStateStructure:
             logger.error(f"Tag FAILED\n\t{tag.get_log()}")
             StatusLogger.log_auth_tag(tag)
 
-    def verify_macseq(self, macseq: MACSeqObject):
+    def verify_macseq(self, macseq: 'MACSeqObject'):
         if macseq.authenticate(self.tesla_chain.mac_function):
             self.set_key_index_to_tags(macseq.flex_list)
             self.tags_awaiting_key.extend(macseq.flex_list)
@@ -85,18 +85,18 @@ class TagStateStructure:
         self.macseq_awaiting_key.remove(macseq)
         StatusLogger.log_auth_macseq(macseq)
 
-    def set_key_index_to_tags(self, tag_list: List[TagAndInfo]):
+    def set_key_index_to_tags(self, tag_list: list['TagAndInfo']):
         for tag in tag_list:
             if tag.adkd.uint != 12:
                 tag.key_id = self.tesla_chain.get_key_index(tag.gst_subframe) + 1
             else:
                 tag.key_id = self.tesla_chain.get_key_index(tag.gst_subframe) + 11
 
-    def set_key_index_to_macseq(self, macseq: MACSeqObject):
+    def set_key_index_to_macseq(self, macseq: 'MACSeqObject'):
         macseq.key_id = self.tesla_chain.get_key_index(macseq.gst) + 1
 
-    def verify_maclt(self, mack_message: MACKMessage) \
-            -> Tuple[List[TagAndInfo], List[TagAndInfo], MACSeqObject, bool, List[Optional[Dict]]]:
+    def verify_maclt(self, mack_message: 'MACKMessage') \
+            -> tuple[list['TagAndInfo'], list['TagAndInfo'], 'MACSeqObject', bool, list[dict | None]]:
 
         tag_list = []
         flex_list = []
@@ -135,7 +135,7 @@ class TagStateStructure:
         macseq_object = mack_message.get_macseq(flex_list)
         return tag_list, flex_list, macseq_object, is_flx_tag_missing, tags_log
 
-    def _update_tags_awaiting_data(self, tag_list: List[TagAndInfo], flx_list: List[TagAndInfo], gst_sf: GST):
+    def _update_tags_awaiting_data(self, tag_list: list['TagAndInfo'], flx_list: list['TagAndInfo'], gst_sf: GST):
         """
         This method is called every time new tags have been processed and the navigation data GST start might have
         changed due to the COP data link optimization.
@@ -161,7 +161,7 @@ class TagStateStructure:
 
         self.nav_data_m.check_authenticated_data()
 
-    def _add_tags_waiting_key(self, tag_list: List[TagAndInfo]):
+    def _add_tags_waiting_key(self, tag_list: list['TagAndInfo']):
         """
         Adds the tags to the waiting for key list if the tag has an active ADKD and authenticates data of one of the
         valid satellites. The list of valid PRN_D is currently 1-36.
@@ -222,7 +222,7 @@ class TagStateStructure:
         # Check if any data can be authenticated
         self.nav_data_m.check_authenticated_data()
 
-    def load_mack_message(self, mack_message: MACKMessage) -> List[Optional[Dict]]:
+    def load_mack_message(self, mack_message: 'MACKMessage') -> list[dict | None]:
         tag_list, flex_list, macseq, is_flx_tag_missing, tags_log = self.verify_maclt(mack_message)
         self.set_key_index_to_tags(tag_list)
         if macseq and not is_flx_tag_missing:

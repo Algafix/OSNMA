@@ -1,5 +1,18 @@
-
-from typing import List, Optional, Tuple, Dict
+#
+# Copyright © European Union 2022
+#
+# Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+# the European Commission - subsequent versions of the EUPL (the "Licence");
+# You may not use this work except in compliance with the Licence.
+# You may obtain a copy of the Licence at:
+# https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the Licence is distributed on an "AS IS" basis,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#
+# See the Licence for the specific language governing permissions and limitations under the Licence.
+#
 
 import reedsolo
 from bitstring import BitArray
@@ -28,10 +41,10 @@ class ReedSolomonSatellite:
     def __init__(self, svid: int):
         self.svid: int = svid
         self.last_update_gst: GST = GST(wn=0, tow=0)
-        self.full_iod: Optional[BitArray] = None
-        self.iod_2_lsb: Optional[BitArray] = None
-        self.ced_words: List[Optional[BitArray]] = [None, None, None, None]
-        self.rs_ced_words: List[Optional[BitArray]] = [None, None, None, None]
+        self.full_iod: BitArray | None = None
+        self.iod_2_lsb: BitArray | None = None
+        self.ced_words: list[BitArray | None] = [None, None, None, None]
+        self.rs_ced_words: list[BitArray | None] = [None, None, None, None]
 
     def _reset_decoding_buffer(self, full_iod: BitArray = None, iod_2_lsb: BitArray = None):
         """
@@ -82,7 +95,7 @@ class ReedSolomonSatellite:
                 parity_vector[(RS_CED_SIZE*i)+8:RS_CED_SIZE*(i+1)] = word[16:128]
         return parity_vector.bytes
 
-    def _get_erasure_positions(self) -> List[int]:
+    def _get_erasure_positions(self) -> list[int]:
         """
         Calculate the erasure positions for the Reed Solomon decoding.
         Word Type 1 is special: the first byte is always known and it has more bytes than WT 2, 3, and 4
@@ -107,7 +120,7 @@ class ReedSolomonSatellite:
         reversed_vector = code_vector[:58][::-1] + code_vector[58:][::-1]
         return reversed_vector
 
-    def _swap_erasure_format(self, erasures: List[int]) -> List[int]:
+    def _swap_erasure_format(self, erasures: list[int]) -> list[int]:
         """
         Since the information and parity vectors are reversed, the list with the erasure positions also needs to
         accommodate the new format.
@@ -115,7 +128,7 @@ class ReedSolomonSatellite:
         fixed_erasures = [57 - i if i <= 57 else 117 - i + 58 for i in erasures]
         return fixed_erasures
 
-    def _extract_ced_words_and_iod(self, decoded_info_vector: bytes) -> Tuple[List[BitArray], BitArray, BitArray]:
+    def _extract_ced_words_and_iod(self, decoded_info_vector: bytes) -> tuple[list[BitArray], BitArray, BitArray]:
         """
         Convert the output of the Reed Solomon information vector decoding to proper CED Galileo words.
         That is mainly adding the word type and iod at the beginning, with some special cases for WT1.
@@ -137,7 +150,7 @@ class ReedSolomonSatellite:
 
         return ced_words, iod, iod_2_lsb
 
-    def _extract_rs_ced_words(self, decoded_parity_vector: bytes, iod_2_lsb: BitArray) -> List[BitArray]:
+    def _extract_rs_ced_words(self, decoded_parity_vector: bytes, iod_2_lsb: BitArray) -> list[BitArray]:
         """
         Convert the output of the Reed Solomon parity vector decoding to proper RS CED Galileo words.
         They are not used for navigation, but useful for sanity checks.
@@ -150,7 +163,7 @@ class ReedSolomonSatellite:
             rs_ced_words.append(rs_ced_word)
         return rs_ced_words
 
-    def _extract_and_update_words(self, decoded_msgecc_gal: bytes) -> Dict[int, BitArray]:
+    def _extract_and_update_words(self, decoded_msgecc_gal: bytes) -> dict[int, BitArray]:
         """
         Regenerate proper Galileo words from the RS decoding output, update the IOD, perform several sanity checks, and
         decide which CED words to return.
@@ -183,7 +196,7 @@ class ReedSolomonSatellite:
 
         return return_ced_words
 
-    def _decode_rs_message(self) -> Dict[int, BitArray]:
+    def _decode_rs_message(self) -> dict[int, BitArray]:
         """
         Generate the code vector (information and parity vectors), calculate the erasure positions, adapt both for the
         RS library format, and perform the RS decoding. Then, extract the recovered CED words from the information
@@ -232,7 +245,7 @@ class ReedSolomonSatellite:
                 self._reset_decoding_buffer(iod_2_lsb=iod_2_lsb)
             self.rs_ced_words[wt-17] = word
 
-    def recover_words(self) -> Dict[int, BitArray]:
+    def recover_words(self) -> dict[int, BitArray]:
         """
         Returns the recovered CED words if there are at least 4 pages in total and any CED words are missing.
         Else, return an empty dictionary. May raise `ReedSolomonRecoveryError` if any of the inconsistency checks fail.
@@ -258,7 +271,7 @@ class ReedSolomonRecovery:
         """
         self.rs_data[svid].add_word(wt, word, gst)
 
-    def recover_words(self, svid: int) -> Dict[int, BitArray]:
+    def recover_words(self, svid: int) -> dict[int, BitArray]:
         """
         Returns the recovered CED words if there are at least 4 pages in total and any CED words are missing.
         Else, return an empty dictionary. May raise `ReedSolomonRecoveryError` if any of the inconsistency checks fail.

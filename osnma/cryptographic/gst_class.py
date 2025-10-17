@@ -14,8 +14,6 @@
 # See the Licence for the specific language governing permissions and limitations under the Licence.
 #
 
-from typing import Union
-
 from bitstring import BitArray
 
 LEN_GST = 32
@@ -56,7 +54,7 @@ class GST:
     def __bool__(self):
         return self.initialized
 
-    def __eq__(self, other: Union['GST', BitArray, int]):
+    def __eq__(self, other: 'GST | BitArray | int'):
 
         if not self.initialized and not other.initialized:
             return True
@@ -67,29 +65,29 @@ class GST:
             other = GST(tow=other)
         return self.int == other.int
 
-    def __lt__(self, other: Union['GST', BitArray, int]):
+    def __lt__(self, other: 'GST | BitArray | int'):
         if isinstance(other, int):
             other = GST(tow=other)
         return self.int < other.int
 
-    def __le__(self, other: Union['GST', BitArray, int]):
+    def __le__(self, other: 'GST | BitArray | int'):
         if isinstance(other, int):
             other = GST(tow=other)
         return self.int <= other.int
 
-    def __gt__(self, other: Union['GST', BitArray, int]):
+    def __gt__(self, other: 'GST | BitArray | int'):
         if isinstance(other, int):
             other = GST(tow=other)
         return self.int > other.int
 
-    def __ge__(self, other: Union['GST', BitArray, int]):
+    def __ge__(self, other: 'GST | BitArray | int'):
         if isinstance(other, int):
             other = GST(tow=other)
         return self.int >= other.int
 
     ### Addition ###
 
-    def __add__(self, other: Union[int, 'GST']) -> 'GST':
+    def __add__(self, other: 'int | GST') -> 'GST':
         if isinstance(other, int):
             tow = self.tow + other
             wn = self.wn
@@ -108,7 +106,7 @@ class GST:
 
     ### Subtraction ###
 
-    def __sub__(self, other: Union[int, 'GST']) -> 'GST':
+    def __sub__(self, other: 'int | GST') -> 'GST':
         if isinstance(other, int):
             tow = self.tow - other
             wn = self.wn

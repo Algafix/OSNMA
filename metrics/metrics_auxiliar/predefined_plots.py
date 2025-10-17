@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
 from pathlib import Path
-from typing import List, Dict
 
 
 def plot_ttfaf(plot_ttfaf_vectors: npt.NDArray, options, name, data_folder: Path):
@@ -43,7 +42,7 @@ def plot_satellites_sf(tow_sf_values, name, data_folder: Path, json_status_file:
     start_sf = tow_sf_values[0]
     end_sf = tow_sf_values[-1]
     previous_sf_tow = None
-    curated_states_json: List[Dict] = []
+    curated_states_json: list[dict] = []
     for state_json in states_json:
         sf_tow = state_json['metadata']['GST_subframe'][1]
         if sf_tow < start_sf:
@@ -184,7 +183,7 @@ def plot_cdf(plot_ttfaf_vectors: npt.NDArray, options, name, data_folder: Path):
     plt.xlabel('TTFAF (s)')
     plt.title(f"Cumulative Distribution Plot (CDF) - {name}")
     plt.grid()
-    plt.legend(loc='upper left', bbox_to_anchor=(0, 1))
+    plt.legend(loc='lower right')
 
 
 def print_pki(plot_ttfaf_vectors: npt.NDArray, options, name, data_folder: Path):

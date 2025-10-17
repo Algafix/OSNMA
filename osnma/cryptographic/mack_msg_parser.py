@@ -15,7 +15,7 @@
 #
 
 ######## type annotations ########
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from osnma.osnma_core.tesla_chain import TESLAChain
 
@@ -103,7 +103,7 @@ class MACKMessageParser:
             key_pages_bits.append(key_page)
         return key_pages_bits, missing_key_pages
 
-    def parse_mack_message(self, mack_message: List[BitArray], gst_sf: GST, prn_a: int,
+    def parse_mack_message(self, mack_message: list[BitArray], gst_sf: GST, prn_a: int,
                            nma_status: BitArray) -> MACKMessage:
 
         self.nma_status = nma_status

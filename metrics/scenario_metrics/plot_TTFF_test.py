@@ -16,7 +16,7 @@ sim_params = {
     "TOW_START": 35400,
     "TOW_STOP": 37350,
     "name": "Hot Start TTFF - TEST",
-    "numpy_file_name": DATA_FOLDER / "ttfaf_matrix_TTFF_test_all.npy",
+    "numpy_ttfaf_file_name": DATA_FOLDER / "ttfaf_matrix_TTFF_test_all.npy",
     "numpy_ttff_file_name": DATA_FOLDER / "ttff_matrix_TTFF_test_all.npy",
     "config_dict": {
         'scenario_path': DATA_FOLDER / 'ttff_test.sbf',
@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
     # Rerun from scratch (will take a while) or load the saved matrix
     #ttfaf_matrix, ttff_matrix = get_ttfaf_and_ttff_matrixSBF(sim_params, options, True)
-    ttfaf_matrix = np.load(sim_params["numpy_file_name"])
+    ttfaf_matrix = np.load(sim_params["numpy_ttfaf_file_name"])
     ttff_matrix = np.load(sim_params["numpy_ttff_file_name"])
 
     plot_ttff_vs_ttfaf(ttfaf_matrix, ttff_matrix, options.keys(), sim_params['name'], DATA_FOLDER)

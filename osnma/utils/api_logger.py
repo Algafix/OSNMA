@@ -1,5 +1,5 @@
 ######## type annotations ########
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from osnma.receiver.satellite import Satellite
     from osnma.cryptographic.gst_class import GST
@@ -21,7 +21,7 @@ class APIBitsLogger:
     def __init__(self):
         self.last_subframes_bits = []
 
-    def _format_subframe_bits(self, satellites: Dict[int, 'Satellite']) -> Dict:
+    def _format_subframe_bits(self, satellites: dict[int, 'Satellite']) -> dict:
         """
         Filters to use only current subframe active satellites
         """
@@ -31,7 +31,7 @@ class APIBitsLogger:
                 subframe_bits[satellite.svid] = satellite.pages_bits_log
         return subframe_bits
 
-    def _add_subframe_bits_to_list(self, gst: 'GST', subframe_bits: Dict):
+    def _add_subframe_bits_to_list(self, gst: 'GST', subframe_bits: dict):
         """
         Inserts the last subframe bits at the beginning of the list and pops the last one if needed
         """
@@ -39,7 +39,7 @@ class APIBitsLogger:
         if len(self.last_subframes_bits) > SUBFRAMES_IN_MEMORY:
             self.last_subframes_bits.pop(-1)
 
-    def do_api_bits_logging(self, gst: 'GST', satellites: Dict[int, 'Satellite']):
+    def do_api_bits_logging(self, gst: 'GST', satellites: dict[int, 'Satellite']):
         """
         Extracts bits for the subframe, saves them with the last subframes and logs to file specified in config
         """

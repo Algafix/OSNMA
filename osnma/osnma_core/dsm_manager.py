@@ -14,11 +14,6 @@
 # See the Licence for the specific language governing permissions and limitations under the Licence.
 #
 
-######## type annotations ########
-from typing import TYPE_CHECKING, Optional, Dict
-if TYPE_CHECKING:
-    pass
-
 ######## imports ########
 from enum import Enum, IntEnum
 from bitstring import BitArray
@@ -48,8 +43,8 @@ class DSMType(Enum):
 class DigitalSignatureMessage:
 
     def __init__(self, dsm_id: int):
-        self.blocks_received: Dict[int, BitArray] = {}
-        self.total_of_blocks: Optional[int] = None
+        self.blocks_received: dict[int, BitArray] = {}
+        self.total_of_blocks: int | None = None
         self.dsm_id = dsm_id
         self.dsm_type = DSMType.DSM_KROOT if dsm_id < 12 else DSMType.DSM_PKR
         self.blocks_lt = NB_DK_lt if self.dsm_id < 12 else NB_DP_lt
@@ -85,7 +80,7 @@ class DigitalSignatureMessage:
 class DigitalSignatureMessageManager:
 
     def __init__(self):
-        self.dsm_messages: Dict[int, DigitalSignatureMessage] = {i:DigitalSignatureMessage(i) for i in range(16)}
+        self.dsm_messages: dict[int, DigitalSignatureMessage] = {i:DigitalSignatureMessage(i) for i in range(16)}
         self.last_dsm_kroot_ids = []
         self.last_dsm_pkr_ids = []
 
