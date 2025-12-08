@@ -1,0 +1,71 @@
+
+cff-version: 1.2.0
+title: 'OSNMAlib'
+message: 'If you use this software, please cite it as below.'
+type: software
+authors:
+  - given-names: 'Aleix'
+    family-names: 'Galan-Figueras'
+    email: 'aleix.galan@kuleuven.be'
+    affiliation: 'KU Leuven'
+    orcid: 'https://orcid.org/0000-0002-5762-6982'
+  - given-names: 'Ignacio'
+    family-names: 'Fernandez-Hernandez'
+    orcid: 'https://orcid.org/0000-0002-9308-1668'
+    affiliation: 'European Commission'
+  - given-names: 'Cristian'
+    family-names: 'Iñiguez'
+    affiliation: 'Barcelona Supercomputer Center'
+    orcid: 'https://orcid.org/0009-0000-8950-2776'
+  - given-names: 'Gonzalo'
+    family-names: 'Seco-Granados'
+    affiliation: 'UAB'
+    orcid: 'https://orcid.org/0000-0003-2494-6872'
+repository-code: 'https://github.com/Algafix/OSNMA'
+url: 'https://osnmalib.eu/'
+abstract: >-
+  OSNMAlib is an open-source Python library that can be used
+  for research purposes or be integrated into existing
+  receivers and applications to incorporate navigation
+  message authentication into the positioning process. It
+  can read the Galileo I/NAV pages from an input, store the
+  navigation and authentication data, perform the
+  verification operations, and report the status.
+keywords:
+  - GNSS
+  - Galileo
+  - Spoofing
+  - OSNMA
+  - Authentication
+license: EUPL-1.2
+preferred-citation:
+  type: article
+  authors:
+    - given-names: 'Aleix'
+      family-names: 'Galan-Figueras'
+      email: 'aleix.galan@kuleuven.be'
+      affiliation: 'KU Leuven'
+      orcid: 'https://orcid.org/0000-0002-5762-6982'
+    - given-names: 'Cristian'
+      family-names: 'Iñiguez'
+      affiliation: 'Barcelona Supercomputer Center'
+      orcid: 'https://orcid.org/0009-0000-8950-2776'
+    - given-names: 'Ignacio'
+      family-names: 'Fernandez-Hernandez'
+      orcid: 'https://orcid.org/0000-0002-9308-1668'
+      affiliation: 'European Commission'
+    - given-names: 'Sofie'
+      family-names: 'Pollin'
+      orcid: 'https://orcid.org/0000-0002-1470-2076'
+      affiliation: 'KU Leuven'
+    - given-names: 'Gonzalo'
+      family-names: 'Seco-Granados'
+      affiliation: 'UAB'
+      orcid: 'https://orcid.org/0000-0003-2494-6872'
+  doi: '10.1109/JISPIN.2025.3558771'
+  journal: 'IEEE Journal of Indoor and Seamless Positioning and Navigation'
+  start: 117 # First page number
+  end: 127 # Last page number
+  title: 'Improving OSNMAlib: New Formats, Features, and Monitoring Capabilities'
+  volume: 3
+  year: 2025
