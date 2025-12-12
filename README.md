@@ -21,7 +21,8 @@ A live visualization of the output of OSNMAlib can be found at [OSNMAlib.eu](htt
 This web view uses a receiver located in KU Leuven, Belgium, and live aggregated data from [galmon](https://github.com/berthubert/galmon),
 to display the general state of OSNMA. It also provides the [raw navigation bits](https://osnmalib.eu/septentrio/subframe_bits) received and the [OSNMAlib status](https://osnmalib.eu/septentrio/subframe_json) in JSON format.
 
-If you are using data from the OSNMA Test Phase (before 2023-08-03 11:00), use the [OSNMA_Test_Phase_ICD branch](https://github.com/Algafix/OSNMA/tree/OSNMA_Test_Phase_ICD).
+If you are using data from the OSNMA Test Phase (before 2023-08-03 11:00 UTC), use the [OSNMA_Test_Phase_ICD branch](https://github.com/Algafix/OSNMA/tree/OSNMA_Test_Phase_ICD).
+OSNMA updated its Public Key from ID 1 to ID 2 on 2025-12-10 10:00 UTC. Be mindful when using old data. I am providing both keys in the run folders.
 
 Supports Python 3.10, 3.11 and 3.12. For older Python versions, check the branches. Tested on Linux and Windows.
 
