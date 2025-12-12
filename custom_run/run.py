@@ -27,7 +27,7 @@ def sbf_current_config():
         # Path to the folder where to save the generated files (logs and decoded keys)
         'merkle_name': 'OSNMA_MerkleTree.xml',
         # Always needs to be specified. Can be downloaded from the GSC website
-        'pubk_name': 'OSNMA_PublicKey_1.xml',
+        'pubk_name': 'OSNMA_PublicKey_2.xml',
         # Specify for Warm Start mode. Can be downloaded from the GSC website or extracted from a Cold Start run
         'kroot_name': '',
         # Specify for Hot Start mode. You may run your file with OSNMAlib and then point to the saved kroot text file
@@ -51,10 +51,12 @@ def sbf_current_config():
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
     osnma_r.start()
-    # osnma_r.start(start_at_gst=(1273,218011))
+    #osnma_r.start(start_at_gst=(1372, 480960))
 
 
 if __name__ == "__main__":
 
+    print(f"OSNMA updated its Public Key to ID 2 on 2025-12-10 10:00 UTC. "
+          f"Use Public Key 1 for data before that date.")
     print(f"Running file {args.sbf_file}")
     sbf_current_config()

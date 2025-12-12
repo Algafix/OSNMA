@@ -26,7 +26,7 @@ import osnma.input_formats.navmon_pb2 as navmon_pb2
 
 class GALMON(PageIterator):
 
-    VALID_SV = [11, 12, 19, 18, 14, 26, 24, 30, 7, 8, 9, 1, 2, 3, 4, 5, 21, 25, 27, 31, 36, 13, 15, 33, 34, 10]
+    VALID_SV = [11, 12, 19, 18, 14, 26, 24, 30, 7, 8, 9, 1, 2, 3, 4, 5, 21, 25, 27, 31, 36, 13, 15, 33, 34, 10, 29, 23, 6, 16]
 
     def __init__(self, host='86.82.68.237', port=10000):
         super().__init__()

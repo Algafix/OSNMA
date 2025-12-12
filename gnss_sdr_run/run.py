@@ -26,6 +26,7 @@ def gnss_sdr_config():
 
 
 if __name__ == "__main__":
-
+    print(f"OSNMA updated its Public Key to ID 2 on 2025-12-10 10:00 UTC. "
+          f"Use Public Key 1 for data before that date.")
     print(f"Running using GNSS SDR data.")
     gnss_sdr_config()
