@@ -14,7 +14,7 @@ args = parser.parse_args()
 def live_sbf_config():
     config_dict = {
         'exec_path': '.',
-        'pubk_name': 'OSNMA_PublicKey_1.xml',
+        'pubk_name': 'OSNMA_PublicKey_2.xml',
         'merkle_name': 'OSNMA_MerkleTree.xml'
     }
 
