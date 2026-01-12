@@ -96,16 +96,13 @@ class OSNMAReceiver:
 
     def _filter_page(self, data: 'DataFormat'):
         """
-        Filter page if it is not useful for teh current OSNMA implementation.
+        Filter page if it is not useful for the current OSNMA implementation.
         Checks for CRC, alert pages, dummy pages, other signals aside from E1BC, etc.
         Also, sets the FIST_TOW variable if not specified.
         """
 
         if Config.FIRST_GST is None:
             Config.FIRST_GST = data.gst_page
-
-        if not self.current_gst_subframe:
-            self.current_gst_subframe = self._get_gst_subframe(data.gst_page)
 
         if data.gst_page < Config.FIRST_GST:
             return True
@@ -126,6 +123,9 @@ class OSNMAReceiver:
             logger.warning(f'CRC FAILED\tSVID: {data.svid:02} - TOW: {data.gst_page.tow} - '
                            f'Page: {(data.gst_page.tow % 30):02} - Page NOT processed.')
             return True
+
+        if not self.current_gst_subframe:
+            self.current_gst_subframe = self._get_gst_subframe(data.gst_page)
 
         return False
 
