@@ -343,7 +343,7 @@ class ReceiverState:
             self.mack_waiting_for_kroot = []
             return
 
-        if self.tesla_chain_force is None:
+        if self.osnmalib_state in [OSNMAlibSTATE.COLD_START, OSNMAlibSTATE.WARM_START]:
             self.mack_waiting_for_kroot.append((mack_subframe, gst_subframe, satellite.svid, self.last_received_nmas))
         else:
             while len(self.mack_waiting_for_kroot) != 0:
