@@ -30,7 +30,7 @@ from osnma.osnma_core.tesla_chain import TESLAChain
 from osnma.osnma_core.nav_data_manager import NavigationDataManager
 from osnma.osnma_core.dsm_manager import DigitalSignatureMessageManager, DSMType
 from osnma.utils.iohandler import IOHandler
-from osnma.utils.exceptions import PublicKeyObjectError, TeslaKeyVerificationFailed, MackParsingError, NMAStatusDontUseFromTag
+from osnma.utils.exceptions import PublicKeyObjectError, TeslaKeyIndexError, MackParsingError, NMAStatusDontUseFromTag
 from osnma.utils.config import Config
 from osnma.utils.status_logger import StatusLogger
 
@@ -63,7 +63,7 @@ class ReceiverState:
 
         self.dsm_manager = DigitalSignatureMessageManager()
 
-        self.kroot_waiting_mack: list[tuple[list[BitArray | None], GST, int, BitArray]] = []
+        self.mack_waiting_for_kroot: list[tuple[list[BitArray | None], GST, int, BitArray]] = []
 
         self._initialize_status()
 
@@ -127,7 +127,7 @@ class ReceiverState:
 
         self.tesla_chain_force = None
         self.next_tesla_chain = None
-        self.kroot_waiting_mack = []
+        self.mack_waiting_for_kroot = []
 
         self.current_pkid = None
 
@@ -230,6 +230,31 @@ class ReceiverState:
         else:
             logger.error(f"CPKS {new_cpks} not valid")
 
+    def _process_individual_mack_subframe(self, mack_subframe: list[BitArray], gst_subframe: GST, svid: int, nma_status: BitArray, is_waiting_mack=False):
+        try:
+            if is_waiting_mack:
+                tesla_key = self.tesla_chain_force.parse_mack_message(mack_subframe, gst_subframe, svid, nma_status, do_log=False)
+            else:
+                tesla_key = self.tesla_chain_force.parse_mack_message(mack_subframe, gst_subframe, svid, nma_status)
+        except NMAStatusDontUseFromTag as e:
+            logger.warning(f"Tag authenticated with NMA Status to Dont Use. Stopping navigation data processing.")
+            self.nma_status = NMAS.DONT_USE
+        except MackParsingError as e:
+            logger.error(f"Unable to parse the MACK message correctly.\n{e}")
+            if self.osnmalib_state == OSNMAlibSTATE.HOT_START:
+                self._fallback_to_state(OSNMAlibSTATE.WARM_START)
+                self.mack_waiting_for_kroot.append((mack_subframe, gst_subframe, svid, self.last_received_nmas))
+        except TeslaKeyIndexError as e:
+            if not is_waiting_mack:
+                logger.error(e)
+            if self.osnmalib_state == OSNMAlibSTATE.HOT_START:
+                self._fallback_to_state(OSNMAlibSTATE.WARM_START)
+                self.mack_waiting_for_kroot.append((mack_subframe, gst_subframe, svid, self.last_received_nmas))
+        else:
+            if self.osnmalib_state == OSNMAlibSTATE.HOT_START and tesla_key is not None and tesla_key.verified:
+                self.osnmalib_state = OSNMAlibSTATE.STARTED
+                logger.info(f"One TESLA key verified. Start Status: {self.osnmalib_state.name}")
+
     def process_kroot_message(self, nma_header: BitArray, kroot: BitArray):
         """
         Creates a DSMKroot object with the received information and tries to verify it. If the verification is correct,
@@ -315,37 +340,17 @@ class ReceiverState:
 
         if self.nma_status == NMAS.DONT_USE:
             logger.warning(f"NMA Status: Don't Use. Navigation data authentication not performed.")
-            self.kroot_waiting_mack = []
+            self.mack_waiting_for_kroot = []
             return
 
         if self.tesla_chain_force is None:
-            self.kroot_waiting_mack.append((mack_subframe, gst_subframe, satellite.svid, self.last_received_nmas))
+            self.mack_waiting_for_kroot.append((mack_subframe, gst_subframe, satellite.svid, self.last_received_nmas))
         else:
-            try:
-                if self.kroot_waiting_mack:
-                    for w_mack in self.kroot_waiting_mack:
-                        self.tesla_chain_force.parse_mack_message(w_mack[0], w_mack[1], w_mack[2], w_mack[3], do_log = False)
-                    self.kroot_waiting_mack = []
-                tesla_key = self.tesla_chain_force.parse_mack_message(mack_subframe, gst_subframe, satellite.svid, self.last_received_nmas)
-            except NMAStatusDontUseFromTag as e:
-                logger.warning(f"Tag authenticated with NMA Status to Dont Use. Stopping navigation data processing.")
-                self.nma_status = NMAS.DONT_USE
-            except MackParsingError as e:
-                logger.error(f"Unable to parse the MACK message correctly.\n{e}")
-                if self.osnmalib_state == OSNMAlibSTATE.HOT_START:
-                    self._fallback_to_state(OSNMAlibSTATE.WARM_START)
-                else:
-                    logger.warning("Deleting first mack message from waiting list")
-                    self.kroot_waiting_mack = self.kroot_waiting_mack[1:]
-            except TeslaKeyVerificationFailed as e:
-                logger.error(f"Failed authenticating a TESLA key.\n{e}")
-                if self.osnmalib_state == OSNMAlibSTATE.HOT_START:
-                    self._fallback_to_state(OSNMAlibSTATE.WARM_START)
-                    self.kroot_waiting_mack.append((mack_subframe, gst_subframe, satellite.svid, self.last_received_nmas))
-            else:
-                if self.osnmalib_state == OSNMAlibSTATE.HOT_START and tesla_key is not None and tesla_key.verified:
-                    self.osnmalib_state = OSNMAlibSTATE.STARTED
-                    logger.info(f"One TESLA key verified. Start Status: {self.osnmalib_state.name}")
+            while len(self.mack_waiting_for_kroot) != 0:
+                (w_mack_subframe, w_gst, w_svid, w_nmas) = self.mack_waiting_for_kroot.pop(0)
+                logger.info(f"-- OLD SUBFRAME -- WN {w_gst.wn} TOW {w_gst.tow} SVID {w_svid:02} --")
+                self._process_individual_mack_subframe(w_mack_subframe, w_gst, w_svid, w_nmas, is_waiting_mack=True)
+            self._process_individual_mack_subframe(mack_subframe, gst_subframe, satellite.svid, self.last_received_nmas)
 
     def load_last_nma_status(self, nma_status: BitArray):
         if nma_status is not None:

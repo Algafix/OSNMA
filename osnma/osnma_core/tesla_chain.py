@@ -28,7 +28,7 @@ from osnma.osnma_core.tag_verification import TagStateStructure
 from osnma.structures.fields_information import HF, KS_lt, TS_lt, MF
 from osnma.structures.mack_structures import TESLAKey
 from osnma.utils.status_logger import StatusLogger
-from osnma.utils.exceptions import FieldValueNotRecognized, TeslaKeyVerificationFailed, MackParsingError
+from osnma.utils.exceptions import FieldValueNotRecognized, TeslaKeyIndexError, MackParsingError
 
 from Crypto.Hash import CMAC
 from Crypto.Cipher import AES
@@ -169,10 +169,10 @@ class TESLAChain:
         else:
             tags_log = self.tags_structure.load_mack_message(mack_object)
             if tesla_key := mack_object.get_key():
+                StatusLogger.log_auth_tesla_key(tesla_key)
                 verified, is_new_key = self.add_key(tesla_key)
                 if verified and is_new_key:
                     self.tags_structure.update_tag_lists()
-                StatusLogger.log_auth_tesla_key(tesla_key)
             if do_log:
                 StatusLogger.log_mack_data(prn_a, tags_log, tesla_key)
             return tesla_key
@@ -206,9 +206,9 @@ class TESLAChain:
         new_tesla_key.calculate_index(self.GST0)
 
         if new_tesla_key.index < 0:
-            raise TeslaKeyVerificationFailed(f"TESLA key from svid {new_tesla_key.svid}: {new_tesla_key.key}"
-                                             f" received at {new_tesla_key.gst_sf} has a negative key index {new_tesla_key.index}"
-                                             f" and was transmitted before the Key ROOT {self.root_tesla_key.gst_sf}.")
+            raise TeslaKeyIndexError(f"TESLA key from SVID {new_tesla_key.svid}: {new_tesla_key.key} received at"
+                                     f" {new_tesla_key.gst_sf} has a negative key index {new_tesla_key.index} and was"
+                                     f" transmitted before the TESLA key root at {self.root_tesla_key.gst_sf}.")
 
         # Copy the key reference to iterate on it
         new_key_index = new_tesla_key.index
@@ -223,17 +223,18 @@ class TESLAChain:
                 key_verified = True
                 break
             else:
-                e = (f"Tesla Key {new_tesla_key.index} from svid {new_tesla_key.svid}: {new_tesla_key.key}"
-                    f"{' Reconstructed' if new_tesla_key.reconstructed else ''}, received at {new_tesla_key.gst_sf}\n"
-                    f"Last authenticated key: {self.last_tesla_key.index} {self.last_tesla_key.key}"
-                    f"at {self.last_tesla_key.gst_sf}")
+                e = (f"Failed authentication of TESLA key {new_tesla_key.index} from SVID {new_tesla_key.svid}: "
+                     f"{new_tesla_key.key}.{' Reconstructed.' if new_tesla_key.reconstructed else ''}"
+                     f" Received at {new_tesla_key.gst_sf}\nLast authenticated key index {self.last_tesla_key.index}"
+                     f" at {self.last_tesla_key.gst_sf}: {self.last_tesla_key.key} ")
                 logger.error(e)
                 break
 
         if key_verified:
             new_tesla_key.set_verified(True)
             self.last_tesla_key = new_tesla_key
-            logger.info(f"Tesla Key {new_tesla_key.index} Authenticated at {new_tesla_key.gst_sf}{' - Regenerated' if new_tesla_key.reconstructed else ''}\n")
+            logger.info(f"Tesla key {new_tesla_key.index} Authenticated at {new_tesla_key.gst_sf}"
+                        f"{' - Regenerated' if new_tesla_key.reconstructed else ''}\n")
 
         return key_verified, is_new_key
 
