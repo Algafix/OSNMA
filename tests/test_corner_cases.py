@@ -405,6 +405,31 @@ def test_wt5_change_ambiguous(log_level=logging.INFO):
     input_module = SBF(config_dict['scenario_path'])
     run(input_module, config_dict, expected_results)
 
+def test_osnma_outage_negative_key_index(log_level=logging.INFO):
+
+    config_dict = {
+        'console_log_level': log_level,
+        'logs_path': LOGS_PATH,
+        'scenario_path': Path(__file__).parent / 'test_corner_cases/osnma_outage_negative_key_index/osnma_outage_negative_key_index.sbf',
+        'exec_path': Path(__file__).parent / 'test_corner_cases/osnma_outage_negative_key_index/',
+        'pubk_name': 'OSNMA_PublicKey.xml',
+        'do_dual_frequency': True,
+        'do_reed_solomon_recovery': True,
+    }
+
+    expected_results = {
+        "tags_auth": 9789,
+        "data_auth": 5664,
+        "kroot_auth": 141,
+        "broken_kroot": 73,
+        "crc_failed": 833,
+        "warnings": 906,
+        "errors": 0
+    }
+
+    input_module = SBF(config_dict['scenario_path'])
+    run(input_module, config_dict, expected_results)
+
 
 if __name__ == "__main__":
 
@@ -503,6 +528,17 @@ if __name__ == "__main__":
     print(f"\nWT5 change ambiguous")
     try:
         test_wt5_change_ambiguous(general_log_level)
+    except AssertionError:
+        print(f"\tFAILED")
+    else:
+        test_passed += 1
+        print(f"\tCORRECT")
+    finally:
+        test_done += 1
+
+    print(f"\nOSNMA outage negative key index")
+    try:
+        test_osnma_outage_negative_key_index(general_log_level)
     except AssertionError:
         print(f"\tFAILED")
     else:

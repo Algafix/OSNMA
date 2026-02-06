@@ -34,7 +34,7 @@ class PublicKeyObjectError(Exception):
     pass
 
 
-class TeslaKeyVerificationFailed(Exception):
+class TeslaKeyIndexError(Exception):
     pass
 
 
