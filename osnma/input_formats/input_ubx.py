@@ -7,7 +7,7 @@ import serial, socket
 SYNC              = 0xB5, 0x62
 UBX_RXM_SFRBX     = 0x02, 0x13
 
-VALID_WORD_TYPE   = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 16, 17, 18, 19, 20 }
+VALID_WORD_TYPE   = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 16, 17, 18, 19, 20, 22 }
 SET_TOW_WORD_TYPE = { 0, 5, 6 }
 
 UBX_TIM_TP        = 0x0D, 0x01
@@ -69,18 +69,20 @@ def parse_sfrbx_head(payload):
         head     = unpack('< 2B 2x B x B x', payload[:8])
         gnss     = head[0]
         svid     = head[1]
-        numWords = head[2]  
+        numWords = head[2]
+        sigid    = 1  # SFRBX v1 doesn't have a signal identifier. Assume Galileo E1. TBC
     
     elif payload[6] == 0x02:
         head     = unpack('< 3B x 3B x', payload[:8])
         gnss     = head[0]
         svid     = head[1]
+        sigid    = head[2]
         numWords = head[3]
     
     else: 
-        gnss, numWords, svid  = -1, -1, -1
+        gnss, numWords, svid, sigid = -1, -1, -1, -1
 
-    return gnss, svid, numWords
+    return gnss, svid, sigid, numWords
 
 
 def parse_tow_from_inav(word_type, inav):
@@ -108,11 +110,11 @@ def parse_tow_from_inav(word_type, inav):
 
 def parse_sfrbx(payload):
     
-    gnss, svid, numWords = parse_sfrbx_head(payload)
-   
-    if numWords < 8 or svid < -1 or gnss != 2: 
+    gnss, svid, sigid, numWords = parse_sfrbx_head(payload)
+
+    if numWords < 8 or svid < -1 or gnss != 2 or sigid != 1:  # Change the magic numbers to Galileo and E1B
         return "error"
-    
+
     inav      = unpack(f'< {numWords}L', payload[8:])
     word_type = (inav[0] >> 24) & 0x03f
   
@@ -147,7 +149,11 @@ def get_tow_from_clock(class_id, payload):
   
     if class_id == UBX_TIM_TP:
         clock_parsed = unpack('< 2L l H 2b', payload)
-        tow = (clock_parsed[0] // 1000) - 1 
+        time_base = clock_parsed[4] & 0x01
+        if time_base == 1:  # UTC
+            tow = (clock_parsed[0] // 1000) + 18 - 1
+        else:
+            tow = (clock_parsed[0] // 1000) - 1
         wn = clock_parsed[3] - 1024
 
     elif class_id == UBX_NAV_TIMEGAL:
@@ -176,8 +182,6 @@ def get_tow_from_clock(class_id, payload):
     return tow, wn
 
 
-
-
 class UBX(PageIterator): 
     def __init__(self, path) -> None:
         super().__init__()
@@ -186,6 +190,10 @@ class UBX(PageIterator):
         self.use_clock   = False
         self.tow = self.wn = self.prev_wn = 0
         self.not_valid = set()
+
+        # Detect and avoid uBlox forgetting to send time messages
+        self.uncertain_tow = True
+        self.svids_in_this_tow = set()
         
         self._find_clock()
         
@@ -238,19 +246,31 @@ class UBX(PageIterator):
             if payload == b'': 
                 continue
 
-            if is_valid_frame and self.tow > 0 and class_id == UBX_RXM_SFRBX: 
+            if is_valid_frame and not self.uncertain_tow and class_id == UBX_RXM_SFRBX:
                 parsed_sfrbx = parse_sfrbx(payload)
 
                 if parsed_sfrbx == "error":
                     continue
 
                 svid, _, inav  = parsed_sfrbx
+
+                if svid in self.svids_in_this_tow:
+                    # The clock is wrong!
+                    self.uncertain_tow = True
+                    continue
+
+                self.svids_in_this_tow.add(svid)
                 bit_array_inav = get_bit_array(list(inav))
                 data_format    = DataFormat(svid, self.wn, self.tow, bit_array_inav)
                 break
 
             elif is_valid_frame and class_id in UBX_CLOCK:
-                self.tow, self.wn = get_tow_from_clock(class_id, payload)
+                new_tow, new_wn = get_tow_from_clock(class_id, payload)
+                if new_tow != self.tow:
+                    self.wn = new_wn
+                    self.tow = new_tow
+                    self.uncertain_tow = False
+                    self.svids_in_this_tow = set()
  
         if data_format is None:
             raise StopIteration
