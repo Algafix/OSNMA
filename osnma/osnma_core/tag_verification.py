@@ -177,12 +177,12 @@ class TagStateStructure:
 
     def _filter_tag_by_TL(self, tag) -> bool:
         """
-        Filter a tag based on the TL value. If TL is greater than 30s, only ADKD12 can be verified. If TL is greater
+        Filter a tag based on the TS value. If TS is greater than 30s, only ADKD12 can be verified. If TS is greater
         than 330s, no tag can be verified.
         """
-        if Config.TL > 330:
+        if Config.TS > 330:
             return True
-        elif Config.TL > 30 and tag.adkd.uint != 12:
+        elif Config.TS > 30 and tag.adkd.uint != 12:
             return True
         else:
             return False

@@ -33,7 +33,7 @@ class DataFormat:
     mack_start = 146
     mack_length = 32
 
-    def __init__(self, svid: int, wn: int, tow: int, nav_bits: BitArray, band: GAL_BAND = GAL_BAND.E1B, crc: bool = True):
+    def __init__(self, svid: int, wn: int, tow: int, nav_bits: BitArray, band: GAL_BAND = GAL_BAND.E1B, crc: bool = True, independent_clock: GST = None):
 
         if len(nav_bits) != 240:
             raise ValueError(f"The DataFormat object accepts 1 nominal page (or double page) with 240 bits."
@@ -47,6 +47,7 @@ class DataFormat:
         "GST of transmission of the first symbol of the page"
         self.band = band
         self.crc = crc
+        self.independent_clock: GST = independent_clock
 
         self.dsm_id = None
         self.bid = None
@@ -74,7 +75,7 @@ class PageIterator:
     Abstract class to be implemented by any input format
     """
     def __init__(self):
-        pass
+        self.provides_independent_clock = False
 
     def __iter__(self) -> 'PageIterator':
         return self
