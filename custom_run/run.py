@@ -31,7 +31,7 @@ def sbf_current_config():
         # Specify for Warm Start mode. Can be downloaded from the GSC website or extracted from a Cold Start run
         'kroot_name': '',
         # Specify for Hot Start mode. You may run your file with OSNMAlib and then point to the saved kroot text file
-        'TL': 30,
+        'TS': 30,
         # Synchronization time with respect to the GST the receiver is capable of guarantee at all time
         'do_mack_partial_extraction': True,
         # Extract all information possible from a partially received mack message in a sub-frame

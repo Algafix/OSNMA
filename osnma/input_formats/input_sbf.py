@@ -19,8 +19,11 @@ import signal
 
 import pandas as pd
 
+from datetime import datetime, timezone
 from bitstring import BitArray
 
+from osnma.input_formats.ntp_client import NTPClient
+from osnma.cryptographic.gst_class import GST
 from osnma.input_formats.base_classes import DataFormat, PageIterator, GAL_BAND
 
 
@@ -244,10 +247,35 @@ class SBF(PageIterator):
 
 class SBFLive(PageIterator):
 
-    def __init__(self, host, port):
+    def __init__(self, host, port, sync_with_local_clock: bool = False, ntp_server_name: str = ''):
         super().__init__()
+
+        # Time sync options
+        self.ntp_client = False
+        self.sync_with_local_clock = False
+        if ntp_server_name:
+            self.provides_independent_clock = True
+            self.ntp_client = NTPClient(ntp_server_name)
+        elif sync_with_local_clock:
+            print(f"Using computers clock as time reference for synchronism.")
+            self.provides_independent_clock = True
+            self.sync_with_local_clock = True
+
+        # Connect to receiver
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((host, port))
+
+    def _get_independent_clock_time(self):
+        gst_time = None
+        if self.provides_independent_clock:
+            if self.ntp_client:
+                current_timestamp = self.ntp_client.get_current_time()
+            elif self.sync_with_local_clock:
+                current_timestamp = datetime.now(timezone.utc).timestamp()
+            else:
+                raise Exception("Input module provides independent clock but no source is specified.")
+            gst_time = GST.from_utc_timestamp(current_timestamp)
+        return gst_time
 
     def __next__(self) -> 'DataFormat':
 
@@ -280,7 +308,8 @@ class SBFLive(PageIterator):
                         wn = wn_c - 1024
                         nav_bits = BitArray(hex="".join(nav_bits_hex))[:234]
                         nav_bits.insert('0b000000', 114)
-                        data_format = DataFormat(svid, wn, tow, nav_bits, band, crc_passed)
+                        data_format = DataFormat(svid, wn, tow, nav_bits, band, crc_passed,
+                                                 independent_clock=self._get_independent_clock_time())
                         break
 
         if data_format is None:
@@ -291,7 +320,7 @@ class SBFLive(PageIterator):
 
 class SBFLiveServer(PageIterator):
 
-    def __init__(self, host, port):
+    def __init__(self, host, port, sync_with_local_clock: bool = False, ntp_server_name: str = ''):
         super().__init__()
         server_s = socket.create_server((host, port), backlog=1, reuse_port=True)
         print(f"Waiting for connection at {host}:{port}...")
@@ -308,6 +337,29 @@ class SBFLiveServer(PageIterator):
 
         print(f"Connection accepted from {self.c_ip[0]}:{self.c_ip[1]}! Starting OSNMAlib...")
 
+        # Time sync options
+        self.ntp_client = False
+        self.sync_with_local_clock = False
+        if ntp_server_name:
+            self.provides_independent_clock = True
+            self.ntp_client = NTPClient(ntp_server_name)
+        elif sync_with_local_clock:
+            print(f"Using computers clock as time reference for synchronism.")
+            self.provides_independent_clock = True
+            self.sync_with_local_clock = True
+
+    def _get_independent_clock_time(self):
+        gst_time = None
+        if self.provides_independent_clock:
+            if self.ntp_client:
+                current_timestamp = self.ntp_client.get_current_time()
+            elif self.sync_with_local_clock:
+                current_timestamp = datetime.now(timezone.utc).timestamp()
+            else:
+                raise Exception("Input module provides independent clock but no source is specified.")
+            gst_time = GST.from_utc_timestamp(current_timestamp)
+        return gst_time
+
     def __next__(self) -> 'DataFormat':
 
         data_format = None
@@ -339,7 +391,8 @@ class SBFLiveServer(PageIterator):
                         wn = wn_c - 1024
                         nav_bits = BitArray(hex="".join(nav_bits_hex))[:234]
                         nav_bits.insert('0b000000', 114)
-                        data_format = DataFormat(svid, wn, tow, nav_bits, band, crc_passed)
+                        data_format = DataFormat(svid, wn, tow, nav_bits, band, crc_passed,
+                                                 independent_clock=self._get_independent_clock_time())
                         break
 
         if data_format is None:

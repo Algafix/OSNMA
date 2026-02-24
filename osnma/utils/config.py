@@ -48,7 +48,7 @@ class _Config:
         self.TAG_LENGTH = 40
         self.ACTIVE_ADKD = {0, 4, 12}
 
-        self.TL = 30
+        self.TS = 30
         self.DO_HKROOT_REGEN = True
         self.DO_MACK_PARTIAL_EXTRACTION = True
         self.DO_TESLA_KEY_REGEN = True
@@ -76,16 +76,11 @@ class _Config:
                     v = log_factory.str_to_log_level[v]
                 elif attr.endswith('_PATH'):
                     v = Path(v)
+                elif attr == 'TL':  # Backwards compatible
+                    attr = 'TS'
                 setattr(self, attr, v)
 
         if not param_dict.get('logs_path', False):
             self.LOGS_PATH = self.EXEC_PATH
 
 Config = _Config()
-
-
-class SYNC_SOURCE(IntEnum):
-    SBF = 0
-    DEFINED = 1
-    NTP = 2
-    RTC = 3

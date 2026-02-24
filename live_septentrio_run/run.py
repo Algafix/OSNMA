@@ -18,7 +18,9 @@ def live_sbf_config():
         'merkle_name': 'OSNMA_MerkleTree.xml'
     }
 
-    input_module = SBFLive('192.168.3.1',20000)
+    #input_module = SBFLive('192.168.3.1', 20000, ntp_server_name='pool.ntp.org')
+    #input_module = SBFLive('192.168.3.1', 20000, sync_with_local_clock=True)
+    input_module = SBFLive('192.168.3.1', 20000)
     osnma_r = OSNMAReceiver(input_module, config_dict)
 
     osnma_r.start()

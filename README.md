@@ -9,9 +9,10 @@ It can read the Galileo I/NAV pages from an input, store the navigation and auth
 
 The software has been successfully tested using the official ICD test vectors and data from corner cases recorded by us. To our knowledge, it has also been used to verify other third-party OSNMA implementations and in research. 
 
-Note that the security of the OSNMA protocol can only be guaranteed if the receiver providing the navigation data is synchronized with TL seconds of error with the Galileo System Time.
-By default, OSNMAlib assumes a TL of 30s: the maximum to process all tags. However, it can be configured for a different TL depending on what your receiver can guarantee.
-For more information about time synchronisation see the [OSNMA Receiver Guidelines](https://www.gsc-europa.eu/sites/default/files/sites/all/files/Galileo_OSNMA_Receiver_Guidelines_v1.3.pdf), and [Configuration Options](#osnmalib-configuration-options) to configure OSNMAlib.
+Note that the security of the OSNMA protocol can only be guaranteed if the receiver providing the navigation data is aware of its synchronization with respect to the Galileo System Time.
+By default, OSNMAlib assumes a synchronization time (TS) of 30s: the maximum to process all tags. However, it can be configured for a different TS depending on what your receiver can guarantee.
+For live executions, OSNMAlib can use an NTP server or the local clock from the computer as synchronization sources.
+For more information about time synchronization see the [OSNMA Receiver Guidelines](https://www.gsc-europa.eu/sites/default/files/sites/all/files/Galileo_OSNMA_Receiver_Guidelines_v1.3.pdf), and [Configuration Options](#osnmalib-configuration-options) to configure OSNMAlib.
 
 OSNMAlib implements several optimizations in the cryptographic material extraction and in the process of linking navigation data to tags [[link](https://arxiv.org/abs/2403.14739)].
 None of these optimizations imply trial-and-error on the verification process, so if you see authentication failures in 
@@ -206,7 +207,7 @@ The most important parameters are:
 * `merkle_name [default='OSNMA_MerkleTree.xml']`: Name of the Merkle Tree root file. Shall be in the GSA XML format.
 * `pubkey_name [default='']`: Name of the stored Public Key file. If nothing is specified, OSNMAlib will assume Cold Start. Shall be in the GSA XML format.
 * `kroot_name [default='']`: Name of the stored KROOT file. Shall have one line with the DSM KROOT complete message in hexadecimal and another line with the NMA Header in hexadecimal.
-* `TL [default=30]`: Time synchronization value [s] of the receiver with the Galileo Satellite System time.
+* `TS [default=30]`: Time synchronization value [s] of the receiver with the Galileo Satellite System time. Overwritten in live execution with external clock source.
 
 Based on the cryptographic material provided to OSNMAlib in the configuration dictionary, it will be set in one of the 3 start states defined in the ICD.
 * **Cold Start**: OSNMAlib has no Public Key saved, it needs to be retrieved from the OSNMA message.

@@ -81,7 +81,7 @@ class OSNMAReceiver:
 
     def _time_sync(self, data: 'DataFormat') -> bool:
         """
-        Will control the Time Synchronization for live executions. Currently only updates the last GST.
+        Ensures the time is moving forward and controls the Time Synchronization for live executions if enabled.
         """
         if Config.LAST_GST is None:
             Config.LAST_GST = data.gst_page
@@ -89,6 +89,9 @@ class OSNMAReceiver:
         if data.gst_page < Config.LAST_GST:
             logger.error(f"Time is going backwards!")
             return False
+
+        if self.nav_data_input.provides_independent_clock:
+            Config.TS = data.independent_clock.total_seconds - data.gst_page.total_seconds
 
         Config.LAST_GST = data.gst_page
 
@@ -192,13 +195,13 @@ class OSNMAReceiver:
                 if self._filter_page(page):
                     continue
 
+                if not self._time_sync(page):
+                    continue
+
                 # The subframe has finished, process leftovers of OSNMA data and reset objects
                 if (gst_sf := self._get_gst_subframe(page.gst_page)) > self.current_gst_subframe:
                     self._end_of_subframe_global()
                     self.current_gst_subframe = gst_sf
-
-                if not self._time_sync(page):
-                    continue
 
                 # Add OSNMA data to satellite
                 satellite = self.satellites[page.svid]

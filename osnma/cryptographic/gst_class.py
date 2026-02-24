@@ -15,6 +15,7 @@
 #
 
 from bitstring import BitArray
+from datetime import datetime
 
 LEN_GST = 32
 LEN_WN = 12
@@ -23,6 +24,10 @@ LEN_TOW = 20
 WN_MODULO = 4096
 MAX_TOW = 604799
 MIN_TOW = 0
+SECONDS_PER_WEEK = MAX_TOW+1
+
+GPS_EPOCH = datetime(1980, 1, 6, 0, 0, 0)
+GALILEO_EPOCH = datetime(1999, 8, 22, 0, 0, 0)
 
 
 class GST:
@@ -41,10 +46,19 @@ class GST:
             self.wn = kwargs.get('wn', 0)
             self.tow = kwargs.get('tow', 0)
 
-            if self.tow < 0:
+            if self.tow < MIN_TOW or self.tow > MAX_TOW:
                 q, r = divmod(self.tow, MAX_TOW+1)
                 self.wn += q
                 self.tow = r
+
+    @staticmethod
+    def from_utc_timestamp(utc_timestamp) -> 'GST':
+        date_utc = datetime.utcfromtimestamp(utc_timestamp)
+        delta_s_utc = (date_utc - GALILEO_EPOCH).total_seconds()
+        delta_s_gnss = delta_s_utc + 18  # leap seconds
+        wn = int(delta_s_gnss // SECONDS_PER_WEEK)
+        tow = int(delta_s_gnss % SECONDS_PER_WEEK)
+        return GST(wn=wn, tow=tow)
 
     def __str__(self):
         return f"{self.wn} {self.tow}"
