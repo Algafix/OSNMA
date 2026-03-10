@@ -8,9 +8,9 @@ from osnma.input_formats.input_ubx import UBX
 
 def ubx_current_config():
     config_dict = {
-        'scenario_path': 'current_run_ubx.ubx',
+        'scenario_path': 'current_config.ubx',
         'exec_path': '.',
-        'pubk_name': 'OSNMA_PublicKey_1.xml',
+        'pubk_name': 'OSNMA_PublicKey_2.xml',
         'merkle_name': 'OSNMA_MerkleTree.xml'
     }
 

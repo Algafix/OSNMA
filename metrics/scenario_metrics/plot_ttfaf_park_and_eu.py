@@ -16,7 +16,7 @@ DATA_FOLDER = OSNMALIB_PATH / 'metrics/scenarios/park_and_eu/'
 sim_params = {
     "WN": 1267,
     "TOW_START": 35400,
-    "TOW_STOP": 37350,
+    "TOW_STOP": 36350,
     "name": "Hot Start TTFAF - Park and EU District",
     "numpy_ttfaf_file_name": DATA_FOLDER / "ttfaf_matrix_park_and_eu_all.npy",
     "numpy_ttff_file_name": DATA_FOLDER / "ttff_matrix_park_and_eu_all.npy",
@@ -35,36 +35,55 @@ if __name__ == "__main__":
 
     # normal_run_and_exit(sim_params)
 
+    # options = {
+    #     "IOD SotA. TL 30s": {
+    #         'do_mack_partial_extraction': False, 'do_tesla_key_regen': False, 'do_cop_link_optimization': False,
+    #         'do_dual_frequency': False, 'do_reed_solomon_recovery': False, 'TL': 30
+    #     },
+    #     "IOD SotA. Page proc. TL 25s": {
+    #         'do_mack_partial_extraction': True, 'do_tesla_key_regen': True, 'do_cop_link_optimization': False,
+    #         'do_dual_frequency': False, 'do_reed_solomon_recovery': False, 'TL': 25
+    #     },
+    #     "COP-IOD. Page proc. TL 17s": {
+    #         'do_mack_partial_extraction': True, 'do_tesla_key_regen': True, 'do_cop_link_optimization': True,
+    #         'do_dual_frequency': False, 'do_reed_solomon_recovery': False, 'TL': 17
+    #     },
+    #     "COP-IOD. Page proc. RS. TL 17s": {
+    #         'do_mack_partial_extraction': True, 'do_tesla_key_regen': True, 'do_cop_link_optimization': True,
+    #         'do_dual_frequency': False, 'do_reed_solomon_recovery': True, 'TL': 17
+    #     },
+    #     "COP-IOD. Page proc. Dual-Freq. TL 17s": {
+    #         'do_mack_partial_extraction': True, 'do_tesla_key_regen': True, 'do_cop_link_optimization': True,
+    #         'do_dual_frequency': True, 'do_reed_solomon_recovery': False, 'TL': 17
+    #     },
+    #     "COP-IOD. Page proc. Dual-Freq. RS. TL 17s": {
+    #         'do_mack_partial_extraction': True, 'do_tesla_key_regen': True, 'do_cop_link_optimization': True,
+    #         'do_dual_frequency': True, 'do_reed_solomon_recovery': True, 'TL': 17
+    #     },
+    # }
+
     options = {
-        "IOD SotA. TL 30s": {
-            'do_mack_partial_extraction': False, 'do_tesla_key_regen': False, 'do_cop_link_optimization': False,
-            'do_dual_frequency': False, 'do_reed_solomon_recovery': False, 'TL': 30
-        },
         "IOD SotA. Page proc. TL 25s": {
             'do_mack_partial_extraction': True, 'do_tesla_key_regen': True, 'do_cop_link_optimization': False,
             'do_dual_frequency': False, 'do_reed_solomon_recovery': False, 'TL': 25
-        },
-        "COP-IOD. Page proc. TL 17s": {
-            'do_mack_partial_extraction': True, 'do_tesla_key_regen': True, 'do_cop_link_optimization': True,
-            'do_dual_frequency': False, 'do_reed_solomon_recovery': False, 'TL': 17
-        },
-        "COP-IOD. Page proc. RS. TL 17s": {
-            'do_mack_partial_extraction': True, 'do_tesla_key_regen': True, 'do_cop_link_optimization': True,
-            'do_dual_frequency': False, 'do_reed_solomon_recovery': True, 'TL': 17
-        },
-        "COP-IOD. Page proc. Dual-Freq. TL 17s": {
-            'do_mack_partial_extraction': True, 'do_tesla_key_regen': True, 'do_cop_link_optimization': True,
-            'do_dual_frequency': True, 'do_reed_solomon_recovery': False, 'TL': 17
         },
         "COP-IOD. Page proc. Dual-Freq. RS. TL 17s": {
             'do_mack_partial_extraction': True, 'do_tesla_key_regen': True, 'do_cop_link_optimization': True,
             'do_dual_frequency': True, 'do_reed_solomon_recovery': True, 'TL': 17
         },
+        "COP-IOD. Page proc. Dual-Freq. RS. TS 1s": {
+            'do_mack_partial_extraction': True, 'do_tesla_key_regen': True, 'do_cop_link_optimization': True,
+            'do_dual_frequency': True, 'do_reed_solomon_recovery': True, 'TL': 1
+        },
+        "COP-IOD. Page proc. Dual-Freq. RS. TS 0s": {
+            'do_mack_partial_extraction': True, 'do_tesla_key_regen': True, 'do_cop_link_optimization': True,
+            'do_dual_frequency': True, 'do_reed_solomon_recovery': True, 'TS': 0
+        },
     }
 
     # Rerun from scratch (will take a while) or load the saved matrix
-    #ttfaf_matrix = get_ttfaf_matrixSBF(sim_params, options, True)
-    ttfaf_matrix = np.load(sim_params["numpy_ttfaf_file_name"])
+    ttfaf_matrix = get_ttfaf_matrixSBF(sim_params, options, True)
+    #ttfaf_matrix = np.load(sim_params["numpy_ttfaf_file_name"])
 
     plot_ttfaf(ttfaf_matrix, options.keys(), sim_params["name"], DATA_FOLDER)
     plot_per_subframe(ttfaf_matrix, options.keys(), sim_params["name"], DATA_FOLDER)
