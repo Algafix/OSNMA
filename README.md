@@ -45,7 +45,8 @@ OSNMAlib Features
   * Support for Cold Start, Warm Start and Hot Start.
   * Support for the following events: EOC, CREV, NPK, PKREV, NMT, and OAM.
   * [JSON output](#osnmalib-logging-options) for monitoring and postprocessing with `json-schema` [[html](https://osnmalib.eu/json-schema)|[json](osnma/utils/json_schema/status_log_schema.json)].
-  * Report the Time To First Authenticated Fix (TTFAF) and Time To First Fix (TTFF) in terms of navigation data.  
+  * Report the Time To First Authenticated Fix (TTFAF) and Time To First Fix (TTFF) in terms of navigation data.
+  * Time synchronization options for live execution (local clock or NTP).
 
 ### Extra optimizations for a faster TTFAF:
   * Reconstruct broken HKROOT messages.
@@ -71,7 +72,6 @@ OSNMAlib Features
 
 ### Future development:
 
-  * Time synchronization options for live execution.
   * IDD ICD implementation for authentication of cryptographic materials.
 
 Documentation
@@ -184,16 +184,7 @@ $ pytest icd_test_vectors.py
 $ pytest test_corner_cases.py 
 ```
 
-The tests can also be executed using the traditional Python interpreter.
-In that case, execute the following shell commands.
-
-```
-$ pip install -r requirements.txt
-$ cd tests
-$ python3 icd_test_vectors.py 
-# or
-$ python3 test_corner_cases.py 
-```
+The tests can also be executed using the traditional Python interpreter. In that case, just run the files.
 
 OSNMAlib Configuration Options
 ===
@@ -207,7 +198,7 @@ The most important parameters are:
 * `merkle_name [default='OSNMA_MerkleTree.xml']`: Name of the Merkle Tree root file. Shall be in the GSA XML format.
 * `pubkey_name [default='']`: Name of the stored Public Key file. If nothing is specified, OSNMAlib will assume Cold Start. Shall be in the GSA XML format.
 * `kroot_name [default='']`: Name of the stored KROOT file. Shall have one line with the DSM KROOT complete message in hexadecimal and another line with the NMA Header in hexadecimal.
-* `TS [default=30]`: Time synchronization value [s] of the receiver with the Galileo Satellite System time. Overwritten in live execution with external clock source.
+* `TS [default=30]`: Time synchronization value [s] of the receiver with the Galileo System Time. Overwritten in live execution with external clock source.
 
 Based on the cryptographic material provided to OSNMAlib in the configuration dictionary, it will be set in one of the 3 start states defined in the ICD.
 * **Cold Start**: OSNMAlib has no Public Key saved, it needs to be retrieved from the OSNMA message.
