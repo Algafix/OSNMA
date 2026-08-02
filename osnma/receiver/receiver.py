@@ -123,7 +123,7 @@ class OSNMAReceiver:
             return True
 
         if not data.crc:
-            logger.warning(f'CRC FAILED\tSVID: {data.svid:02} - TOW: {data.gst_page.tow} - '
+            logger.debug(f'CRC FAILED\tSVID: {data.svid:02} - TOW: {data.gst_page.tow} - '
                            f'Page: {(data.gst_page.tow % 30):02} - Page NOT processed.')
             return True
 
@@ -150,7 +150,7 @@ class OSNMAReceiver:
                 self.receiver_state.process_mack_subframe(mack_sf, gst_sf, satellite)
             else:
                 # Broken subframe. Reconstruct if possible hkroot. Extract what is possible from MACK.
-                logger.warning('Broken HKROOT Subframe. Regenerating HKROOT and processing MACK if active.')
+                logger.debug('Broken HKROOT Subframe. Regenerating HKROOT and processing MACK if active.')
                 if Config.DO_HKROOT_REGEN:
                     for regen_hkroot_sf, bid in self.subframe_regenerator.get_regenerated_blocks():
                         logger.info(f'HKROOT regenerated. BID {bid}')

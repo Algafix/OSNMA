@@ -168,6 +168,7 @@ class TagStateStructure:
         """
         for tag in tag_list:
             if tag.adkd.uint not in Config.ACTIVE_ADKD:
+                logger.warning(f"ADKD {tag.adkd.uint} is not defined. Tag received from {tag.prn_a} at {tag.gst_subframe}")
                 continue
             prn_d = tag.prn_d.uint
             if prn_d not in range(1, Config.NS+1):

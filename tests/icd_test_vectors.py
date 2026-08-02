@@ -55,24 +55,18 @@ def run(input_module, config_dict, expected_results_dict):
         tags_auth = len(re.findall(r'Tag AUTHENTICATED', log_text))
         data_auth = len(re.findall(r'INFO .* AUTHENTICATED: ADKD', log_text))
         kroot_auth = len(re.findall(r'INFO .*KROOT.*\n\tAUTHENTICATED\n', log_text))
-        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
-        crc_failed = len(re.findall('WARNING.*CRC', log_text))
         warnings = len(re.findall('WARNING', log_text))
         errors = len(re.findall('ERROR', log_text))
 
     # print(f'{tags_auth} vs {expected_results_dict["tags_auth"]}')
     # print(f'{data_auth} vs {expected_results_dict["data_auth"]}')
     # print(f'{kroot_auth} vs {expected_results_dict["kroot_auth"]}')
-    # print(f'{broken_kroot} vs {expected_results_dict["broken_kroot"]}')
-    # print(f'{crc_failed} vs {expected_results_dict["crc_failed"]}')
     # print(f'{warnings} vs {expected_results_dict["warnings"]}')
     # print(f'{errors} vs {expected_results_dict["errors"]}')
 
     assert tags_auth == expected_results_dict["tags_auth"]
     assert data_auth == expected_results_dict["data_auth"]
     assert kroot_auth == expected_results_dict["kroot_auth"]
-    assert broken_kroot == expected_results_dict["broken_kroot"]
-    assert crc_failed == expected_results_dict["crc_failed"]
     assert warnings == expected_results_dict["warnings"]
     assert errors == expected_results_dict["errors"]
 
@@ -115,8 +109,6 @@ def test_vectors_icd_configuration_1(log_level=logging.INFO):
         "tags_auth": 12532,
         "data_auth": 6144,
         "kroot_auth": 176,
-        "broken_kroot": 0,
-        "crc_failed": 0,
         "warnings": 0,
         "errors": 0,
         "total_subframes": 119,
@@ -143,9 +135,7 @@ def test_vectors_icd_configuration_2(log_level=logging.INFO):
         "tags_auth": 11427,
         "data_auth": 6056,
         "kroot_auth": 115,
-        "broken_kroot": 17,  # The first page for all satellites has no OSNMA data
-        "crc_failed": 0,
-        "warnings": 17,
+        "warnings": 0,
         "errors": 0,
         "total_subframes": 119,
         "nmas_operational": 105,
@@ -173,9 +163,7 @@ def test_vectors_icd_configuration_2_pubk_kroot(log_level=logging.INFO):
         "tags_auth": 11427,
         "data_auth": 6056,
         "kroot_auth": 115,
-        "broken_kroot": 17,  # The first page for all satellites has no OSNMA data
-        "crc_failed": 0,
-        "warnings": 17,
+        "warnings": 0,
         "errors": 0,
         "total_subframes": 119,
         "nmas_operational": 119,
@@ -202,8 +190,6 @@ def test_vectors_eoc_step1(log_level=logging.INFO):
         "tags_auth": 13638,
         "data_auth": 6504,
         "kroot_auth": 183,
-        "broken_kroot": 0,
-        "crc_failed": 0,
         "warnings": 0,
         "errors": 0,
         "total_subframes": 119,
@@ -231,8 +217,6 @@ def test_vectors_eoc_step2(log_level=logging.INFO):
         "tags_auth": 13200,
         "data_auth": 6237,
         "kroot_auth": 230,
-        "broken_kroot": 0,
-        "crc_failed": 0,
         "warnings": 0,
         "errors": 0,
         "total_subframes": 119,
@@ -260,8 +244,6 @@ def test_vectors_crev_step1(log_level=logging.INFO):
         "tags_auth": 6600,
         "data_auth": 3120,
         "kroot_auth": 233,
-        "broken_kroot": 0,
-        "crc_failed": 0,
         "warnings": 1187,
         "errors": 0,
         "total_subframes": 119,
@@ -289,8 +271,6 @@ def test_vectors_crev_step2(log_level=logging.INFO):
         "tags_auth": 6547,
         "data_auth": 3095,
         "kroot_auth": 123,
-        "broken_kroot": 0,
-        "crc_failed": 0,
         "warnings": 1187,
         "errors": 0,
         "total_subframes": 119,
@@ -318,8 +298,6 @@ def test_vectors_crev_step3(log_level=logging.INFO):
         "tags_auth": 13601,
         "data_auth": 6514,
         "kroot_auth": 198,
-        "broken_kroot": 0,
-        "crc_failed": 0,
         "warnings": 0,
         "errors": 0,
         "total_subframes": 119,
@@ -347,8 +325,6 @@ def test_vectors_npk_step1(log_level=logging.INFO):
         "tags_auth": 12852,
         "data_auth": 6337,
         "kroot_auth": 146,
-        "broken_kroot": 0,
-        "crc_failed": 0,
         "warnings": 0,
         "errors": 0,
         "total_subframes": 119,
@@ -376,8 +352,6 @@ def test_vectors_npk_step2(log_level=logging.INFO):
         "tags_auth": 13566,
         "data_auth": 6487,
         "kroot_auth": 101,
-        "broken_kroot": 0,
-        "crc_failed": 0,
         "warnings": 0,
         "errors": 0,
         "total_subframes": 119,
@@ -405,8 +379,6 @@ def test_vectors_npk_step3(log_level=logging.INFO):
         "tags_auth": 13475,
         "data_auth": 6472,
         "kroot_auth": 160,
-        "broken_kroot": 0,
-        "crc_failed": 0,
         "warnings": 0,
         "errors": 0,
         "total_subframes": 119,
@@ -434,8 +406,6 @@ def test_vectors_pkrev_step1(log_level=logging.INFO):
         "tags_auth": 6664,
         "data_auth": 3095,
         "kroot_auth": 117,
-        "broken_kroot": 0,
-        "crc_failed": 0,
         "warnings": 1150,
         "errors": 0,
         "total_subframes": 119,
@@ -463,8 +433,6 @@ def test_vectors_pkrev_step2(log_level=logging.INFO):
         "tags_auth": 4644,
         "data_auth": 2155,
         "kroot_auth": 56,
-        "broken_kroot": 0,
-        "crc_failed": 0,
         "warnings": 1281,
         "errors": 0,
         "total_subframes": 119,
@@ -492,8 +460,6 @@ def test_vectors_pkrev_step3(log_level=logging.INFO):
         "tags_auth": 13670,
         "data_auth": 6521,
         "kroot_auth": 86,
-        "broken_kroot": 0,
-        "crc_failed": 0,
         "warnings": 0,
         "errors": 0,
         "total_subframes": 119,
@@ -521,8 +487,6 @@ def test_vectors_nmt_step1(log_level=logging.INFO):
         "tags_auth": 13680,
         "data_auth": 6523,
         "kroot_auth": 92,
-        "broken_kroot": 0,
-        "crc_failed": 0,
         "warnings": 1,
         "errors": 0,
         "total_subframes": 119,
@@ -550,8 +514,6 @@ def test_vectors_nmt_step2(log_level=logging.INFO):
         "tags_auth": 13566,
         "data_auth": 6487,
         "kroot_auth": 68,
-        "broken_kroot": 0,
-        "crc_failed": 0,
         "warnings": 1,
         "errors": 0,
         "total_subframes": 119,
@@ -579,8 +541,6 @@ def test_vectors_nmt_step3(log_level=logging.INFO):
         "tags_auth": 13050,
         "data_auth": 6405,
         "kroot_auth": 140,
-        "broken_kroot": 0,
-        "crc_failed": 0,
         "warnings": 0,
         "errors": 0,
         "total_subframes": 119,
@@ -608,8 +568,6 @@ def test_vectors_oam_step1(log_level=logging.INFO):
         "tags_auth": 6549,
         "data_auth": 3096,
         "kroot_auth": 109,
-        "broken_kroot": 0,
-        "crc_failed": 0,
         "warnings": 2341,
         "errors": 0,
         "total_subframes": 119,
@@ -637,9 +595,7 @@ def test_vectors_oam_step2(log_level=logging.INFO):
         "tags_auth": 0,
         "data_auth": 0,
         "kroot_auth": 1,
-        "broken_kroot": 20,
-        "crc_failed": 0,
-        "warnings": 2290,
+        "warnings": 2270,
         "errors": 0,
         "total_subframes": 119,
         "nmas_operational": 0,
@@ -655,7 +611,7 @@ def test_vectors_oam_step2(log_level=logging.INFO):
 
 if __name__ == "__main__":
 
-    general_log_level = logging.CRITICAL
+    general_log_level = logging.INFO
     test_passed = 0
     test_done = 0
 
