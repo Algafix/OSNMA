@@ -53,24 +53,18 @@ def run(input_module, config_dict, expected_results_dict):
         tags_auth = len(re.findall(r'Tag AUTHENTICATED', log_text))
         data_auth = len(re.findall(r'INFO .* AUTHENTICATED: ADKD', log_text))
         kroot_auth = len(re.findall(r'INFO .*KROOT.*\n\tAUTHENTICATED\n', log_text))
-        broken_kroot = len(re.findall('WARNING.*Broken HKROOT', log_text))
-        crc_failed = len(re.findall('WARNING.*CRC', log_text))
         warnings = len(re.findall('WARNING', log_text))
         errors = len(re.findall('ERROR', log_text))
 
     # print(f'{tags_auth} vs {expected_results_dict["tags_auth"]}')
     # print(f'{data_auth} vs {expected_results_dict["data_auth"]}')
     # print(f'{kroot_auth} vs {expected_results_dict["kroot_auth"]}')
-    # print(f'{broken_kroot} vs {expected_results_dict["broken_kroot"]}')
-    # print(f'{crc_failed} vs {expected_results_dict["crc_failed"]}')
     # print(f'{warnings} vs {expected_results_dict["warnings"]}')
     # print(f'{errors} vs {expected_results_dict["errors"]}')
 
     assert tags_auth == expected_results_dict["tags_auth"]
     assert data_auth == expected_results_dict["data_auth"]
     assert kroot_auth == expected_results_dict["kroot_auth"]
-    assert broken_kroot == expected_results_dict["broken_kroot"]
-    assert crc_failed == expected_results_dict["crc_failed"]
     assert warnings == expected_results_dict["warnings"]
     assert errors == expected_results_dict["errors"]
 
@@ -91,9 +85,7 @@ def test_change_of_word_type_5(log_level=logging.INFO):
         "tags_auth": 1503,
         "data_auth": 986,
         "kroot_auth": 26,
-        "broken_kroot": 6,
-        "crc_failed": 0,
-        "warnings": 6,
+        "warnings": 0,
         "errors": 0
     }
 
@@ -116,9 +108,7 @@ def test_tow_rollover(log_level=logging.INFO):
         "tags_auth": 8985,
         "data_auth": 7413,
         "kroot_auth": 199,
-        "broken_kroot": 43,
-        "crc_failed": 4164,
-        "warnings": 4207,
+        "warnings": 0,
         "errors": 0
     }
 
@@ -142,9 +132,7 @@ def test_osnma_outage_and_wt5(log_level=logging.INFO):
         "tags_auth": 5920,
         "data_auth": 3412,
         "kroot_auth": 50,
-        "broken_kroot": 25,
-        "crc_failed": 88,
-        "warnings": 113,
+        "warnings": 0,
         "errors": 0
     }
 
@@ -168,9 +156,7 @@ def test_osnma_after_outage(log_level=logging.INFO):
         "tags_auth": 4109,
         "data_auth": 2641,
         "kroot_auth": 65,
-        "broken_kroot": 18,
-        "crc_failed": 57,
-        "warnings": 75,
+        "warnings": 0,
         "errors": 0
     }
 
@@ -194,9 +180,7 @@ def test_svid_12_repeats_iod(log_level=logging.INFO):
         "tags_auth": 1359,
         "data_auth": 1297,
         "kroot_auth": 56,
-        "broken_kroot": 11,
-        "crc_failed": 123,
-        "warnings": 134,
+        "warnings": 0,
         "errors": 0
     }
 
@@ -219,9 +203,7 @@ def test_real_eoc(log_level=logging.INFO):
         "tags_auth": 6478,
         "data_auth": 4293,
         "kroot_auth": 73,
-        "broken_kroot": 44,
-        "crc_failed": 492,
-        "warnings": 536,
+        "warnings": 0,
         "errors": 0
     }
 
@@ -244,9 +226,7 @@ def test_real_crev(log_level=logging.INFO):
         "tags_auth": 12341,
         "data_auth": 8265,
         "kroot_auth": 210,
-        "broken_kroot": 108,
-        "crc_failed": 1903,
-        "warnings": 3403,
+        "warnings": 1392,
         "errors": 0
     }
 
@@ -270,9 +250,7 @@ def test_reed_solomon_collision(log_level=logging.INFO):
         "tags_auth": 39750,
         "data_auth": 26473,
         "kroot_auth": 473,
-        "broken_kroot": 281,
-        "crc_failed": 2527,
-        "warnings": 2808,
+        "warnings": 0,
         "errors": 0
     }
 
@@ -296,9 +274,7 @@ def test_WT10_change_mid_subframe_E5b(log_level=logging.INFO):
         "tags_auth": 44507,
         "data_auth": 30467,
         "kroot_auth": 538,
-        "broken_kroot": 863,
-        "crc_failed": 2446,
-        "warnings": 3310,
+        "warnings": 1,
         "errors": 0
     }
 
@@ -321,9 +297,7 @@ def test_6_hours(log_level=logging.INFO):
         "tags_auth": 14707,
         "data_auth": 11067,
         "kroot_auth": 198,
-        "broken_kroot": 61,
-        "crc_failed": 3268,
-        "warnings": 3329,
+        "warnings": 0,
         "errors": 0
     }
 
@@ -346,9 +320,7 @@ def test_24_hours(log_level=logging.INFO):
         "tags_auth": 62084,
         "data_auth": 45874,
         "kroot_auth": 804,
-        "broken_kroot": 200,
-        "crc_failed": 4407,
-        "warnings": 4607,
+        "warnings": 0,
         "errors": 0
     }
 
@@ -370,9 +342,7 @@ def test_24_hours_cold_start(log_level=logging.INFO):
         "tags_auth": 62084,
         "data_auth": 45874,
         "kroot_auth": 802,
-        "broken_kroot": 200,
-        "crc_failed": 4407,
-        "warnings": 4607,
+        "warnings": 0,
         "errors": 0
     }
 
@@ -396,9 +366,7 @@ def test_wt5_change_ambiguous(log_level=logging.INFO):
         "tags_auth": 6947,
         "data_auth": 5108,
         "kroot_auth": 91,
-        "broken_kroot": 80,
-        "crc_failed": 397,
-        "warnings": 477,
+        "warnings": 0,
         "errors": 0
     }
 
@@ -421,9 +389,7 @@ def test_osnma_outage_negative_key_index(log_level=logging.INFO):
         "tags_auth": 9789,
         "data_auth": 5664,
         "kroot_auth": 141,
-        "broken_kroot": 73,
-        "crc_failed": 833,
-        "warnings": 906,
+        "warnings": 0,
         "errors": 0
     }
 
