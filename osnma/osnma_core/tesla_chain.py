@@ -18,7 +18,7 @@
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from osnma.osnma_core.nav_data_manager import NavigationDataManager
-    from osnma.structures.mack_structures import MACSeqObject, TagAndInfo
+    from osnma.structures.mack_structures import FLXTagObject, TagAndInfo
 
 ######## imports ########
 from osnma.cryptographic.dsm_kroot import DSMKroot
@@ -254,12 +254,12 @@ class TESLAChain:
 
         return return_tesla_key
 
-    def key_check(self, mack_structure: 'MACSeqObject | TagAndInfo') -> bool:
+    def key_check(self, mack_structure: 'FLXTagObject | TagAndInfo') -> bool:
         """Checks if the key belonging to the index argument is verified or not. Simply checks if
         the index provided in less than the last verified index.
 
         :param mack_structure: Index value of the key to check.
-        :type mack_structure: Union[MACSeqObject,TagAndInfo]
+        :type mack_structure: Union[FLXTagObject,TagAndInfo]
         :return: True if the index is less than self.last_tesla_key.index
         :rtype: bool
         """

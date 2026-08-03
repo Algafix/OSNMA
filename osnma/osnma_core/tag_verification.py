@@ -18,7 +18,7 @@
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from osnma.osnma_core.tesla_chain import TESLAChain
-    from osnma.structures.mack_structures import MACKMessage, TagAndInfo, MACSeqObject
+    from osnma.structures.mack_structures import MACKMessage, TagAndInfo, FLXTagObject
     from osnma.osnma_core.nav_data_manager import NavigationDataManager
 
 ######## imports ########
@@ -58,7 +58,7 @@ class TagStateStructure:
         self.tesla_chain = tesla_chain
         self.nav_data_m = nav_data_m
         self.maclt_dict = mac_lookup_table[tesla_chain.maclt]
-        self.macseq_awaiting_key: list['MACSeqObject'] = []
+        self.macseq_awaiting_key: list['FLXTagObject'] = []
         self.tags_awaiting_key: list['TagAndInfo'] = []
         self.tags_with_key_awaiting_data: list['TagAndInfo'] = []
         """ This list contains tags only for a subframe for the COP optimization """
@@ -75,15 +75,15 @@ class TagStateStructure:
             logger.error(f"Tag FAILED\n\t{tag.get_log()}")
             StatusLogger.log_auth_tag(tag)
 
-    def verify_macseq(self, macseq: 'MACSeqObject'):
-        if macseq.authenticate(self.tesla_chain.mac_function):
-            self.set_key_index_to_tags(macseq.flex_list)
-            self.tags_awaiting_key.extend(macseq.flex_list)
-            logger.info(f"MACSEQ AUTHENTICATED\n\t{macseq.get_log()}")
+    def verify_macseq(self, flx_tag_object: 'FLXTagObject'):
+        if flx_tag_object.authenticate(self.tesla_chain.mac_function):
+            self.set_key_index_to_tags(flx_tag_object.flex_list)
+            self._add_tags_waiting_key(flx_tag_object.flex_list)
+            logger.info(f"MACSEQ AUTHENTICATED\n\t{flx_tag_object.get_log()}")
         else:
-            logger.error(f"MACSEQ FAILED\n\t{macseq.get_log()}")
-        self.macseq_awaiting_key.remove(macseq)
-        StatusLogger.log_auth_macseq(macseq)
+            logger.error(f"MACSEQ FAILED\n\t{flx_tag_object.get_log()}")
+        self.macseq_awaiting_key.remove(flx_tag_object)
+        StatusLogger.log_auth_macseq(flx_tag_object)
 
     def set_key_index_to_tags(self, tag_list: list['TagAndInfo']):
         for tag in tag_list:
@@ -92,15 +92,16 @@ class TagStateStructure:
             else:
                 tag.key_id = self.tesla_chain.get_key_index(tag.gst_subframe) + 11
 
-    def set_key_index_to_macseq(self, macseq: 'MACSeqObject'):
-        macseq.key_id = self.tesla_chain.get_key_index(macseq.gst) + 1
+    def set_key_index_to_macseq(self, flx_tag_object: 'FLXTagObject'):
+        flx_tag_object.key_id = self.tesla_chain.get_key_index(flx_tag_object.gst) + 1
 
     def verify_maclt(self, mack_message: 'MACKMessage') \
-            -> tuple[list['TagAndInfo'], list['TagAndInfo'], 'MACSeqObject', bool, list[dict | None]]:
+            -> tuple[list['TagAndInfo'], 'FLXTagObject', list[dict | None]]:
 
         tag_list = []
         flex_list = []
         tags_log = []
+        is_flx_tag_missing = False
 
         if self.maclt_dict['sections'] == 1:
             sequence = self.maclt_dict["sequence"]
@@ -114,8 +115,6 @@ class TagStateStructure:
             logger.critical(f"MACLT number {self.maclt_dict['ID']} NOT SUPPORTED. With the new ICD only 1 MACK block"
                             f"per MACK message is supported")
             exit(1)
-
-        is_flx_tag_missing = False
 
         for tag, slot in zip(mack_message.tags, sequence):
             if slot != 'FLX':
@@ -132,8 +131,8 @@ class TagStateStructure:
                     flex_list.append(tag)
             tags_log.append(tag if tag is None else tag.get_json())
 
-        macseq_object = mack_message.get_macseq(flex_list)
-        return tag_list, flex_list, macseq_object, is_flx_tag_missing, tags_log
+        macseq_object = mack_message.get_flx_tag_object(flex_list, is_flx_tag_missing)
+        return tag_list, macseq_object, tags_log
 
     def _update_tags_awaiting_data(self, tag_list: list['TagAndInfo'], flx_list: list['TagAndInfo'], gst_sf: GST):
         """
@@ -168,10 +167,9 @@ class TagStateStructure:
         """
         for tag in tag_list:
             if tag.adkd.uint not in Config.ACTIVE_ADKD:
-                logger.warning(f"ADKD {tag.adkd.uint} is not defined. Tag received from {tag.prn_a} at {tag.gst_subframe}")
+                logger.warning(f"ADKD {tag.adkd.uint} is not defined. Tag received from svid {tag.prn_a.uint} at {tag.gst_subframe}.")
                 continue
-            prn_d = tag.prn_d.uint
-            if prn_d not in range(1, Config.NS+1):
+            if tag.prn_d.uint not in range(1, Config.NS+1):
                 logger.warning(f"Tag {tag} authenticating a PRN_D not implemented.")
                 continue
             self.tags_awaiting_key.append(tag)
@@ -224,14 +222,14 @@ class TagStateStructure:
         self.nav_data_m.check_authenticated_data()
 
     def load_mack_message(self, mack_message: 'MACKMessage') -> list[dict | None]:
-        tag_list, flex_list, macseq, is_flx_tag_missing, tags_log = self.verify_maclt(mack_message)
+        tag_list, flx_tag_object, tags_log = self.verify_maclt(mack_message)
         self.set_key_index_to_tags(tag_list)
-        if macseq and not is_flx_tag_missing:
-            self.set_key_index_to_macseq(macseq)
-            self.macseq_awaiting_key.append(macseq)
+        if flx_tag_object.has_all_data:
+            self.set_key_index_to_macseq(flx_tag_object)
+            self.macseq_awaiting_key.append(flx_tag_object)
         logger.info(f"Non-FLX tags in MACK:\t{tag_list}\n")
-        logger.info(f"FLX tags in MACK:\t{flex_list}\n")
+        logger.info(f"FLX tags in MACK:\t{flx_tag_object.flex_list}\n")
         self._add_tags_waiting_key(tag_list)
         if Config.DO_COP_LINK_OPTIMIZATION:
-            self._update_tags_awaiting_data(tag_list, flex_list, mack_message.gst_sf)
+            self._update_tags_awaiting_data(tag_list, flx_tag_object.flex_list, mack_message.gst_sf)
         return tags_log

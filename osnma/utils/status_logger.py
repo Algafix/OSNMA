@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from osnma.receiver.receiver import OSNMAReceiver
     from osnma.receiver.satellite import Satellite
     from osnma.cryptographic.gst_class import GST
-    from osnma.structures.mack_structures import TagAndInfo, TESLAKey, MACSeqObject
+    from osnma.structures.mack_structures import TagAndInfo, TESLAKey, FLXTagObject
     from osnma.cryptographic.dsm_pkr import DSMPKR
     from osnma.cryptographic.dsm_kroot import DSMKroot
     from io import TextIOWrapper
@@ -165,12 +165,12 @@ class _StatusLogger:
         }
         return tag_dict
 
-    def log_auth_macseq(self, macseq: 'MACSeqObject'):
+    def log_auth_macseq(self, flx_tag_object: 'FLXTagObject'):
         macseq_dict = {
-            'prn_a': macseq.svid.uint,
-            'flex_tags': [tag.get_json() for tag in macseq.flex_list],
-            'verification': macseq.is_verified,
-            'GST': [macseq.gst.wn, macseq.gst.tow],
+            'prn_a': flx_tag_object.svid.uint,
+            'flex_tags': [tag.get_json() for tag in flx_tag_object.flex_list],
+            'verification': flx_tag_object.is_verified,
+            'GST': [flx_tag_object.gst.wn, flx_tag_object.gst.tow],
         }
         self.verified_osnma_material['macseq'].append(macseq_dict)
 
