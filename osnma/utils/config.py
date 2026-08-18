@@ -71,13 +71,18 @@ class _Config:
             raise AttributeError("The 'exec_path' is a mandatory parameter.")
 
         for k, v in param_dict.items():
-            if (attr := k.upper()) in self.__dict__:
+            attr = k.upper()
+
+            # Backwards compatibility
+            if attr == 'TL':
+                attr = 'TS'
+
+            # Casting and update if it exists
+            if attr in self.__dict__:
                 if 'LOG_LEVEL' in attr and isinstance(v, str):
                     v = log_factory.str_to_log_level[v]
                 elif attr.endswith('_PATH'):
                     v = Path(v)
-                elif attr == 'TL':  # Backwards compatible
-                    attr = 'TS'
                 setattr(self, attr, v)
 
         if not param_dict.get('logs_path', False):

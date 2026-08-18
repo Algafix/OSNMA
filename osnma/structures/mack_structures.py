@@ -105,16 +105,28 @@ class TESLAKey:
         return self.index
 
 
-class MACSeqObject:
+class FLXTagObject:
 
-    def __init__(self, gst: GST, svid: BitArray, macseq_value: BitArray, flex_list: list['TagAndInfo'] = None, key_id: int = None):
+    def __init__(self, gst: GST, svid: BitArray):
         self.gst = gst
         self.svid = svid
-        self.macseq_value = macseq_value
-        self.flex_list = flex_list
-        self.key_id = key_id
+        self.macseq_value = None
+        self.flex_list = None
+        self.flex_tag_is_missing = True
+        self.key_id = None
         self.tesla_key: TESLAKey | None = None
         self.is_verified: bool = False
+
+    @property
+    def has_all_data(self):
+        return self.macseq_value is not None and self.flex_tag_is_missing is False
+
+    def set_mac_seq(self, mac_seq: BitArray):
+        self.macseq_value = mac_seq
+
+    def set_flex_tags(self, flex_tags: list['TagAndInfo'], flex_tag_is_missing: bool):
+        self.flex_list = flex_tags
+        self.flex_tag_is_missing = flex_tag_is_missing
 
     def _get_macseq_auth_data(self):
         auth_data = self.svid + self.gst.bitarray
@@ -134,7 +146,8 @@ class MACSeqObject:
         return self.tesla_key is not None
 
     def get_log(self) -> str:
-        return f"PRN_A: {self.svid.uint:02} GST_SF: {self.gst} FLX Tags: {len(self.flex_list)}"
+        return (f"PRN_A: {self.svid.uint:02} GST_SF: {self.gst} "
+                f"FLX Tags: {len(self.flex_list) if self.flex_list else 'Not parsed'}")
 
 
 class TagAndInfo:
@@ -214,6 +227,7 @@ class Tag0AndSeq(TagAndInfo):
         auth_data = self.prn_a + self.gst_subframe.bitarray + BitArray(uint=self.ctr, length=8) + self.nma_status + self.nav_data.nav_data_stream
         return auth_data
 
+
 class MACKMessage:
 
     def __init__(self, gst_sf: GST, chain_id: int, svid: BitArray, nr_tags: int, tags: list[TagAndInfo] = None, tesla_key: TESLAKey = None):
@@ -226,7 +240,7 @@ class MACKMessage:
         self.tags: list[TagAndInfo] = tags if tags else []
 
         self.tag0_and_seq: Tag0AndSeq | None = None
-        self.macseq: MACSeqObject | None = None
+        self.flx_tag_object = FLXTagObject(self.gst_sf, self.svid)
 
     def add_key(self, key: TESLAKey):
         self.tesla_key = key
@@ -241,15 +255,14 @@ class MACKMessage:
     def add_tag0(self, tag0: Tag0AndSeq):
         if self.tag0_and_seq is None:
             self.tag0_and_seq = tag0
-            self.macseq = MACSeqObject(self.gst_sf, self.svid, self.tag0_and_seq.mac_seq)
+            self.flx_tag_object.set_mac_seq(tag0.mac_seq)
             self.add_tag(tag0)
         else:
             raise ValueError(f"Tag0 of this MACKMessage already filled.")
 
-    def get_macseq(self, tag_list: list[TagAndInfo]) -> MACSeqObject:
-        if self.macseq:
-            self.macseq.flex_list = tag_list
-        return self.macseq
+    def get_flx_tag_object(self, tag_list: list[TagAndInfo], flex_tag_is_missing: bool) -> FLXTagObject:
+        self.flx_tag_object.set_flex_tags(tag_list, flex_tag_is_missing)
+        return self.flx_tag_object
 
     def get_key(self) -> TESLAKey:
         return self.tesla_key

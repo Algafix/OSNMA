@@ -93,8 +93,6 @@ class OSNMAReceiver:
         if self.nav_data_input.provides_independent_clock:
             Config.TS = data.independent_clock.total_seconds - data.gst_page.total_seconds
 
-        Config.LAST_GST = data.gst_page
-
         return True
 
     def _filter_page(self, data: 'DataFormat'):
@@ -202,6 +200,9 @@ class OSNMAReceiver:
                 if (gst_sf := self._get_gst_subframe(page.gst_page)) > self.current_gst_subframe:
                     self._end_of_subframe_global()
                     self.current_gst_subframe = gst_sf
+
+                # Update after processing leftovers
+                Config.LAST_GST = page.gst_page
 
                 # Add OSNMA data to satellite
                 satellite = self.satellites[page.svid]
