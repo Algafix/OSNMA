@@ -1,4 +1,4 @@
-bitstring>=4.1.4
+bitstring<5
 ecdsa>=0.18.0
 wrapt>=1.16.0
 six>=1.16.0
@@ -10,4 +10,5 @@ pycryptodome>=3.19.0
 protobuf>=4.25.1
 pyserial>=3.5, < 4.0
 reedsolo~=1.7.0
+ntplib~=0.4.0
 ntplib~=0.4.0
